@@ -21,6 +21,7 @@
       self.nixosModules.base
       self.nixosModules.hostLotusSystem
       self.nixosModules.hostLotusPolicy
+      self.nixosModules.hostLotusServices
       self.nixosModules.userOj
     ];
 
