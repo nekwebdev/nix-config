@@ -1,5 +1,5 @@
 # PRD: Dendritic NixOS + Home Manager Pattern
-Version: `1.1`
+Version: `1.2`
 Status: Active specification
 
 ## 1. Product Definition
@@ -41,6 +41,9 @@ No host/user composition logic lives directly in `flake.nix`.
 3. `nixosModules.userBob`
 4. `nixosModules.hostBare`
 5. `homeModules.userBob`
+6. `homeModules.fishEnv`
+7. `homeModules.aliasRegistry`
+8. `homeModules.aliasesCommon`
 
 ### 5.2 Extensible pattern outputs
 For each scaffolded user `<user>`:
@@ -79,9 +82,7 @@ System-level baseline may include HM-first exceptions only:
 6. root-owned services
 
 Current baseline includes:
-1. GRUB with `devices = [ "nodev" ]`
-2. root filesystem on `tmpfs`
-3. `security.sudo.enable = true`
+1. `security.sudo.enable = true`
 
 ### 6.3 NixOS user module contract (`modules/nixosModules/users/<user>.nix`)
 Each host-declared user module must:
@@ -94,7 +95,10 @@ Each host-declared user module must:
 ### 6.4 Home Manager user module contract (`modules/homeModules/users/<user>.nix`)
 Each HM user module must:
 1. export `flake.homeModules.user<User>`
-2. import shared HM modules explicitly (current baseline: `self.homeModules.fishEnv` from `modules/homeModules/shared/fish-env.nix`)
+2. import shared HM modules explicitly (current baseline:
+   1. `self.homeModules.fishEnv`
+   2. `self.homeModules.aliasRegistry`
+   3. `self.homeModules.aliasesCommon`)
 3. set `home.stateVersion = "25.11"`
 4. set `programs.home-manager.enable = true`
 
@@ -104,10 +108,11 @@ Each host configuration must:
 2. define `flake.nixosModules.host<Host>`
 3. import:
    1. `inputs.home-manager.nixosModules.home-manager`
-   2. `self.nixosModules.base`
-   3. `self.nixosModules.user<User>`
+   2. `inputs.sops-nix.nixosModules.sops`
+   3. `self.nixosModules.base`
+   4. `self.nixosModules.user<User>`
 4. set `networking.hostName = "<host>"`
-5. set `system.stateVersion = "25.11"`
+5. set `system.stateVersion = "25.11"` either directly or via explicitly imported host-local modules in the same host stack
 6. enable HM integration:
    1. `home-manager.useGlobalPkgs = true`
    2. `home-manager.useUserPackages = true`
@@ -116,6 +121,7 @@ Each host configuration must:
 9. set HM defaults:
    1. `home.username = "<user>"` (default)
    2. `home.homeDirectory = "/home/<user>"` (default)
+10. host-specific decomposition is explicit: `configuration.nix` may import sibling host modules (for example `host<Host>System`, `host<Host>Policy`) instead of growing one large file
 
 ### 6.6 Host hardware contract (`modules/nixosModules/hosts/<host>/hardware-configuration.nix`)
 Each host hardware module must set:
@@ -128,14 +134,23 @@ Use `wrappers` only (`wrappers.lib.wrapPackage`):
 3. `jj` wraps `pkgs.jj` or falls back to `pkgs.jujutsu`
 4. `fish-env` is a `pkgs.buildEnv` bundle including common CLI tools plus wrapped `git` and `jj`
 
+### 6.8 Shared Home Manager module contracts (`modules/homeModules/shared/*.nix`)
+1. `fish-env.nix` exports `flake.homeModules.fishEnv` and is responsible for fish enablement + `wrappedPrograms.fish-env` package inclusion.
+2. `aliases.nix` exports `flake.homeModules.aliasRegistry`, defines `my.home.aliases.fragments`, merges aliases into all enabled shells (`bash`, `fish`, `zsh`), and hard-fails on duplicate alias keys.
+3. `aliases-common.nix` exports `flake.homeModules.aliasesCommon` and provides baseline non-package aliases through `my.home.aliases.fragments`.
+
 ## 7. Scaffolding and Naming
 Scaffolding is the standard path for adding new entities:
-1. `just new-user user=<user>` creates:
+1. `just new-user user=<user> [sops_key_path=<path>]` creates:
    1. `modules/nixosModules/users/<user>.nix`
    2. `modules/homeModules/users/<user>.nix`
-2. `just new-host host=<host> user=<user>` creates:
+2. `just new-host host=<host> user=<user> [sops_key_path=<path>]` creates:
    1. `modules/nixosModules/hosts/<host>/configuration.nix`
    2. `modules/nixosModules/hosts/<host>/hardware-configuration.nix`
+3. generated HM user modules import:
+   1. `self.homeModules.fishEnv`
+   2. `self.homeModules.aliasRegistry`
+   3. `self.homeModules.aliasesCommon`
 
 Naming rules:
 1. `<host>` and `<user>` must match `^[a-z][a-z0-9]*$`
@@ -147,8 +162,9 @@ The supported interface is:
 2. `just check`
 3. `just check-vm`
 4. `just switch host=<host>`
-5. `just new-user user=<user>`
-6. `just new-host host=<host> user=<user>`
+5. `just new-user user=<user> [sops_key_path=<path>]`
+6. `just new-host host=<host> user=<user> [sops_key_path=<path>]`
+7. `just sops-user-password user=<user> [secret=<path>] [recipients_file=<path>]`
 
 `justfile` contains routing only. Execution logic lives in `/scripts`.
 
