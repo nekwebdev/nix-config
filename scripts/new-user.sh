@@ -174,8 +174,11 @@ EOF_USER_NIXOS
 
 cat >"${hm_user_file}" <<EOF_USER_HM
 {
+  self,
+  ...
+}: {
   flake.homeModules.user${user_module_name} = {
-    imports = [(import ../../../home/shell/fish-env.nix)];
+    imports = [self.homeModules.fishEnv];
 
     home.stateVersion = "25.11";
     programs.home-manager.enable = true;

@@ -94,7 +94,7 @@ Each host-declared user module must:
 ### 6.4 Home Manager user module contract (`modules/homeModules/users/<user>.nix`)
 Each HM user module must:
 1. export `flake.homeModules.user<User>`
-2. import shared HM modules explicitly (current baseline: `home/shell/fish-env.nix`)
+2. import shared HM modules explicitly (current baseline: `self.homeModules.fishEnv` from `modules/homeModules/shared/fish-env.nix`)
 3. set `home.stateVersion = "25.11"`
 4. set `programs.home-manager.enable = true`
 
