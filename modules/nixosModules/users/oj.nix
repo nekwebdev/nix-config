@@ -14,7 +14,7 @@
         users.users.oj = {
           isNormalUser = true;
           group = "oj";
-          extraGroups = ["wheel"];
+          extraGroups = ["wheel"] ++ lib.optional config.networking.networkmanager.enable "networkmanager";
         };
 
         users.groups.oj = {};
