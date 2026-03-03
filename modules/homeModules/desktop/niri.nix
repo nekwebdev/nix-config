@@ -1,5 +1,5 @@
 {inputs, ...}: {
-  flake.homeModules.userOjNiri = {
+  flake.homeModules.niri = {
     config,
     lib,
     osConfig ? {},

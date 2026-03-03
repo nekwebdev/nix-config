@@ -1,5 +1,5 @@
 {inputs, ...}: {
-  flake.homeModules.userOjDms = {
+  flake.homeModules.dms = {
     lib,
     osConfig ? {},
     pkgs,
@@ -19,13 +19,13 @@
       "wpblur"
     ];
 
-    niriIncludeSourceDir = ./oj/niri/files;
+    niriIncludeSourceDir = ./niri/files;
 
-    dmsSettings = builtins.fromJSON (builtins.readFile ./oj/dms/settings.ref.json);
+    dmsSettings = builtins.fromJSON (builtins.readFile ./dms/settings.ref.json);
 
-    matugenConfigToml = ./oj/dms/matugen/config.toml;
-    matugenStarshipTemplate = ./oj/dms/matugen/templates/starship.toml;
-    matugenBatTemplate = ./oj/dms/matugen/templates/bat.tmTheme;
+    matugenConfigToml = ./dms/matugen/config.toml;
+    matugenStarshipTemplate = ./dms/matugen/templates/starship.toml;
+    matugenBatTemplate = ./dms/matugen/templates/bat.tmTheme;
   in {
     imports = [
       inputs.dms.homeModules.dank-material-shell
