@@ -23,7 +23,11 @@
     ];
 
     networking.hostName = "lotus";
-    system.stateVersion = "24.11";
+    system.stateVersion = "25.11";
+
+    # HM-first exception: bootloader/EFI are host-level boot plumbing.
+    boot.loader.systemd-boot.enable = true;
+    boot.loader.efi.canTouchEfiVariables = true;
 
     home-manager.useGlobalPkgs = true;
     home-manager.useUserPackages = true;

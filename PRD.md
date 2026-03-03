@@ -95,7 +95,7 @@ Each host-declared user module must:
 Each HM user module must:
 1. export `flake.homeModules.user<User>`
 2. import shared HM modules explicitly (current baseline: `home/shell/fish-env.nix`)
-3. set `home.stateVersion = "24.11"`
+3. set `home.stateVersion = "25.11"`
 4. set `programs.home-manager.enable = true`
 
 ### 6.5 Host module contract (`modules/nixosModules/hosts/<host>/configuration.nix`)
@@ -107,7 +107,7 @@ Each host configuration must:
    2. `self.nixosModules.base`
    3. `self.nixosModules.user<User>`
 4. set `networking.hostName = "<host>"`
-5. set `system.stateVersion = "24.11"`
+5. set `system.stateVersion = "25.11"`
 6. enable HM integration:
    1. `home-manager.useGlobalPkgs = true`
    2. `home-manager.useUserPackages = true`

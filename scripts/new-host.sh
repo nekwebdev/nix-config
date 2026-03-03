@@ -79,7 +79,7 @@ cat >"${config_tmp}" <<EOF_HOST_CONFIG
     ];
 
     networking.hostName = "${host}";
-    system.stateVersion = "24.11";
+    system.stateVersion = "25.11";
 
     home-manager.useGlobalPkgs = true;
     home-manager.useUserPackages = true;
