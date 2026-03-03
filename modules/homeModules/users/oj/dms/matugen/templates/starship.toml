@@ -1,0 +1,50 @@
+# Get editor completions based on the config schema
+"$schema" = 'https://starship.rs/config-schema.json'
+
+# Sets user-defined palette
+palette = "dms"
+
+[character]
+success_symbol = "[[󰄛](primary) ❯](tertiary)"
+error_symbol = "[[󰄛](error) ❯](error)"
+vimcmd_symbol = "[󰄛 ❮](secondary)" # For use with zsh-vi-mode
+
+[git_branch]
+style = "bold secondary"
+
+[directory]
+truncation_length = 4
+style = "bold on_primary_container"
+
+[directory.substitutions]
+"~/.config" = "~/"
+
+# palette tables should be last in the config ⚓️
+[palettes.dms]
+primary = "{{colors.primary.default.hex}}"
+on_primary = "{{colors.on_primary.default.hex}}"
+primary_container = "{{colors.primary_container.default.hex}}"
+on_primary_container = "{{colors.on_primary_container.default.hex}}"
+secondary = "{{colors.secondary.default.hex}}"
+on_secondary = "{{colors.on_secondary.default.hex}}"
+secondary_container = "{{colors.secondary_container.default.hex}}"
+on_secondary_container = "{{colors.on_secondary_container.default.hex}}"
+tertiary = "{{colors.tertiary.default.hex}}"
+on_tertiary = "{{colors.on_tertiary.default.hex}}"
+tertiary_container = "{{colors.tertiary_container.default.hex}}"
+on_tertiary_container = "{{colors.on_tertiary_container.default.hex}}"
+error = "{{colors.error.default.hex}}"
+on_error = "{{colors.on_error.default.hex}}"
+error_container = "{{colors.error_container.default.hex}}"
+on_error_container = "{{colors.on_error_container.default.hex}}"
+background = "{{colors.background.default.hex}}"
+on_background = "{{colors.on_background.default.hex}}"
+surface = "{{colors.surface.default.hex}}"
+on_surface = "{{colors.on_surface.default.hex}}"
+surface_variant = "{{colors.surface_variant.default.hex}}"
+on_surface_variant = "{{colors.on_surface_variant.default.hex}}"
+outline = "{{colors.outline.default.hex}}"
+shadow = "{{colors.shadow.default.hex}}"
+inverse_surface = "{{colors.inverse_surface.default.hex}}"
+inverse_on_surface = "{{colors.inverse_on_surface.default.hex}}"
+inverse_primary = "{{colors.inverse_primary.default.hex}}"

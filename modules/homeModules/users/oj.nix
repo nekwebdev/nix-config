@@ -11,11 +11,16 @@
     isLotus = (osConfig.networking.hostName or null) == "lotus";
     homeDirectory = config.home.homeDirectory;
   in {
-    imports = [
-      self.homeModules.fishEnv
-      self.homeModules.aliasRegistry
-      self.homeModules.aliasesCommon
-    ];
+    imports =
+      [
+        self.homeModules.fishEnv
+        self.homeModules.aliasRegistry
+        self.homeModules.aliasesCommon
+      ]
+      ++ lib.optionals isLotus [
+        self.homeModules.userOjNiri
+        self.homeModules.userOjDms
+      ];
 
     assertions = [
       {
