@@ -25,6 +25,16 @@
     networking.hostName = "bare";
     system.stateVersion = "25.11";
 
+    # HM-first exception: bootloader configuration is system-level.
+    boot.loader.grub.enable = true;
+    boot.loader.grub.devices = ["nodev"];
+
+    # HM-first exception: root filesystem declarations are system-level.
+    fileSystems."/" = {
+      device = "none";
+      fsType = "tmpfs";
+    };
+
     home-manager.useGlobalPkgs = true;
     home-manager.useUserPackages = true;
     home-manager.extraSpecialArgs = {
