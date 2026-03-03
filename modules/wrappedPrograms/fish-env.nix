@@ -19,7 +19,6 @@
           pkgs.jq
           pkgs.direnv
           self'.packages.git
-          self'.packages.jj
         ]
         ++ pkgs.lib.optionals (pkgs ? nh) [pkgs.nh];
     };
