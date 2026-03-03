@@ -16,6 +16,7 @@ Minimal dendritic NixOS + Home Manager setup, modeled after the `nixconf` compos
 - `modules/homeModules/*`: exported Home Manager user profiles.
 - `home/*`: shared Home Manager modules imported by user profiles.
 - `modules/wrappedPrograms/*`: per-system wrapped packages.
+- `secrets/*`: encrypted SOPS files (track in git).
 
 ## Commands
 
@@ -23,9 +24,20 @@ Minimal dendritic NixOS + Home Manager setup, modeled after the `nixconf` compos
 just fmt
 just check
 just check-vm
-just switch host=bare
-just new-user user=alice
-just new-host host=laptop user=alice
+just switch host=<host>
+just new-user user=<user>
+just new-user <user>
+just new-user <user> ~/.ssh/id_ed25519
+just new-host host=<host> user=<user>
+just new-host host=<host> user=<user> sops_key_path=~/.ssh/id_ed25519
+just sops-user-password user=<user>
 ```
 
 `just check-vm` is the preferred final validation on this machine because it builds `toplevel` and VM artifacts without switching the running host.
+
+For `<host>`/`<user>` password secrets, see [secrets/README.md](./secrets/README.md).
+
+## Future TODO
+
+- Add a helper script to securely fetch per-user SSH keypairs from Vaultwarden and install them into `~/.ssh` before rebuild/switch.
+- Add a `just help` command that documents all recipes, parameters, and common examples.

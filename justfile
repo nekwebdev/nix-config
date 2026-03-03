@@ -12,8 +12,11 @@ check-vm:
 switch host:
   bash ./scripts/switch.sh "{{host}}"
 
-new-user user:
-  bash ./scripts/new-user.sh "{{user}}"
+new-user user sops_key_path='':
+  SOPS_KEY_PATH="{{sops_key_path}}" bash ./scripts/new-user.sh "{{user}}" "{{sops_key_path}}"
 
-new-host host user='bob':
-  bash ./scripts/new-host.sh "{{host}}" "{{user}}"
+new-host host user='bob' sops_key_path='':
+  bash ./scripts/new-host.sh "{{host}}" "{{user}}" "{{sops_key_path}}"
+
+sops-user-password user='oj' secret='secrets/users.yaml' recipients_file='':
+  bash ./scripts/sops-user-password.sh "{{user}}" "{{secret}}" "{{recipients_file}}"

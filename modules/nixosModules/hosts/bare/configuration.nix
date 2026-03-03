@@ -16,6 +16,7 @@
   in {
     imports = [
       inputs.home-manager.nixosModules.home-manager
+      inputs.sops-nix.nixosModules.sops
 
       self.nixosModules.base
       self.nixosModules.userBob
@@ -37,5 +38,8 @@
       home.username = lib.mkDefault "bob";
       home.homeDirectory = lib.mkDefault "/home/bob";
     };
+
+    # HM-first exception: secret format selection is host-level secret plumbing.
+    sops.defaultSopsFormat = "yaml";
   };
 }
