@@ -1,5 +1,5 @@
 # PRD: Dendritic NixOS + Home Manager Pattern
-Version: `1.2`
+Version: `1.3`
 Status: Active specification
 
 ## 1. Product Definition
@@ -63,7 +63,6 @@ For each scaffolded host `<host>` bound to user `<user>`:
 1. `fish`
 2. `fish-env`
 3. `git`
-4. `jj`
 
 ## 6. Composition Contracts
 ### 6.1 flake-parts module (`modules/flake-parts.nix`)
@@ -131,8 +130,7 @@ Each host hardware module must set:
 Use `wrappers` only (`wrappers.lib.wrapPackage`):
 1. `fish` wraps `pkgs.fish` with runtime init
 2. `git` wraps `pkgs.git`
-3. `jj` wraps `pkgs.jj` or falls back to `pkgs.jujutsu`
-4. `fish-env` is a `pkgs.buildEnv` bundle including common CLI tools plus wrapped `git` and `jj`
+3. `fish-env` is a `pkgs.buildEnv` bundle including common CLI tools plus wrapped `git`
 
 ### 6.8 Shared Home Manager module contracts (`modules/homeModules/shared/*.nix`)
 1. `fish-env.nix` exports `flake.homeModules.fishEnv` and is responsible for fish enablement + `wrappedPrograms.fish-env` package inclusion.
