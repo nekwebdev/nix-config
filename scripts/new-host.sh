@@ -25,9 +25,15 @@ user_module_name="${user^}"
 nixos_user_file="modules/nixosModules/users/${user}.nix"
 hm_user_file="modules/homeModules/users/${user}.nix"
 
-if [[ ! -f "${nixos_user_file}" || ! -f "${hm_user_file}" ]]; then
-  echo "error: user '${user}' is not scaffolded yet" >&2
-  echo "run: just new-user user=${user}" >&2
+if [[ ! -f "${nixos_user_file}" && ! -f "${hm_user_file}" ]]; then
+  script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  echo "user '${user}' not found; scaffolding user first"
+  bash "${script_dir}/new-user.sh" "${user}"
+elif [[ ! -f "${nixos_user_file}" || ! -f "${hm_user_file}" ]]; then
+  echo "error: user '${user}' is in a partial state" >&2
+  echo "expected both files:" >&2
+  echo "  - ${nixos_user_file}" >&2
+  echo "  - ${hm_user_file}" >&2
   exit 1
 fi
 
@@ -42,7 +48,11 @@ fi
 
 mkdir -p "${host_dir}"
 
-cat >"${config_file}" <<EOF_HOST_CONFIG
+config_tmp="$(mktemp)"
+hardware_tmp="$(mktemp)"
+trap 'rm -f "${config_tmp}" "${hardware_tmp}"' EXIT
+
+cat >"${config_tmp}" <<EOF_HOST_CONFIG
 {
   inputs,
   self,
@@ -67,14 +77,14 @@ cat >"${config_file}" <<EOF_HOST_CONFIG
     ];
 
     networking.hostName = "${host}";
-    system.stateVersion = "25.11";
+    system.stateVersion = "24.11";
 
     home-manager.useGlobalPkgs = true;
     home-manager.useUserPackages = true;
     home-manager.extraSpecialArgs = {
       wrappedPrograms = {
-        fish = self.packages.${system}.fish;
-        fish-env = self.packages.${system}.fish-env;
+        fish = self.packages.\${system}.fish;
+        fish-env = self.packages.\${system}.fish-env;
       };
     };
     home-manager.users.${user} = {
@@ -86,13 +96,17 @@ cat >"${config_file}" <<EOF_HOST_CONFIG
 }
 EOF_HOST_CONFIG
 
-cat >"${hardware_file}" <<EOF_HOST_HW
+cat >"${hardware_tmp}" <<EOF_HOST_HW
 {
   flake.nixosModules.host${host_module_name} = {lib, ...}: {
     nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
   };
 }
 EOF_HOST_HW
+
+mv "${config_tmp}" "${config_file}"
+mv "${hardware_tmp}" "${hardware_file}"
+trap - EXIT
 
 echo "created ${config_file}"
 echo "created ${hardware_file}"
