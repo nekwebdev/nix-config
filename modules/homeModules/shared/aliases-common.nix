@@ -31,6 +31,7 @@
 
           tarnow = "tar -acf";
           untar = "tar -zxvf";
+          space = "sudo ncdu -x";
           jctl = "journalctl -p 3 -xb";
         };
       }

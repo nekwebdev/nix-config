@@ -1,5 +1,5 @@
 # PRD: Dendritic NixOS + Home Manager Pattern
-Version: `1.3`
+Version: `1.4`
 Status: Active specification
 
 ## 1. Product Definition
@@ -100,6 +100,7 @@ Each HM user module must:
    3. `self.homeModules.aliasesCommon`)
 3. set `home.stateVersion = "25.11"`
 4. set `programs.home-manager.enable = true`
+5. keep program-level behavior in focused HM modules (for example `userOjBat`, `userOjEza`) and import them explicitly; do not bundle unrelated programs into omnibus modules
 
 ### 6.5 Host module contract (`modules/nixosModules/hosts/<host>/configuration.nix`)
 Each host configuration must:
