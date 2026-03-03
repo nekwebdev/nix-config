@@ -13,6 +13,7 @@
   in {
     imports =
       [
+        self.homeModules.environment
         self.homeModules.fishEnv
         self.homeModules.aliasRegistry
         self.homeModules.aliasesCommon
@@ -23,6 +24,7 @@
         self.homeModules.eza
         self.homeModules.fastfetch
         self.homeModules.fzf
+        self.homeModules.nixMonitor
         self.homeModules.niri
         self.homeModules.dms
         self.homeModules.starship
