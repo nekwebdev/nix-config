@@ -18,6 +18,8 @@
         self.homeModules.aliasesCommon
       ]
       ++ lib.optionals isLotus [
+        self.homeModules.userOjBat
+        self.homeModules.userOjEza
         self.homeModules.userOjNiri
         self.homeModules.userOjDms
       ];
