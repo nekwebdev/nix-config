@@ -19,9 +19,15 @@
       ]
       ++ lib.optionals isLotus [
         self.homeModules.bat
+        self.homeModules.brave
         self.homeModules.eza
+        self.homeModules.fastfetch
+        self.homeModules.fzf
         self.homeModules.niri
         self.homeModules.dms
+        self.homeModules.starship
+        self.homeModules.tlrc
+        self.homeModules.zoxide
       ];
 
     assertions = [
