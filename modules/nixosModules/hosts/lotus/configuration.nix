@@ -27,6 +27,8 @@
       self.nixosModules.hostLotusPortals
       self.nixosModules.hostLotusFlatpak
       self.nixosModules.hostLotusUdev
+      self.nixosModules.hostLotusNiri
+      self.nixosModules.hostLotusDmsGreeter
       self.nixosModules.userOj
     ];
 
