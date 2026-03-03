@@ -3,6 +3,7 @@
     packages.git = inputs.wrappers.lib.wrapPackage {
       inherit pkgs;
       package = pkgs.git;
+      runtimeInputs = [pkgs.diff-so-fancy];
     };
   };
 }

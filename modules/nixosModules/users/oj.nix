@@ -6,6 +6,7 @@
   }: let
     usersSecretFile = ../../../secrets/users.yaml;
     hasUsersSecretFile = builtins.pathExists usersSecretFile;
+    # Keep aligned with secrets/recipients/users/oj.txt line 3 expected key path.
     sopsUserKeyPath = "/home/oj/.ssh/nixos-lotus";
   in {
     config = lib.mkMerge [
