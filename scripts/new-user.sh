@@ -178,7 +178,11 @@ cat >"${hm_user_file}" <<EOF_USER_HM
   ...
 }: {
   flake.homeModules.user${user_module_name} = {
-    imports = [self.homeModules.fishEnv];
+    imports = [
+      self.homeModules.fishEnv
+      self.homeModules.aliasRegistry
+      self.homeModules.aliasesCommon
+    ];
 
     home.stateVersion = "25.11";
     programs.home-manager.enable = true;
