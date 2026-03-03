@@ -31,6 +31,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    nix-monitor.url = "github:antonjah/nix-monitor";
+
     sops-nix = {
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";

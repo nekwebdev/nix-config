@@ -1,5 +1,5 @@
 # PRD: Dendritic NixOS + Home Manager Pattern
-Version: `1.7`
+Version: `1.8`
 Status: Active specification
 
 ## 1. Product Definition
@@ -25,6 +25,7 @@ The flake must define these inputs:
 4. `home-manager` (follows `nixpkgs`)
 5. `wrappers` (follows `nixpkgs`)
 6. `treefmt-nix` (follows `nixpkgs`)
+7. `nix-monitor` (follows `nixpkgs`)
 
 ## 4. Flake Entrypoint
 `flake.nix` remains thin and only:
@@ -44,6 +45,7 @@ No host/user composition logic lives directly in `flake.nix`.
 6. `homeModules.fishEnv`
 7. `homeModules.aliasRegistry`
 8. `homeModules.aliasesCommon`
+9. `homeModules.environment`
 
 ### 5.2 Extensible pattern outputs
 For each scaffolded user `<user>`:
@@ -97,7 +99,8 @@ Each HM user module must:
 2. import shared HM modules explicitly (current baseline:
    1. `self.homeModules.fishEnv`
    2. `self.homeModules.aliasRegistry`
-   3. `self.homeModules.aliasesCommon`)
+   3. `self.homeModules.aliasesCommon`
+   4. `self.homeModules.environment`)
 3. set `home.stateVersion = "25.11"`
 4. set `programs.home-manager.enable = true`
 5. keep program-level behavior in focused reusable HM modules (for example `self.homeModules.bat`, `self.homeModules.eza`) and import them explicitly; do not bundle unrelated programs into omnibus modules
@@ -137,12 +140,13 @@ Use `wrappers` only (`wrappers.lib.wrapPackage`):
 1. `fish-shell.nix` exports `flake.homeModules.fishEnv` and is responsible for fish enablement + `wrappedPrograms.fish-env` package inclusion.
 2. `aliases.nix` exports `flake.homeModules.aliasRegistry`, defines `my.home.aliases.fragments`, merges aliases into all enabled shells (`bash`, `fish`, `zsh`), and hard-fails on duplicate alias keys.
 3. `aliases-common.nix` exports `flake.homeModules.aliasesCommon` and provides baseline non-package aliases through `my.home.aliases.fragments`.
+4. `environment.nix` exports `flake.homeModules.environment` and provides baseline cross-shell session path/variables.
 
 ### 6.9 Reusable Home module naming
 1. Reusable HM modules must be user-agnostic in both filename and exported name.
 2. User-prefixed naming is reserved for user entry modules (`userBob`, `userAlice`, etc.), not reusable program/policy modules.
 3. Reusable HM modules should avoid duplicate basenames to keep tree reorganization non-semantic.
-4. Reusable HM modules should live in category directories (for example `shared/`, `programs/`, `desktop/`) and export neutral names (for example `fishEnv`, `bat`, `eza`, `brave`, `fastfetch`, `fzf`, `starship`, `tlrc`, `zoxide`, `dms`, `niri`).
+4. Reusable HM modules should live in category directories (for example `shared/`, `programs/`, `desktop/`) and export neutral names (for example `fishEnv`, `environment`, `bat`, `eza`, `brave`, `fastfetch`, `fzf`, `nixMonitor`, `starship`, `tlrc`, `zoxide`, `dms`, `niri`).
 
 ## 7. Scaffolding and Naming
 Scaffolding is the standard path for adding new entities:
@@ -156,6 +160,7 @@ Scaffolding is the standard path for adding new entities:
    1. `self.homeModules.fishEnv`
    2. `self.homeModules.aliasRegistry`
    3. `self.homeModules.aliasesCommon`
+   4. `self.homeModules.environment`
 
 Naming rules:
 1. `<host>` and `<user>` must match `^[a-z][a-z0-9]*$`
