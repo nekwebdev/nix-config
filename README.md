@@ -24,6 +24,8 @@ just fmt
 just check
 just check-vm
 just switch host=bare
+just new-user user=alice
+just new-host host=laptop user=alice
 ```
 
 `just check-vm` is the preferred final validation on this machine because it builds `toplevel` and VM artifacts without switching the running host.

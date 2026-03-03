@@ -11,3 +11,9 @@ check-vm:
 
 switch host:
   bash ./scripts/switch.sh "{{host}}"
+
+new-user user:
+  bash ./scripts/new-user.sh "{{user}}"
+
+new-host host user='bob':
+  bash ./scripts/new-host.sh "{{host}}" "{{user}}"

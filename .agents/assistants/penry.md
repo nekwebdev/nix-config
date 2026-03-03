@@ -7,12 +7,15 @@ Specialist agent dossier for **penry**. Use `meet-the-agents` to decide if you s
 See `AGENTS.md` roster. If selected, read this file and follow the guidance.
 
 ## Repo constraints you must respect
-- x86_64-linux only
-- flake-parts + import-tree module auto-import
-- broadcast-and-gate
-- HM-first
-- treefmt-nix (alejandra)
-- justfile calling /scripts
+- x86_64-linux only (flakes/checks)
+- keep `flake.nix` thin (`inputs + mkFlake + import-tree ./modules`)
+- flake-parts + import-tree for module composition/discovery
+- baseline is `bare` + `bob`; extend via `just new-user` and `just new-host` scaffolding
+- host modules explicitly import NixOS modules; user modules explicitly import HM modules
+- Home Manager through NixOS only; HM-first with documented system-level exceptions
+- wrappers only (no `wrapper-modules`)
+- treefmt-nix with alejandra; validate with `just fmt`, `just check`, `just check-vm`
+- justfile is routing-only; implementation logic lives in `/scripts`
 
 ## PRD-specific notes
 - polish wording, naming, and user-facing instructions; keep consistent
