@@ -1,0 +1,22 @@
+# Nix build results
+/result
+/result-*
+
+# direnv
+.direnv/
+
+# Local env files (if you use them for non-tracked overrides)
+.env
+.env.*
+!.env.example
+
+# Editor/OS noise
+*.swp
+*~
+.DS_Store
+Thumbs.db
+
+# Logs / temp
+*.log
+tmp/
+.cache/
