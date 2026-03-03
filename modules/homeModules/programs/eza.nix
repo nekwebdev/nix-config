@@ -1,5 +1,5 @@
 {...}: {
-  flake.homeModules.userOjEza = {
+  flake.homeModules.eza = {
     config,
     lib,
     osConfig ? {},
@@ -33,7 +33,7 @@
 
       my.home.aliases.fragments = [
         {
-          source = "homeModules.users.ojEza";
+          source = "homeModules.programs.eza";
           aliases = ezaAliases;
         }
       ];

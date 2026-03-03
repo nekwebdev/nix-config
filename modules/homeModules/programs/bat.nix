@@ -1,5 +1,5 @@
 {...}: {
-  flake.homeModules.userOjBat = {
+  flake.homeModules.bat = {
     lib,
     osConfig ? {},
     pkgs,
@@ -37,7 +37,7 @@
 
       my.home.aliases.fragments = [
         {
-          source = "homeModules.users.ojBat";
+          source = "homeModules.programs.bat";
           aliases = batAliases;
         }
       ];
