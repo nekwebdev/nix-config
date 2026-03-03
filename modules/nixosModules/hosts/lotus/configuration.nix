@@ -22,6 +22,11 @@
       self.nixosModules.hostLotusSystem
       self.nixosModules.hostLotusPolicy
       self.nixosModules.hostLotusServices
+      self.nixosModules.hostLotusNvidia
+      self.nixosModules.hostLotusGaming
+      self.nixosModules.hostLotusPortals
+      self.nixosModules.hostLotusFlatpak
+      self.nixosModules.hostLotusUdev
       self.nixosModules.userOj
     ];
 
