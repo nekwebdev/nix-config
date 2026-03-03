@@ -3,9 +3,10 @@ set -euo pipefail
 
 host="${1:-}"
 user="${2:-bob}"
+sops_key_path="${3:-}"
 
 if [[ -z "${host}" ]]; then
-  echo "usage: scripts/new-host.sh <host> [user]" >&2
+  echo "usage: scripts/new-host.sh <host> [user] [sops-key-path]" >&2
   exit 1
 fi
 
@@ -28,7 +29,7 @@ hm_user_file="modules/homeModules/users/${user}.nix"
 if [[ ! -f "${nixos_user_file}" && ! -f "${hm_user_file}" ]]; then
   script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
   echo "user '${user}' not found; scaffolding user first"
-  bash "${script_dir}/new-user.sh" "${user}"
+  bash "${script_dir}/new-user.sh" "${user}" "${sops_key_path}"
 elif [[ ! -f "${nixos_user_file}" || ! -f "${hm_user_file}" ]]; then
   echo "error: user '${user}' is in a partial state" >&2
   echo "expected both files:" >&2
@@ -71,6 +72,7 @@ cat >"${config_tmp}" <<EOF_HOST_CONFIG
   in {
     imports = [
       inputs.home-manager.nixosModules.home-manager
+      inputs.sops-nix.nixosModules.sops
 
       self.nixosModules.base
       self.nixosModules.user${user_module_name}
@@ -92,6 +94,9 @@ cat >"${config_tmp}" <<EOF_HOST_CONFIG
       home.username = lib.mkDefault "${user}";
       home.homeDirectory = lib.mkDefault "/home/${user}";
     };
+
+    # HM-first exception: secret format selection is host-level secret plumbing.
+    sops.defaultSopsFormat = "yaml";
   };
 }
 EOF_HOST_CONFIG
