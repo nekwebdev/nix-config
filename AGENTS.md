@@ -10,7 +10,7 @@
 - platform enforcement: flake outputs/checks must target `x86_64-linux` only
 - composition: **flake-parts** is core to the design pattern
 - module loading: **import-tree** recursively loads the `modules/` tree
-- architecture: keep a lean baseline for one host (`bare`) and one user (`bob`)
+- architecture: keep a lean baseline (`bare` host + `bob` user) and extend with scaffolding boilerplate
 - composition model: host module explicitly imports NixOS modules; user module explicitly imports HM modules
 - HM integration: through NixOS only (no standalone HM output path)
 - rule: **HM-first** (if it can be Home Manager, it must be Home Manager)
@@ -26,6 +26,8 @@ just fmt
 just check
 just check-vm
 just switch host=<host>
+just new-user user=<user>
+just new-host host=<host> user=<user>
 ```
 
 ## Agent roster (quick routing)
@@ -45,6 +47,7 @@ just switch host=<host>
 ## Hard rules
 - keep `flake.nix` thin (inputs + `mkFlake` + `import-tree ./modules`)
 - keep module exports in `modules/*` (`flake.nixosModules.*`, `flake.homeModules.*`, `perSystem.packages.*`)
+- add new hosts/users via scaffolding scripts first, then edit generated modules
 - do not reintroduce toggle-file/module-ID/unique-group policy frameworks unless PRD is explicitly updated
 - do not reintroduce standalone HM outputs unless PRD is explicitly updated
 - do not use `wrapper-modules` in this repo unless PRD is explicitly updated
@@ -61,4 +64,4 @@ just switch host=<host>
 
 ## Test expectations
 - any new/changed module must keep evaluation passing under `just check`
-- switch-impacting changes must include `just check-vm` verification notes
+- host or user scaffolding changes must include `just check-vm` verification notes

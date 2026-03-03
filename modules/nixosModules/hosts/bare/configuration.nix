@@ -22,7 +22,7 @@
     ];
 
     networking.hostName = "bare";
-    system.stateVersion = "24.11";
+    system.stateVersion = "25.11";
 
     home-manager.useGlobalPkgs = true;
     home-manager.useUserPackages = true;
