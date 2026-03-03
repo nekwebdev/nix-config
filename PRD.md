@@ -1,5 +1,5 @@
 # PRD: Dendritic NixOS + Home Manager Pattern
-Version: `1.5`
+Version: `1.6`
 Status: Active specification
 
 ## 1. Product Definition
@@ -140,8 +140,9 @@ Use `wrappers` only (`wrappers.lib.wrapPackage`):
 
 ### 6.9 Reusable Home module naming
 1. Reusable HM modules must be user-agnostic in both filename and exported name.
-2. User-prefixed naming is reserved for user entry modules (`userBob`, `userOj`, etc.), not reusable program/policy modules.
+2. User-prefixed naming is reserved for user entry modules (`userBob`, `userAlice`, etc.), not reusable program/policy modules.
 3. Reusable HM modules should avoid duplicate basenames to keep tree reorganization non-semantic.
+4. Reusable HM modules should live in category directories (for example `shared/`, `programs/`, `desktop/`) and export neutral names (for example `fishEnv`, `bat`, `eza`, `dms`, `niri`).
 
 ## 7. Scaffolding and Naming
 Scaffolding is the standard path for adding new entities:

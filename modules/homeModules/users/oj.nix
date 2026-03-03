@@ -20,8 +20,8 @@
       ++ lib.optionals isLotus [
         self.homeModules.bat
         self.homeModules.eza
-        self.homeModules.userOjNiri
-        self.homeModules.userOjDms
+        self.homeModules.niri
+        self.homeModules.dms
       ];
 
     assertions = [
