@@ -42,7 +42,10 @@
       wrappedPrograms = {
         fish = self.packages.${system}.fish;
         fish-env = self.packages.${system}.fish-env;
+        git = self.packages.${system}.git;
       };
+      # Keep aligned with secrets/recipients/users/oj.txt line 3 expected key path.
+      sopsUserSshKeyPath = "/home/oj/.ssh/nixos-lotus";
     };
     home-manager.users.oj = {
       imports = [self.homeModules.userOj];

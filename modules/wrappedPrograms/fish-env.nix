@@ -9,15 +9,23 @@
 
       paths =
         [
+          pkgs.curl
           pkgs.eza
-          pkgs.fzf
+          pkgs.diff-so-fancy
+          pkgs.direnv
           pkgs.fd
-          pkgs.ripgrep
-          pkgs.zoxide
-          pkgs.starship
+          pkgs.fzf
+          pkgs.just
+          pkgs.keychain
+          pkgs.ncdu
           pkgs.bat
           pkgs.jq
-          pkgs.direnv
+          pkgs.ripgrep
+          pkgs.starship
+          pkgs.unzip
+          pkgs.vim
+          pkgs.wget
+          pkgs.zoxide
           self'.packages.git
         ]
         ++ pkgs.lib.optionals (pkgs ? nh) [pkgs.nh];

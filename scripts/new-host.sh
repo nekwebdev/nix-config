@@ -87,6 +87,7 @@ cat >"${config_tmp}" <<EOF_HOST_CONFIG
       wrappedPrograms = {
         fish = self.packages.\${system}.fish;
         fish-env = self.packages.\${system}.fish-env;
+        git = self.packages.\${system}.git;
       };
     };
     home-manager.users.${user} = {

@@ -41,6 +41,7 @@
       wrappedPrograms = {
         fish = self.packages.${system}.fish;
         fish-env = self.packages.${system}.fish-env;
+        git = self.packages.${system}.git;
       };
     };
     home-manager.users.bob = {
