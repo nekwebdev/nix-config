@@ -1,5 +1,5 @@
 # PRD: Dendritic NixOS + Home Manager Pattern
-Version: `1.9`
+Version: `1.10`
 Status: Active specification
 
 ## 1. Product Definition
@@ -140,7 +140,7 @@ Use `wrappers` only (`wrappers.lib.wrapPackage`):
 1. `fish-shell.nix` exports `flake.homeModules.fishEnv` and is responsible for fish enablement + `wrappedPrograms.fish-env` package inclusion.
 2. `aliases.nix` exports `flake.homeModules.aliasRegistry`, defines `my.home.aliases.fragments`, merges aliases into all enabled shells (`bash`, `fish`, `zsh`), and hard-fails on duplicate alias keys.
 3. `aliases-common.nix` exports `flake.homeModules.aliasesCommon` and provides baseline non-package aliases through `my.home.aliases.fragments`.
-4. `environment.nix` exports `flake.homeModules.environment` and provides baseline cross-shell session path/variables.
+4. `environment.nix` exports `flake.homeModules.environment` and provides baseline `xdg.enable`, cross-shell session path, and baseline session variables.
 
 ### 6.9 Reusable Home module naming
 1. Reusable HM modules must be user-agnostic in both filename and exported name.
