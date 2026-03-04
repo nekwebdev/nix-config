@@ -1,16 +1,17 @@
-{inputs, ...}: {
-  flake.homeModules.nixMonitor = {
-    lib,
-    osConfig ? {},
-    ...
-  }: let
-    hostName = osConfig.networking.hostName or null;
-    isLotus = hostName == "lotus";
-    flakeRef = "~/.config/nixos#${hostName}";
-  in {
-    imports = [inputs.nix-monitor.homeManagerModules.default];
+{ inputs, ... }:
+{
+  flake.homeModules.nixMonitor =
+    {
+      osConfig ? { },
+      ...
+    }:
+    let
+      hostName = osConfig.networking.hostName or null;
+      flakeRef = "~/.config/nixos#${hostName}";
+    in
+    {
+      imports = [ inputs.nix-monitor.homeManagerModules.default ];
 
-    config = lib.mkIf isLotus {
       programs.nix-monitor = {
         enable = true;
         generationsCommand = [
@@ -25,5 +26,4 @@
         ];
       };
     };
-  };
 }

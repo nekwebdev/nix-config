@@ -1,12 +1,9 @@
 {inputs, ...}: {
   flake.homeModules.dms = {
     lib,
-    osConfig ? {},
     pkgs,
     ...
   }: let
-    isLotus = (osConfig.networking.hostName or null) == "lotus";
-
     niriIncludeNames = [
       "alttab"
       "binds"
@@ -32,7 +29,7 @@
       inputs.dms-plugin-registry.modules.default
     ];
 
-    config = lib.mkIf isLotus {
+    config = {
       xdg.configFile."dms/config.toml".text = ''
         prompt = "Run"
         terminal = "foot"

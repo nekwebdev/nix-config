@@ -2,14 +2,12 @@
   flake.homeModules.vscode = {
     config,
     lib,
-    osConfig ? {},
     pkgs,
     ...
   }: let
-    isLotus = (osConfig.networking.hostName or null) == "lotus";
     homeDirectory = config.home.homeDirectory;
   in {
-    config = lib.mkIf isLotus {
+    config = {
       programs.vscode = {
         enable = true;
         package = pkgs.vscodium;

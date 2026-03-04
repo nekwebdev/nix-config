@@ -1,14 +1,7 @@
 {...}: {
-  flake.homeModules.userOjLotusPackages = {
-    lib,
-    osConfig ? {},
-    pkgs,
-    ...
-  }: let
-    isLotus = (osConfig.networking.hostName or null) == "lotus";
-  in {
+  flake.homeModules.userOjLotusPackages = {pkgs, ...}: {
     # HM-first: user-scoped packages from legacy lotus config.
-    home.packages = lib.mkIf isLotus [
+    home.packages = [
       pkgs.discord
       pkgs.fira-code
       pkgs.fira-code-symbols
