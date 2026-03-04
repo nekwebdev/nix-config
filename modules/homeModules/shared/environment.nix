@@ -1,5 +1,7 @@
 {...}: {
   flake.homeModules.environment = {config, ...}: {
+    xdg.enable = true;
+
     home.sessionPath = [
       "${config.home.homeDirectory}/.local/bin"
     ];
