@@ -1,16 +1,10 @@
 {...}: {
   flake.homeModules.userOjGit = {
     pkgs,
-    sopsUserSshKeyPath ? null,
+    config,
+    osConfig ? {},
     ...
   }: {
-    assertions = [
-      {
-        assertion = sopsUserSshKeyPath != null;
-        message = "homeModules.userOj requires `home-manager.extraSpecialArgs.sopsUserSshKeyPath` to match the SOPS user key.";
-      }
-    ];
-
     programs.git = {
       enable = true;
       package = pkgs.git;
@@ -18,7 +12,7 @@
         user = {
           name = "nekwebdev";
           email = "nekwebdev@users.noreply.github.com";
-          signingkey = sopsUserSshKeyPath;
+          signingkey = "${config.home.homeDirectory}/.ssh/nixos-${osConfig.networking.hostName}";
         };
         init.defaultBranch = "main";
         gpg.format = "ssh";
