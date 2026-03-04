@@ -24,13 +24,13 @@ Minimal dendritic NixOS + Home Manager setup, modeled after the `nixconf` compos
 just fmt
 just check
 just check-vm
-just switch host=<host>
-just new-user user=<user>
+just switch <host>
+just new-user <user>
 just new-user <user>
 just new-user <user> ~/.ssh/id_ed25519
-just new-host host=<host> user=<user>
-just new-host host=<host> user=<user> sops_key_path=~/.ssh/id_ed25519
-just sops-user-password user=<user>
+just new-host <host> <user>
+just new-host <host> <user> sops_key_path=~/.ssh/id_ed25519
+just sops-user-password <user>
 ```
 
 `just check-vm` is the preferred final validation on this machine because it builds `toplevel` and VM artifacts without switching the running host.
