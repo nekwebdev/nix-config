@@ -2,7 +2,6 @@
   flake.homeModules.userOjGit = {
     pkgs,
     sopsUserSshKeyPath ? null,
-    wrappedPrograms ? {},
     ...
   }: {
     assertions = [
@@ -14,7 +13,7 @@
 
     programs.git = {
       enable = true;
-      package = wrappedPrograms.git or pkgs.git;
+      package = pkgs.git;
       settings = {
         user = {
           name = "nekwebdev";

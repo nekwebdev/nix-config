@@ -1,5 +1,5 @@
 # PRD: Dendritic NixOS + Home Manager Pattern
-Version: `1.13`
+Version: `1.15`
 Status: Active specification
 
 ## 1. Product Definition
@@ -23,7 +23,7 @@ The flake must define these inputs:
 2. `flake-parts`
 3. `import-tree`
 4. `home-manager` (follows `nixpkgs`)
-5. `wrappers` (follows `nixpkgs`)
+5. `wrappers` (optional; follows `nixpkgs`; reserved for future wrapped binaries)
 6. `treefmt-nix` (follows `nixpkgs`)
 7. `nix-monitor` (follows `nixpkgs`)
 
@@ -42,10 +42,11 @@ No host/user composition logic lives directly in `flake.nix`.
 3. `nixosModules.userBob`
 4. `nixosModules.hostBare`
 5. `homeModules.userBob`
-6. `homeModules.fishEnv`
-7. `homeModules.aliasRegistry`
-8. `homeModules.aliasesCommon`
-9. `homeModules.environment`
+6. `homeModules.base`
+7. `homeModules.fish`
+8. `homeModules.aliasRegistry`
+9. `homeModules.aliasesCommon`
+10. `homeModules.environment`
 
 ### 5.2 Extensible pattern outputs
 For each scaffolded user `<user>`:
@@ -60,11 +61,10 @@ For each scaffolded host `<host>` bound to user `<user>`:
 
 `<User>` and `<Host>` follow scaffold naming (`[a-z][a-z0-9]*` input, first letter capitalized for module names).
 
-### 5.3 Per-system wrapped packages
-`perSystem.packages.x86_64-linux` must export:
-1. `fish`
-2. `fish-env`
-3. `git`
+### 5.3 Wrapped package scaffolding (reserved)
+1. `modules/wrappedPrograms/` is reserved for future wrapper modules.
+2. Current baseline does not require wrapper package outputs under `perSystem.packages.x86_64-linux`.
+3. Default behavior should be expressed through explicit Home Manager modules.
 
 ## 6. Composition Contracts
 ### 6.1 flake-parts module (`modules/flake-parts.nix`)
@@ -97,14 +97,16 @@ Each host-declared user module must:
 Each HM user module must:
 1. export `flake.homeModules.user<User>`
 2. import shared HM modules explicitly (current baseline:
-   1. `self.homeModules.fishEnv`
-   2. `self.homeModules.aliasRegistry`
-   3. `self.homeModules.aliasesCommon`
-   4. `self.homeModules.environment`)
+   1. `self.homeModules.base`
+   2. `self.homeModules.fish`
+   3. `self.homeModules.aliasRegistry`
+   4. `self.homeModules.aliasesCommon`
+   5. `self.homeModules.environment`)
 3. set `home.stateVersion = "25.11"`
 4. set `programs.home-manager.enable = true`
-5. keep program-level behavior in focused reusable HM modules (for example `self.homeModules.bat`, `self.homeModules.eza`) and import them explicitly; do not bundle unrelated programs into omnibus modules
-6. user entry modules may decompose into per-feature user-scoped modules (for example exports like `self.homeModules.userOjGit`) when those modules remain strictly user-specific
+5. keep program-level behavior in focused reusable HM modules (for example `self.homeModules.bat`, `self.homeModules.eza`) and import them explicitly
+6. `self.homeModules.base` is the allowed shared bundle for user-level must-have packages that do not require program-specific configuration
+7. user entry modules may decompose into per-feature user-scoped modules (for example exports like `self.homeModules.userOjGit`) when those modules remain strictly user-specific
 
 ### 6.5 Host module contract (`modules/nixosModules/hosts/<host>/configuration.nix`)
 Each host configuration must:
@@ -120,7 +122,7 @@ Each host configuration must:
 6. enable HM integration:
    1. `home-manager.useGlobalPkgs = true`
    2. `home-manager.useUserPackages = true`
-7. pass wrapped packages via `home-manager.extraSpecialArgs.wrappedPrograms`
+7. pass only explicitly required HM args through `home-manager.extraSpecialArgs` (for example `sopsUserSshKeyPath`); do not inject wrapper bundles by default
 8. set `home-manager.users.<user>.imports = [ self.homeModules.user<User> ]`
 9. set HM defaults:
    1. `home.username = "<user>"` (default)
@@ -131,23 +133,24 @@ Each host configuration must:
 Each host hardware module must set:
 1. `nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux"`
 
-### 6.7 Wrapped programs contract (`modules/wrappedPrograms/*.nix`)
-Use `wrappers` only (`wrappers.lib.wrapPackage`):
-1. `fish` wraps `pkgs.fish` with runtime init
-2. `git` wraps `pkgs.git`
-3. `fish-env` is a `pkgs.buildEnv` bundle including common CLI tools plus wrapped `git`
+### 6.7 Wrapped programs policy (`modules/wrappedPrograms/`)
+1. Wrapped programs are optional and are not part of baseline feature parity.
+2. Module-first policy applies: if a program can be expressed through Home Manager modules, it must be.
+3. If a wrapper is reintroduced, it must use `wrappers.lib.wrapPackage` with an explicit rationale.
+4. Do not reintroduce bundled tool environments (for example `fish-env`).
 
 ### 6.8 Shared Home Manager module contracts (`modules/homeModules/shared/*.nix`)
-1. `fish-shell.nix` exports `flake.homeModules.fishEnv` and is responsible for fish enablement + `wrappedPrograms.fish-env` package inclusion.
-2. `aliases.nix` exports `flake.homeModules.aliasRegistry`, defines `my.home.aliases.fragments`, merges aliases into all enabled shells (`bash`, `fish`, `zsh`), and hard-fails on duplicate alias keys.
-3. `aliases-common.nix` exports `flake.homeModules.aliasesCommon` and provides baseline non-package aliases through `my.home.aliases.fragments`.
-4. `environment.nix` exports `flake.homeModules.environment` and provides baseline `xdg.enable`, cross-shell session path, and baseline session variables.
+1. `base.nix` exports `flake.homeModules.base` and provides shared must-have user packages that require no program-specific configuration.
+2. `programs/fish.nix` exports `flake.homeModules.fish` and is responsible for fish enablement + fish shell behavior only.
+3. `aliases.nix` exports `flake.homeModules.aliasRegistry`, defines `my.home.aliases.fragments`, merges aliases into all enabled shells (`bash`, `fish`, `zsh`), and hard-fails on duplicate alias keys.
+4. `aliases-common.nix` exports `flake.homeModules.aliasesCommon` and provides baseline non-package aliases through `my.home.aliases.fragments`.
+5. `environment.nix` exports `flake.homeModules.environment` and provides baseline `xdg.enable`, cross-shell session path, and baseline session variables.
 
 ### 6.9 Reusable Home module naming
 1. Reusable HM modules must be user-agnostic in both filename and exported name.
 2. User-prefixed naming is reserved for user-scoped modules (`userBob`, `userOjGit`, etc.), not reusable program/policy modules.
 3. Reusable HM modules should avoid duplicate basenames to keep tree reorganization non-semantic.
-4. Reusable HM modules should live in category directories (for example `shared/`, `programs/`, `desktop/`) and export neutral names (for example `fishEnv`, `environment`, `bat`, `eza`, `brave`, `fastfetch`, `fzf`, `ghostty`, `mangohud`, `nixMonitor`, `starship`, `tlrc`, `vscode`, `zedEditor`, `zoxide`, `dms`, `niri`).
+4. Reusable HM modules should live in category directories (for example `shared/`, `programs/`, `desktop/`) and export neutral names (for example `base`, `fish`, `environment`, `bat`, `eza`, `brave`, `fastfetch`, `fzf`, `ghostty`, `mangohud`, `nixMonitor`, `starship`, `tlrc`, `vscode`, `zedEditor`, `zoxide`, `dms`, `niri`).
 5. User-scoped helper modules under `modules/homeModules/users/<user>/` are allowed when they remain strictly user-specific.
 
 ## 7. Scaffolding and Naming
@@ -159,10 +162,11 @@ Scaffolding is the standard path for adding new entities:
    1. `modules/nixosModules/hosts/<host>/configuration.nix`
    2. `modules/nixosModules/hosts/<host>/hardware-configuration.nix`
 3. generated HM user modules import:
-   1. `self.homeModules.fishEnv`
-   2. `self.homeModules.aliasRegistry`
-   3. `self.homeModules.aliasesCommon`
-   4. `self.homeModules.environment`
+   1. `self.homeModules.base`
+   2. `self.homeModules.fish`
+   3. `self.homeModules.aliasRegistry`
+   4. `self.homeModules.aliasesCommon`
+   5. `self.homeModules.environment`
 
 Naming rules:
 1. `<host>` and `<user>` must match `^[a-z][a-z0-9]*$`
@@ -205,7 +209,7 @@ Required validation flow before merge:
 2. Baseline `nixosConfigurations.bare` evaluates successfully.
 3. Home Manager functions through NixOS integration only.
 4. Host-declared users are normal users and include `wheel`.
-5. Wrapped packages are built from `wrappers` only.
+5. Program and tool behavior is modeled through explicit Home Manager modules (module-first), with wrappers reserved for exceptional future cases.
 6. Scaffolding commands generate PRD-compliant module boilerplate without manual flake wiring.
 7. `just check` passes.
 8. `just check-vm` passes without switching the live system.

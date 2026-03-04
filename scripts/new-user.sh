@@ -179,8 +179,9 @@ cat >"${hm_user_file}" <<EOF_USER_HM
 }: {
   flake.homeModules.user${user_module_name} = {
     imports = [
+      self.homeModules.base
       self.homeModules.environment
-      self.homeModules.fishEnv
+      self.homeModules.fish
       self.homeModules.aliasRegistry
       self.homeModules.aliasesCommon
     ];

@@ -7,13 +7,7 @@
     modules = [self.nixosModules.hostLotus];
   };
 
-  flake.nixosModules.hostLotus = {
-    lib,
-    pkgs,
-    ...
-  }: let
-    system = pkgs.stdenv.hostPlatform.system;
-  in {
+  flake.nixosModules.hostLotus = {lib, ...}: {
     imports = [
       inputs.home-manager.nixosModules.home-manager
       inputs.sops-nix.nixosModules.sops
@@ -41,11 +35,6 @@
     home-manager.useGlobalPkgs = true;
     home-manager.useUserPackages = true;
     home-manager.extraSpecialArgs = {
-      wrappedPrograms = {
-        fish = self.packages.${system}.fish;
-        fish-env = self.packages.${system}.fish-env;
-        git = self.packages.${system}.git;
-      };
       # Keep aligned with secrets/recipients/users/oj.txt line 3 expected key path.
       sopsUserSshKeyPath = "/home/oj/.ssh/nixos-lotus";
     };
