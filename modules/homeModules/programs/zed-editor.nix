@@ -5,6 +5,9 @@
       extraPackages = with pkgs; [
         nil
         nixd
+        just
+        toml
+        git-firefly
       ];
     };
   };

@@ -1,11 +1,11 @@
-# nixos-v3 Bare Configuration
+# nixos Configuration
 
-Minimal dendritic NixOS + Home Manager setup, modeled after the `nixconf` composition style:
+Minimal dendritic NixOS + Home Manager setup:
 
 - `flake.nix` stays thin: `mkFlake + import-tree ./modules`.
 - everything under `modules/` is a flake-parts module.
 - host modules explicitly import the NixOS modules they want.
-- user modules explicitly import the HM modules they want.
+- user modules explicitly import the Home Manager modules they want.
 - Home Manager is integrated through NixOS only.
 - wrapped programs use `wrappers` only.
 
@@ -14,7 +14,6 @@ Minimal dendritic NixOS + Home Manager setup, modeled after the `nixconf` compos
 - `modules/flake-parts.nix`: shared flake-parts settings (`systems`, treefmt).
 - `modules/nixosModules/*`: exported NixOS modules and hosts.
 - `modules/homeModules/*`: exported Home Manager user profiles.
-- `home/*`: shared Home Manager modules imported by user profiles.
 - `modules/wrappedPrograms/*`: per-system wrapped packages.
 - `secrets/*`: encrypted SOPS files (track in git).
 
@@ -33,7 +32,7 @@ just new-host <host> <user> sops_key_path=~/.ssh/id_ed25519
 just sops-user-password <user>
 ```
 
-`just check-vm` is the preferred final validation on this machine because it builds `toplevel` and VM artifacts without switching the running host.
+`just check-vm` is the preferred final validation on a 3rd party machine because it builds `toplevel` and VM artifacts without switching the running host.
 
 For `<host>`/`<user>` password secrets, see [secrets/README.md](./secrets/README.md).
 
