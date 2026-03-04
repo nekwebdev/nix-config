@@ -1,13 +1,6 @@
 {...}: {
-  flake.homeModules.userOjLotusAppearance = {
-    lib,
-    osConfig ? {},
-    pkgs,
-    ...
-  }: let
-    isLotus = (osConfig.networking.hostName or null) == "lotus";
-  in {
-    gtk = lib.mkIf isLotus {
+  flake.homeModules.userOjLotusAppearance = {pkgs, ...}: {
+    gtk = {
       enable = true;
       theme = {
         name = "adw-gtk3";
@@ -15,13 +8,13 @@
       };
     };
 
-    xdg.configFile."gtk-4.0/gtk.css" = lib.mkIf isLotus {
+    xdg.configFile."gtk-4.0/gtk.css" = {
       source = pkgs.writeText "gtk-4.0-gtk.css" ''
         @import url("dank-colors.css");
       '';
     };
 
-    home.pointerCursor = lib.mkIf isLotus {
+    home.pointerCursor = {
       name = "Adwaita";
       package = pkgs.adwaita-icon-theme;
       size = 14;

@@ -2,12 +2,9 @@
   flake.homeModules.niri = {
     config,
     lib,
-    osConfig ? {},
     pkgs,
     ...
   }: let
-    isLotus = (osConfig.networking.hostName or null) == "lotus";
-
     niriBinds = {
       "Mod+Space" = {
         hotkey-overlay.title = "Application Launcher";
@@ -343,7 +340,7 @@
   in {
     imports = [inputs.dms.homeModules.niri];
 
-    config = lib.mkIf isLotus {
+    config = {
       home.packages =
         (lib.optionals (pkgs ? niri) [pkgs.niri])
         ++ [
