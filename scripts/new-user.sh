@@ -3,7 +3,7 @@ set -euo pipefail
 
 usage() {
   cat >&2 <<'EOF'
-usage: scripts/new-user.sh <user> [sops-key-path]
+usage: just new-user user=<user> [sops_key_path=<path>]
 
 Environment overrides:
   SOPS_KEY_PATH    Existing SSH key path (private key path or public key path).
@@ -206,6 +206,6 @@ echo "created ${recipient_file}"
 echo "important: copy private key to target host at ${target_key_path} before rebuild/switch"
 
 echo "bootstrapping password secret for ${user}"
-bash "${script_dir}/sops-user-password.sh" "${user}" "secrets/users.yaml" "${recipient_file}"
+bash "${script_dir}/sops-user-password.sh" "${user}" "${recipient_file}"
 
 echo "if secrets/users.yaml was created or updated, add it to git"

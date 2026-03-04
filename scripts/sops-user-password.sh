@@ -1,9 +1,26 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-user="${1:-oj}"
-secret_file="${2:-secrets/users.yaml}"
-recipients_file="${3:-}"
+usage() {
+  cat >&2 <<'EOF'
+usage: just sops-user-password user=<user> [recipients_file=<path>]
+EOF
+}
+
+user="${1:-}"
+recipients_file="${2:-}"
+secret_file="secrets/users.yaml"
+
+if [[ -z "${user}" ]]; then
+  usage
+  exit 1
+fi
+
+if [[ $# -gt 2 ]]; then
+  echo "error: too many arguments" >&2
+  usage
+  exit 1
+fi
 
 if [[ -z "${recipients_file}" ]]; then
   recipients_file="secrets/recipients/users/${user}.txt"
@@ -57,7 +74,7 @@ fi
 if [[ ${#recipients[@]} -eq 0 ]]; then
   cat >&2 <<EOF
 error: no SOPS recipients found
-hint: set SOPS_AGE_RECIPIENTS, or provide ${recipients_file}
+hint: set SOPS_AGE_RECIPIENTS, or run: just sops-user-password user=${user} recipients_file=<path>
 EOF
   exit 1
 fi
@@ -98,4 +115,4 @@ sops --encrypt --age "${sops_recipients_csv}" --input-type yaml --output-type ya
 echo "wrote ${secret_file}"
 echo "secret key path: users/${user}-password"
 echo "recipient count: ${#recipients[@]}"
-echo "if this file is new, add it to git so flake evaluation can see it"
+echo "if secrets/users.yaml is new, add it to git so flake evaluation can see it"
