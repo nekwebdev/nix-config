@@ -1,5 +1,5 @@
 # PRD: Dendritic NixOS + Home Manager Pattern
-Version: `1.10`
+Version: `1.12`
 Status: Active specification
 
 ## 1. Product Definition
@@ -104,6 +104,7 @@ Each HM user module must:
 3. set `home.stateVersion = "25.11"`
 4. set `programs.home-manager.enable = true`
 5. keep program-level behavior in focused reusable HM modules (for example `self.homeModules.bat`, `self.homeModules.eza`) and import them explicitly; do not bundle unrelated programs into omnibus modules
+6. user entry modules may decompose into per-feature user-scoped modules (for example exports like `self.homeModules.userOjGit`) when those modules remain strictly user-specific
 
 ### 6.5 Host module contract (`modules/nixosModules/hosts/<host>/configuration.nix`)
 Each host configuration must:
@@ -144,9 +145,10 @@ Use `wrappers` only (`wrappers.lib.wrapPackage`):
 
 ### 6.9 Reusable Home module naming
 1. Reusable HM modules must be user-agnostic in both filename and exported name.
-2. User-prefixed naming is reserved for user entry modules (`userBob`, `userAlice`, etc.), not reusable program/policy modules.
+2. User-prefixed naming is reserved for user-scoped modules (`userBob`, `userOjGit`, etc.), not reusable program/policy modules.
 3. Reusable HM modules should avoid duplicate basenames to keep tree reorganization non-semantic.
 4. Reusable HM modules should live in category directories (for example `shared/`, `programs/`, `desktop/`) and export neutral names (for example `fishEnv`, `environment`, `bat`, `eza`, `brave`, `fastfetch`, `fzf`, `ghostty`, `mangohud`, `nixMonitor`, `starship`, `tlrc`, `vscode`, `zedEditor`, `zoxide`, `dms`, `niri`).
+5. User-scoped helper modules under `modules/homeModules/users/<user>/` are allowed when they remain strictly user-specific.
 
 ## 7. Scaffolding and Naming
 Scaffolding is the standard path for adding new entities:
