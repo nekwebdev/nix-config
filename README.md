@@ -14,6 +14,7 @@ Minimal dendritic NixOS + Home Manager setup:
 - `modules/flake-parts.nix`: shared flake-parts settings (`systems`, treefmt).
 - `modules/nixosModules/*`: exported NixOS modules and hosts.
 - `modules/homeModules/*`: exported Home Manager user profiles.
+- `configs/*`: repo-tracked app/runtime config sources synced to `~/.config/*` by module activation helpers.
 - `modules/wrappedPrograms/*`: per-system wrapped packages.
 - `secrets/*`: encrypted SOPS files (track in git).
 

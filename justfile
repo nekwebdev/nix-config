@@ -12,9 +12,17 @@ check-vm:
     @echo "==> Running VM checks"
     @bash ./scripts/check-vm.sh
 
+update:
+    @echo "==> Updating flake inputs"
+    @bash ./scripts/update.sh
+
 switch host='':
     @echo "==> Switching configuration"
     @bash ./scripts/switch.sh "{{ host }}"
+
+config-update:
+    @echo "==> Syncing runtime desktop config back to repo"
+    @bash ./scripts/config-update.sh
 
 new-user user sops_key_path='':
     @echo "==> Creating user scaffold: {{ user }}"

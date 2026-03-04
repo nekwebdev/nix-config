@@ -4,10 +4,20 @@
     lib,
     pkgs,
     ...
-  }: {
+  }: let
+    runtimeConfigHelper = ../../../scripts/runtime-config-helper.sh;
+    niriIncludeSource = ../../../configs/niri;
+    niriIncludeNames = lib.sort builtins.lessThan (
+      lib.attrNames (lib.filterAttrs (_: fileType: fileType == "regular") (builtins.readDir niriIncludeSource))
+    );
+  in {
     imports = [inputs.dms.homeModules.niri];
 
     config = {
+      home.activation.niriRuntimeConfigs = lib.hm.dag.entryAfter ["writeBoundary"] ''
+        $DRY_RUN_CMD ${pkgs.bash}/bin/bash ${runtimeConfigHelper} seed niri
+      '';
+
       home.packages =
         (lib.optionals (pkgs ? niri) [pkgs.niri])
         ++ [
@@ -21,6 +31,17 @@
 
       home.sessionVariables = {
         NIRI_CONFIG = "${config.xdg.configHome}/niri/config.kdl";
+      };
+
+      programs.dank-material-shell.niri = {
+        enableSpawn = true;
+        enableKeybinds = false;
+        includes = {
+          enable = true;
+          override = true;
+          originalFileName = "hm";
+          filesToInclude = niriIncludeNames;
+        };
       };
 
       programs.niri.settings = {
