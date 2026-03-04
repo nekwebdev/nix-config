@@ -14,8 +14,9 @@
         self.homeModules.userOjLotusSession
         self.homeModules.userOjLotusAppearance
 
+        self.homeModules.base
         self.homeModules.environment
-        self.homeModules.fishEnv
+        self.homeModules.fish
         self.homeModules.aliasRegistry
         self.homeModules.aliasesCommon
       ]

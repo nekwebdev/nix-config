@@ -1,8 +1,9 @@
 {self, ...}: {
   flake.homeModules.userBob = {
     imports = [
+      self.homeModules.base
       self.homeModules.environment
-      self.homeModules.fishEnv
+      self.homeModules.fish
       self.homeModules.aliasRegistry
       self.homeModules.aliasesCommon
     ];

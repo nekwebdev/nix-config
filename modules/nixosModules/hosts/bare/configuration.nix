@@ -7,13 +7,7 @@
     modules = [self.nixosModules.hostBare];
   };
 
-  flake.nixosModules.hostBare = {
-    lib,
-    pkgs,
-    ...
-  }: let
-    system = pkgs.stdenv.hostPlatform.system;
-  in {
+  flake.nixosModules.hostBare = {lib, ...}: {
     imports = [
       inputs.home-manager.nixosModules.home-manager
       inputs.sops-nix.nixosModules.sops
@@ -37,13 +31,6 @@
 
     home-manager.useGlobalPkgs = true;
     home-manager.useUserPackages = true;
-    home-manager.extraSpecialArgs = {
-      wrappedPrograms = {
-        fish = self.packages.${system}.fish;
-        fish-env = self.packages.${system}.fish-env;
-        git = self.packages.${system}.git;
-      };
-    };
     home-manager.users.bob = {
       imports = [self.homeModules.userBob];
       home.username = lib.mkDefault "bob";

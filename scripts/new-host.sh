@@ -77,11 +77,8 @@ cat >"${config_tmp}" <<EOF_HOST_CONFIG
 
   flake.nixosModules.host${host_module_name} = {
     lib,
-    pkgs,
     ...
-  }: let
-    system = pkgs.stdenv.hostPlatform.system;
-  in {
+  }: {
     imports = [
       inputs.home-manager.nixosModules.home-manager
       inputs.sops-nix.nixosModules.sops
@@ -95,13 +92,6 @@ cat >"${config_tmp}" <<EOF_HOST_CONFIG
 
     home-manager.useGlobalPkgs = true;
     home-manager.useUserPackages = true;
-    home-manager.extraSpecialArgs = {
-      wrappedPrograms = {
-        fish = self.packages.\${system}.fish;
-        fish-env = self.packages.\${system}.fish-env;
-        git = self.packages.\${system}.git;
-      };
-    };
     home-manager.users.${user} = {
       imports = [self.homeModules.user${user_module_name}];
       home.username = lib.mkDefault "${user}";

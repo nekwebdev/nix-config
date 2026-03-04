@@ -13,7 +13,7 @@ See `AGENTS.md` roster. If selected, read this file and follow the guidance.
 - baseline is `bare` + `bob`; extend via `just new-user` and `just new-host` scaffolding
 - host modules explicitly import NixOS modules; user modules explicitly import HM modules
 - Home Manager through NixOS only; HM-first with documented system-level exceptions
-- wrappers only (no `wrapper-modules`)
+- module-first for HM programs; wrappers are optional and reserved for explicit exceptions (no `wrapper-modules`)
 - treefmt-nix with alejandra; validate with `just fmt`, `just check`, `just check-vm`
 - justfile is routing-only; implementation logic lives in `/scripts`
 
