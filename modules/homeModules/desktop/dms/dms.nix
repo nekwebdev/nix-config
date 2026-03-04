@@ -16,7 +16,7 @@
       "wpblur"
     ];
 
-    niriIncludeSourceDir = ../niri/files;
+    niriIncludeSourceRel = "modules/homeModules/desktop/niri/config";
 
     matugenConfigToml = ./matugen/config.toml;
     matugenStarshipTemplate = ./matugen/templates/starship.toml;
@@ -153,34 +153,76 @@
         ${pkgs.coreutils}/bin/install -m 0644 ${matugenStarshipTemplate} "$template_dir/starship.toml"
       '';
 
-      home.activation.dmsSetupNiriIncludes = lib.hm.dag.entryAfter ["writeBoundary"] ''
+      home.activation.dmsSetupNiriIncludes = lib.hm.dag.entryAfter ["dmsRuntimeConfigs"] ''
         dms_dir="$HOME/.config/niri/dms"
-        source_dir="${niriIncludeSourceDir}"
-        $DRY_RUN_CMD mkdir -p "$dms_dir"
+        repo_settings_rel="modules/homeModules/desktop/dms/settings.json"
+        source_dir_rel="${niriIncludeSourceRel}"
+        settings_target="$HOME/.config/DankMaterialShell/settings.json"
 
-        copy_include_if_missing() {
-          name="$1"
-          source_file="$source_dir/$name.kdl"
-          target_file="$dms_dir/$name.kdl"
+        find_repo_root() {
+          local current abs_current candidate_root candidate
 
-          if [ -e "$target_file" ]; then
-            return 0
+          if [ -L "$settings_target" ]; then
+            current="$(${pkgs.coreutils}/bin/readlink "$settings_target")"
+            case "$current" in
+              /nix/store/*)
+                ;;
+              *)
+                if [[ "$current" = /* ]]; then
+                  abs_current="$current"
+                else
+                  abs_current="$(${pkgs.coreutils}/bin/realpath -m "$HOME/.config/DankMaterialShell/$current")"
+                fi
+
+                case "$abs_current" in
+                  */$repo_settings_rel)
+                    candidate_root="''${abs_current%/$repo_settings_rel}"
+                    if [ -f "$candidate_root/flake.nix" ]; then
+                      echo "$candidate_root"
+                      return 0
+                    fi
+                    ;;
+                esac
+                ;;
+            esac
           fi
 
-          if [ ! -f "$source_file" ]; then
-            echo "warning: missing source include template: $source_file" >&2
-            return 0
-          fi
+          while IFS= read -r candidate; do
+            candidate_root="''${candidate%/$repo_settings_rel}"
+            if [ -f "$candidate_root/flake.nix" ]; then
+              echo "$candidate_root"
+              return 0
+            fi
+          done < <(${pkgs.findutils}/bin/find "$HOME" -maxdepth 8 -type f -path "*/$repo_settings_rel" 2>/dev/null)
 
-          echo "Copying default Niri include: $name.kdl"
-          if ! $DRY_RUN_CMD ${pkgs.coreutils}/bin/install -m 0644 "$source_file" "$target_file"; then
-            echo "warning: failed to copy include template for $name" >&2
-          fi
+          return 1
         }
 
-        for include_name in ${lib.escapeShellArgs niriIncludeNames}; do
-          copy_include_if_missing "$include_name"
-        done
+        repo_root="$(find_repo_root || true)"
+        if [ -z "$repo_root" ]; then
+          echo "error: unable to locate nixos repo root for DMS niri include symlinks" >&2
+          exit 1
+        fi
+
+        source_dir="$repo_root/$source_dir_rel"
+        if [ ! -d "$source_dir" ]; then
+          echo "error: missing Niri include source directory: $source_dir" >&2
+          exit 1
+        fi
+
+        $DRY_RUN_CMD ${pkgs.coreutils}/bin/mkdir -p "$dms_dir"
+
+        while IFS= read -r source_file; do
+          file_name="''${source_file##*/}"
+          target_file="$dms_dir/$file_name"
+
+          if [ -e "$target_file" ] && [ ! -L "$target_file" ]; then
+            echo "error: refusing to replace non-symlink $target_file; migrate/remove it manually" >&2
+            exit 1
+          fi
+
+          $DRY_RUN_CMD ${pkgs.coreutils}/bin/ln -sfn "$source_file" "$target_file"
+        done < <(${pkgs.findutils}/bin/find "$source_dir" -maxdepth 1 -type f -print)
       '';
     };
   };
