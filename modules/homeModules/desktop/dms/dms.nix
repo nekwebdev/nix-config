@@ -216,6 +216,20 @@
           file_name="''${source_file##*/}"
           target_file="$dms_dir/$file_name"
 
+          if [ "$file_name" = "colors.kdl" ]; then
+            # Keep colors local and writable so runtime theming changes are not repo-tracked.
+            if [ -L "$target_file" ]; then
+              $DRY_RUN_CMD ${pkgs.coreutils}/bin/rm -f "$target_file"
+            fi
+
+            if [ -e "$target_file" ]; then
+              continue
+            fi
+
+            $DRY_RUN_CMD ${pkgs.coreutils}/bin/install -m 0644 "$source_file" "$target_file"
+            continue
+          fi
+
           if [ -e "$target_file" ] && [ ! -L "$target_file" ]; then
             echo "error: refusing to replace non-symlink $target_file; migrate/remove it manually" >&2
             exit 1
