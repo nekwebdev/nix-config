@@ -44,7 +44,7 @@
     home-manager.useUserPackages = true;
     home-manager.extraSpecialArgs = {
       # Keep aligned with secrets/recipients/users/oj.txt line 3 expected key path.
-      sopsUserSshKeyPath = "/home/oj/.ssh/nixos-lotus";
+      sopsUserSshKeyPath = "/home/oj/.ssh/nixos-lotus-sops";
     };
     home-manager.users.oj = {
       imports = [self.homeModules.userOj];
