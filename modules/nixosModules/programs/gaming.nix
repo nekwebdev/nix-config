@@ -1,5 +1,5 @@
 {
-  flake.nixosModules.hostLotusGaming = {pkgs, ...}: {
+  flake.nixosModules.gaming = {pkgs, ...}: {
     # HM-first exception: Steam setup touches multiarch/runtime host integration.
     programs.steam = {
       enable = true;

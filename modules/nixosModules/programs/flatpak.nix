@@ -1,5 +1,5 @@
 {
-  flake.nixosModules.hostLotusFlatpak = {
+  flake.nixosModules.flatpak = {
     lib,
     pkgs,
     ...
