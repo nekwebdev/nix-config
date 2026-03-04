@@ -6,8 +6,8 @@
   }: let
     usersSecretFile = ../../../secrets/users.yaml;
     hasUsersSecretFile = builtins.pathExists usersSecretFile;
-    # Keep aligned with secrets/recipients/users/oj.txt line 3 expected key path.
-    sopsUserKeyPath = "/home/oj/.ssh/nixos-lotus-sops";
+    # Keep aligned with secrets/recipients/users/oj.txt expected key path.
+    sopsAgeKeyFile = "/home/oj/.config/sops/age/keys.txt";
   in {
     config = lib.mkMerge [
       {
@@ -21,7 +21,7 @@
         users.groups.oj = {};
 
         # HM-first exception: SOPS decryption key location is host-level secret plumbing.
-        sops.age.sshKeyPaths = lib.mkAfter [sopsUserKeyPath];
+        sops.age.keyFile = sopsAgeKeyFile;
       }
 
       (lib.mkIf hasUsersSecretFile {

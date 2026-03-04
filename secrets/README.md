@@ -10,9 +10,9 @@ This directory is for local encrypted SOPS files.
 
 For NixOS user-password secrets, standard practice is:
 
-1. Use a user-managed SSH key recipient.
-2. Keep the private key outside git.
-3. Ensure the target host has that private key at the path configured for that user before rebuild/switch.
+1. Use an age recipient.
+2. Keep the age private key file outside git.
+3. Ensure the target host has that key file at the configured path before rebuild/switch.
 
 ## Bootstrap `<user>` Recipient
 
@@ -22,10 +22,10 @@ Generate a new dedicated key (default):
 just new-user <user>
 ```
 
-Use an existing key path:
+Use an existing recipients file:
 
 ```bash
-just new-user <user> ~/.ssh/id_ed25519
+just new-user <user> secrets/recipients/users/<user>.txt
 ```
 
 The script writes:
@@ -36,7 +36,7 @@ The script writes:
 ## Bootstrap `<user>` password secret
 
 ```bash
-just sops-user-password user=<user>
+just sops-user-password <user>
 git add secrets/users.yaml
 ```
 
