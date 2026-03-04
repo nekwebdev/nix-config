@@ -10,7 +10,7 @@
 - platform enforcement: flake outputs/checks must target `x86_64-linux` only
 - composition: **flake-parts** is core to the design pattern
 - module loading: **import-tree** recursively loads the `modules/` tree
-- architecture: keep a lean baseline (`bare` host + `bob` user) and extend with scaffolding boilerplate
+- architecture: keep a lean baseline (`lotus` host + baseline user module) and extend with scaffolding boilerplate
 - composition model: host module explicitly imports NixOS modules; user module explicitly imports HM modules
 - HM integration: through NixOS only (no standalone HM output path)
 - rule: **HM-first** (if it can be Home Manager, it must be Home Manager)

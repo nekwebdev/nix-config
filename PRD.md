@@ -1,15 +1,15 @@
 # PRD: Dendritic NixOS + Home Manager Pattern
-Version: `1.15`
+Version: `1.17`
 Status: Active specification
 
 ## 1. Product Definition
 This repository defines a minimal but extensible NixOS configuration pattern:
-1. ship a working baseline host `bare`
-2. ship a working baseline user `bob`
+1. ship a working baseline host `lotus`
+2. ship a working baseline user `oj`
 3. support additional hosts/users through boilerplate scaffolding commands
 4. keep host and user composition explicit and reviewable
 
-The baseline (`bare` + `bob`) is the reference implementation. New hosts/users must follow the same design contracts.
+The baseline (`lotus` + `oj`) is the reference implementation. New hosts/users must follow the same design contracts.
 
 ## 2. Platform and Scope
 1. Platform is `x86_64-linux` only.
@@ -37,11 +37,11 @@ No host/user composition logic lives directly in `flake.nix`.
 
 ## 5. Output Model
 ### 5.1 Baseline outputs (required)
-1. `nixosConfigurations.bare`
+1. `nixosConfigurations.lotus`
 2. `nixosModules.base`
-3. `nixosModules.userBob`
-4. `nixosModules.hostBare`
-5. `homeModules.userBob`
+3. `nixosModules.userOj`
+4. `nixosModules.hostLotus`
+5. `homeModules.userOj`
 6. `homeModules.base`
 7. `homeModules.fish`
 8. `homeModules.aliasRegistry`
@@ -106,7 +106,7 @@ Each HM user module must:
 4. set `programs.home-manager.enable = true`
 5. keep program-level behavior in focused reusable HM modules (for example `self.homeModules.bat`, `self.homeModules.eza`) and import them explicitly
 6. `self.homeModules.base` is the allowed shared bundle for user-level must-have packages that do not require program-specific configuration
-7. user entry modules may decompose into per-feature user-scoped modules (for example exports like `self.homeModules.userOjGit`) when those modules remain strictly user-specific
+7. user entry modules may decompose into per-feature user-scoped modules (for example exports like `self.homeModules.userAliceGit`) when those modules remain strictly user-specific
 
 ### 6.5 Host module contract (`modules/nixosModules/hosts/<host>/configuration.nix`)
 Each host configuration must:
@@ -127,7 +127,7 @@ Each host configuration must:
 9. set HM defaults:
    1. `home.username = "<user>"` (default)
    2. `home.homeDirectory = "/home/<user>"` (default)
-10. host-specific decomposition is explicit: `configuration.nix` may import sibling host modules (for example `host<Host>System`, `host<Host>Policy`) instead of growing one large file
+10. host-specific decomposition is explicit: `configuration.nix` may import shared feature modules (for example `self.nixosModules.system`, `self.nixosModules.policy`) exported from `modules/nixosModules/programs/`
 
 ### 6.6 Host hardware contract (`modules/nixosModules/hosts/<host>/hardware-configuration.nix`)
 Each host hardware module must set:
@@ -148,7 +148,7 @@ Each host hardware module must set:
 
 ### 6.9 Reusable Home module naming
 1. Reusable HM modules must be user-agnostic in both filename and exported name.
-2. User-prefixed naming is reserved for user-scoped modules (`userBob`, `userOjGit`, etc.), not reusable program/policy modules.
+2. User-prefixed naming is reserved for user-scoped modules (`userAlice`, `userAliceGit`, etc.), not reusable program/policy modules.
 3. Reusable HM modules should avoid duplicate basenames to keep tree reorganization non-semantic.
 4. Reusable HM modules should live in category directories (for example `shared/`, `programs/`, `desktop/`) and export neutral names (for example `base`, `fish`, `environment`, `bat`, `eza`, `brave`, `fastfetch`, `fzf`, `ghostty`, `mangohud`, `nixMonitor`, `starship`, `tlrc`, `vscode`, `zedEditor`, `zoxide`, `dms`, `niri`).
 5. User-scoped helper modules under `modules/homeModules/users/<user>/` are allowed when they remain strictly user-specific.
@@ -158,9 +158,12 @@ Scaffolding is the standard path for adding new entities:
 1. `just new-user user=<user> [sops_key_path=<path>]` creates:
    1. `modules/nixosModules/users/<user>.nix`
    2. `modules/homeModules/users/<user>.nix`
+   3. `modules/homeModules/users/<user>/` (user-scoped helper modules when present in baseline)
+   4. user scaffolding is cloned from the baseline `oj` user modules and rewritten with `<user>` placeholders
 2. `just new-host host=<host> user=<user> [sops_key_path=<path>]` creates:
    1. `modules/nixosModules/hosts/<host>/configuration.nix`
    2. `modules/nixosModules/hosts/<host>/hardware-configuration.nix`
+   3. host scaffolding is cloned from the baseline `lotus` host modules and rewritten with `<host>/<user>` placeholders
 3. generated HM user modules import:
    1. `self.homeModules.base`
    2. `self.homeModules.fish`
@@ -194,8 +197,8 @@ Required validation flow before merge:
 3. `just check-vm`
 
 `just check-vm` must build:
-1. `.#nixosConfigurations.bare.config.system.build.toplevel`
-2. `.#nixosConfigurations.bare.config.system.build.vm`
+1. `.#nixosConfigurations.lotus.config.system.build.toplevel`
+2. `.#nixosConfigurations.lotus.config.system.build.vm`
 
 ## 10. Non-goals
 1. No standalone `homeConfigurations` output.
@@ -206,7 +209,7 @@ Required validation flow before merge:
 
 ## 11. Acceptance Criteria
 1. `flake.nix` remains thin and delegates to `import-tree ./modules`.
-2. Baseline `nixosConfigurations.bare` evaluates successfully.
+2. Baseline `nixosConfigurations.lotus` evaluates successfully.
 3. Home Manager functions through NixOS integration only.
 4. Host-declared users are normal users and include `wheel`.
 5. Program and tool behavior is modeled through explicit Home Manager modules (module-first), with wrappers reserved for exceptional future cases.

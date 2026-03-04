@@ -1,5 +1,5 @@
 {
-  flake.nixosModules.hostLotusNvidia = {config, ...}: {
+  flake.nixosModules.nvidia = {config, ...}: {
     # HM-first exception: unfree package allowance is host-level package policy.
     nixpkgs.config.allowUnfree = true;
 

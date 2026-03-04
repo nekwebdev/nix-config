@@ -1,5 +1,5 @@
 {inputs, ...}: {
-  flake.nixosModules.hostLotusNiri = {
+  flake.nixosModules.niri = {
     lib,
     pkgs,
     ...

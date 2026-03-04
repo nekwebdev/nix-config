@@ -1,5 +1,5 @@
 {
-  flake.nixosModules.hostLotusPolicy = {
+  flake.nixosModules.policy = {
     lib,
     pkgs,
     ...

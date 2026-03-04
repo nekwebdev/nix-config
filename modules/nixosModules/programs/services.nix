@@ -1,5 +1,5 @@
 {
-  flake.nixosModules.hostLotusServices = {...}: {
+  flake.nixosModules.services = {...}: {
     # HM-first exception: audio daemon and compatibility layers are privileged system services.
     services.pipewire = {
       enable = true;

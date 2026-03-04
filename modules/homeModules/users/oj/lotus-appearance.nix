@@ -15,11 +15,11 @@
       };
     };
 
-    xdg.configFile."gtk-4.0/gtk.css".source = lib.mkIf isLotus (
-      pkgs.writeText "gtk-4.0-gtk.css" ''
+    xdg.configFile."gtk-4.0/gtk.css" = lib.mkIf isLotus {
+      source = pkgs.writeText "gtk-4.0-gtk.css" ''
         @import url("dank-colors.css");
-      ''
-    );
+      '';
+    };
 
     home.pointerCursor = lib.mkIf isLotus {
       name = "Adwaita";

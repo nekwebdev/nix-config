@@ -1,5 +1,5 @@
 {
-  flake.nixosModules.hostLotusUdev = {lib, ...}: {
+  flake.nixosModules.udev = {lib, ...}: {
     # HM-first exception: udev rules are root-owned host hardware policy.
     services.udev.extraRules = lib.mkAfter ''
       # Sony PlayStation Strikepack; USB

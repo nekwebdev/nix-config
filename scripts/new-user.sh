@@ -25,6 +25,17 @@ extract_ssh_recipient() {
   awk 'NF >= 2 {print $1 " " $2; exit}' "${key_path}"
 }
 
+replace_user_placeholders() {
+  local file_path="$1"
+  local user_name="$2"
+  local user_module="$3"
+
+  sed -i \
+    -e "s/\\<oj\\>/${user_name}/g" \
+    -e "s/Oj/${user_module}/g" \
+    "${file_path}"
+}
+
 user="${1:-}"
 shift || true
 sops_key_input="${1:-${SOPS_KEY_PATH:-}}"
@@ -50,10 +61,23 @@ fi
 user_module_name="${user^}"
 nixos_user_file="modules/nixosModules/users/${user}.nix"
 hm_user_file="modules/homeModules/users/${user}.nix"
+hm_user_dir="modules/homeModules/users/${user}"
+source_nixos_user_file="modules/nixosModules/users/oj.nix"
+source_hm_user_file="modules/homeModules/users/oj.nix"
+source_hm_user_dir="modules/homeModules/users/oj"
 recipient_file="secrets/recipients/users/${user}.txt"
 
-if [[ -e "${nixos_user_file}" || -e "${hm_user_file}" ]]; then
+if [[ -e "${nixos_user_file}" || -e "${hm_user_file}" || -e "${hm_user_dir}" ]]; then
   echo "error: user '${user}' already exists (one or more target files already present)" >&2
+  exit 1
+fi
+
+if [[ ! -f "${source_nixos_user_file}" || ! -f "${source_hm_user_file}" || ! -d "${source_hm_user_dir}" ]]; then
+  echo "error: expected oj source modules are missing" >&2
+  echo "required sources:" >&2
+  echo "  - ${source_nixos_user_file}" >&2
+  echo "  - ${source_hm_user_file}" >&2
+  echo "  - ${source_hm_user_dir}/" >&2
   exit 1
 fi
 
@@ -127,73 +151,24 @@ target_key_path="/home/${user}/.ssh/${key_name}"
 
 mkdir -p "$(dirname "${nixos_user_file}")" "$(dirname "${hm_user_file}")"
 
-cat >"${nixos_user_file}" <<EOF_USER_NIXOS
-{
-  flake.nixosModules.user${user_module_name} = {
-    lib,
-    config,
-    ...
-  }: let
-    usersSecretFile = ../../../secrets/users.yaml;
-    hasUsersSecretFile = builtins.pathExists usersSecretFile;
-    sopsUserKeyPath = "${target_key_path}";
-  in {
-    config = lib.mkMerge [
-      {
-        # HM-first exception: users/groups are system-level declarations.
-        users.users.${user} = {
-          isNormalUser = true;
-          group = "${user}";
-          extraGroups = ["wheel"];
-        };
+cp "${source_nixos_user_file}" "${nixos_user_file}"
+cp "${source_hm_user_file}" "${hm_user_file}"
+cp -R "${source_hm_user_dir}" "${hm_user_dir}"
 
-        users.groups.${user} = {};
+replace_user_placeholders "${nixos_user_file}" "${user}" "${user_module_name}"
+replace_user_placeholders "${hm_user_file}" "${user}" "${user_module_name}"
 
-        # HM-first exception: SOPS decryption key location is host-level secret plumbing.
-        sops.age.sshKeyPaths = lib.mkAfter [sopsUserKeyPath];
-      }
+while IFS= read -r -d '' hm_fragment; do
+  replace_user_placeholders "${hm_fragment}" "${user}" "${user_module_name}"
+done < <(find "${hm_user_dir}" -type f -name '*.nix' -print0)
 
-      (lib.mkIf hasUsersSecretFile {
-        sops.secrets."users/${user}-password" = {
-          sopsFile = usersSecretFile;
-          neededForUsers = true;
-        };
-
-        users.users.${user}.hashedPasswordFile = config.sops.secrets."users/${user}-password".path;
-      })
-
-      (lib.mkIf (!hasUsersSecretFile) {
-        warnings = [
-          "sops password secret missing at \${toString usersSecretFile}; keeping current password for user ${user}"
-        ];
-      })
-    ];
-  };
-}
-EOF_USER_NIXOS
-
-cat >"${hm_user_file}" <<EOF_USER_HM
-{
-  self,
-  ...
-}: {
-  flake.homeModules.user${user_module_name} = {
-    imports = [
-      self.homeModules.base
-      self.homeModules.environment
-      self.homeModules.fish
-      self.homeModules.aliasRegistry
-      self.homeModules.aliasesCommon
-    ];
-
-    home.stateVersion = "25.11";
-    programs.home-manager.enable = true;
-  };
-}
-EOF_USER_HM
+sed -i -E \
+  "s|sopsUserKeyPath = \".*\";|sopsUserKeyPath = \"${target_key_path}\";|" \
+  "${nixos_user_file}"
 
 echo "created ${nixos_user_file}"
 echo "created ${hm_user_file}"
+echo "created ${hm_user_dir}/"
 
 mkdir -p "$(dirname "${recipient_file}")"
 cat >"${recipient_file}" <<EOF_RECIPIENT
