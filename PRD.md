@@ -1,5 +1,5 @@
 # PRD: Dendritic NixOS + Home Manager Pattern
-Version: `1.17`
+Version: `1.20`
 Status: Active specification
 
 ## 1. Product Definition
@@ -152,6 +152,14 @@ Each host hardware module must set:
 3. Reusable HM modules should avoid duplicate basenames to keep tree reorganization non-semantic.
 4. Reusable HM modules should live in category directories (for example `shared/`, `programs/`, `desktop/`) and export neutral names (for example `base`, `fish`, `environment`, `bat`, `eza`, `brave`, `fastfetch`, `fzf`, `ghostty`, `mangohud`, `nixMonitor`, `starship`, `tlrc`, `vscode`, `zedEditor`, `zoxide`, `dms`, `niri`).
 5. User-scoped helper modules under `modules/homeModules/users/<user>/` are allowed when they remain strictly user-specific.
+
+### 6.10 Home module file layout and mutable runtime config policy
+1. A module is either a single file (`<name>.nix`) or a folder (`<name>/<name>.nix`) with all module-local assets (templates, default configs, docs) colocated under that folder.
+2. Prefer folder modules when a feature has supporting files that should travel with the module.
+3. For applications that intentionally mutate their own config at runtime (for example DMS), do not manage those mutable files as read-only HM store links.
+4. For mutable app configs tracked in the repo, HM should create symlinks from app runtime paths to repo-tracked files, and those links must resolve to non-store paths.
+5. Repo-root discovery for runtime symlinks should happen at activation time by reusing existing non-store symlink targets when possible, then falling back to bounded `find` under `$HOME`; avoid hardcoded known paths.
+6. Runtime config activation must hard-fail when repo root cannot be resolved, source files are missing, or existing runtime targets are non-symlink files.
 
 ## 7. Scaffolding and Naming
 Scaffolding is the standard path for adding new entities:
