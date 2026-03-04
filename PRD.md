@@ -1,5 +1,5 @@
 # PRD: Dendritic NixOS + Home Manager Pattern
-Version: `1.12`
+Version: `1.13`
 Status: Active specification
 
 ## 1. Product Definition
@@ -174,10 +174,10 @@ The supported interface is:
 1. `just fmt`
 2. `just check`
 3. `just check-vm`
-4. `just switch host=<host>`
+4. `just switch [host=<host>]`
 5. `just new-user user=<user> [sops_key_path=<path>]`
 6. `just new-host host=<host> user=<user> [sops_key_path=<path>]`
-7. `just sops-user-password user=<user> [secret=<path>] [recipients_file=<path>]`
+7. `just sops-user-password user=<user> [recipients_file=<path>]`
 
 `justfile` contains routing only. Execution logic lives in `/scripts`.
 

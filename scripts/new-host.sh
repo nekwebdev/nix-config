@@ -1,12 +1,24 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+usage() {
+  cat >&2 <<'EOF'
+usage: just new-host host=<host> user=<user> [sops_key_path=<path>]
+EOF
+}
+
 host="${1:-}"
-user="${2:-bob}"
+user="${2:-}"
 sops_key_path="${3:-}"
 
-if [[ -z "${host}" ]]; then
-  echo "usage: scripts/new-host.sh <host> [user] [sops-key-path]" >&2
+if [[ -z "${host}" || -z "${user}" ]]; then
+  usage
+  exit 1
+fi
+
+if [[ $# -gt 3 ]]; then
+  echo "error: too many arguments" >&2
+  usage
   exit 1
 fi
 
