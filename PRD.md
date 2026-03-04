@@ -1,22 +1,21 @@
-# PRD: Dendritic NixOS + Home Manager Baseline
-Version: `1.0`
-Status: Active baseline specification
+# PRD: Dendritic NixOS + Home Manager Pattern
+Version: `1.20`
+Status: Active specification
 
 ## 1. Product Definition
-This repository is a minimal, reproducible NixOS configuration built with the dendritic pattern:
-1. one host: `bare`
-2. one user: `bob`
-3. Home Manager integrated through NixOS
-4. explicit module selection by host and user modules
-5. wrappers implemented with `wrappers` only
+This repository defines a minimal but extensible NixOS configuration pattern:
+1. ship a working baseline host `lotus`
+2. ship a working baseline user `oj`
+3. support additional hosts/users through boilerplate scaffolding commands
+4. keep host and user composition explicit and reviewable
 
-This PRD is an authoritative description of the current implementation and is intended to be sufficient to recreate it.
+The baseline (`lotus` + `oj`) is the reference implementation. New hosts/users must follow the same design contracts.
 
 ## 2. Platform and Scope
 1. Platform is `x86_64-linux` only.
 2. Composition core is `flake-parts`.
 3. Module discovery is recursive through `import-tree` over `./modules`.
-4. The baseline is intentionally small and contains only what is needed for `bare` + `bob`.
+4. Home Manager integration is through NixOS only (no standalone HM output path).
 
 ## 3. Flake Inputs
 The flake must define these inputs:
@@ -24,8 +23,9 @@ The flake must define these inputs:
 2. `flake-parts`
 3. `import-tree`
 4. `home-manager` (follows `nixpkgs`)
-5. `wrappers` (follows `nixpkgs`)
+5. `wrappers` (optional; follows `nixpkgs`; reserved for future wrapped binaries)
 6. `treefmt-nix` (follows `nixpkgs`)
+7. `nix-monitor` (follows `nixpkgs`)
 
 ## 4. Flake Entrypoint
 `flake.nix` remains thin and only:
@@ -33,135 +33,180 @@ The flake must define these inputs:
 2. calls `inputs.flake-parts.lib.mkFlake { inherit inputs; }`
 3. passes `(inputs.import-tree ./modules)`
 
-No host composition logic lives directly in `flake.nix`.
+No host/user composition logic lives directly in `flake.nix`.
 
 ## 5. Output Model
-The module tree must produce:
-1. `nixosConfigurations.bare`
+### 5.1 Baseline outputs (required)
+1. `nixosConfigurations.lotus`
 2. `nixosModules.base`
-3. `nixosModules.userBob`
-4. `nixosModules.hostBare`
-5. `homeModules.userBob`
-6. per-system wrapped packages:
-   1. `packages.<system>.fish`
-   2. `packages.<system>.fish-env`
-   3. `packages.<system>.git`
-   4. `packages.<system>.jj`
+3. `nixosModules.userOj`
+4. `nixosModules.hostLotus`
+5. `homeModules.userOj`
+6. `homeModules.base`
+7. `homeModules.fish`
+8. `homeModules.aliasRegistry`
+9. `homeModules.aliasesCommon`
+10. `homeModules.environment`
 
-## 6. Module Contracts
+### 5.2 Extensible pattern outputs
+For each scaffolded user `<user>`:
+1. `nixosModules.user<User>`
+2. `homeModules.user<User>`
 
-### 6.1 flake-parts module
-`modules/flake-parts.nix` must define:
+For each scaffolded host `<host>` bound to user `<user>`:
+1. `nixosConfigurations.<host>`
+2. `nixosModules.host<Host>`
+3. host module imports `self.nixosModules.user<User>`
+4. host HM wiring imports `self.homeModules.user<User>`
+
+`<User>` and `<Host>` follow scaffold naming (`[a-z][a-z0-9]*` input, first letter capitalized for module names).
+
+### 5.3 Wrapped package scaffolding (reserved)
+1. `modules/wrappedPrograms/` is reserved for future wrapper modules.
+2. Current baseline does not require wrapper package outputs under `perSystem.packages.x86_64-linux`.
+3. Default behavior should be expressed through explicit Home Manager modules.
+
+## 6. Composition Contracts
+### 6.1 flake-parts module (`modules/flake-parts.nix`)
 1. `systems = [ "x86_64-linux" ]`
 2. treefmt integration via `inputs.treefmt-nix.flakeModule`
 3. formatter set to `config.treefmt.build.wrapper`
 4. Nix formatter `alejandra` enabled
 
-### 6.2 NixOS core module
-`modules/nixosModules/core/base.nix` must define system-level baseline:
-1. GRUB enabled with `devices = [ "nodev" ]`
-2. root filesystem as `tmpfs`
-3. `security.sudo.enable = true`
+### 6.2 NixOS core module (`modules/nixosModules/core/base.nix`)
+System-level baseline may include HM-first exceptions only:
+1. boot/kernel/hardware
+2. filesystems
+3. networking/firewall
+4. users/groups
+5. PAM/sudo/polkit
+6. root-owned services
 
-### 6.3 NixOS user module
-`modules/nixosModules/users/bob.nix` must define:
-1. `users.users.bob.isNormalUser = true`
-2. primary group `bob`
-3. extra groups include `wheel`
-4. `users.groups.bob = {}`
+Current baseline includes:
+1. `security.sudo.enable = true`
 
-### 6.4 Host module
-`modules/nixosModules/hosts/bare/configuration.nix` must:
-1. export `flake.nixosConfigurations.bare`
-2. define `flake.nixosModules.hostBare`
+### 6.3 NixOS user module contract (`modules/nixosModules/users/<user>.nix`)
+Each host-declared user module must:
+1. export `flake.nixosModules.user<User>`
+2. define a normal user (`isNormalUser = true`)
+3. set primary group to `<user>`
+4. include `wheel` in `extraGroups`
+5. declare `users.groups.<user> = {}`
+
+### 6.4 Home Manager user module contract (`modules/homeModules/users/<user>.nix`)
+Each HM user module must:
+1. export `flake.homeModules.user<User>`
+2. import shared HM modules explicitly (current baseline:
+   1. `self.homeModules.base`
+   2. `self.homeModules.fish`
+   3. `self.homeModules.aliasRegistry`
+   4. `self.homeModules.aliasesCommon`
+   5. `self.homeModules.environment`)
+3. set `home.stateVersion = "25.11"`
+4. set `programs.home-manager.enable = true`
+5. keep program-level behavior in focused reusable HM modules (for example `self.homeModules.bat`, `self.homeModules.eza`) and import them explicitly
+6. `self.homeModules.base` is the allowed shared bundle for user-level must-have packages that do not require program-specific configuration
+7. user entry modules may decompose into per-feature user-scoped modules (for example exports like `self.homeModules.userAliceGit`) when those modules remain strictly user-specific
+
+### 6.5 Host module contract (`modules/nixosModules/hosts/<host>/configuration.nix`)
+Each host configuration must:
+1. export `flake.nixosConfigurations.<host>`
+2. define `flake.nixosModules.host<Host>`
 3. import:
    1. `inputs.home-manager.nixosModules.home-manager`
-   2. `self.nixosModules.base`
-   3. `self.nixosModules.userBob`
-4. set `networking.hostName = "bare"`
-5. set `system.stateVersion = "24.11"`
-6. enable HM integration with:
+   2. `inputs.sops-nix.nixosModules.sops`
+   3. `self.nixosModules.base`
+   4. `self.nixosModules.user<User>`
+4. set `networking.hostName = "<host>"`
+5. set `system.stateVersion = "25.11"` either directly or via explicitly imported host-local modules in the same host stack
+6. enable HM integration:
    1. `home-manager.useGlobalPkgs = true`
    2. `home-manager.useUserPackages = true`
-7. wire wrapped packages through `home-manager.extraSpecialArgs.wrappedPrograms`
-8. wire `home-manager.users.bob.imports = [ self.homeModules.userBob ]`
+7. pass only explicitly required HM args through `home-manager.extraSpecialArgs` (for example `sopsUserSshKeyPath`); do not inject wrapper bundles by default
+8. set `home-manager.users.<user>.imports = [ self.homeModules.user<User> ]`
 9. set HM defaults:
-   1. `home.username = "bob"` (default)
-   2. `home.homeDirectory = "/home/bob"` (default)
+   1. `home.username = "<user>"` (default)
+   2. `home.homeDirectory = "/home/<user>"` (default)
+10. host-specific decomposition is explicit: `configuration.nix` may import shared feature modules (for example `self.nixosModules.system`, `self.nixosModules.policy`) exported from `modules/nixosModules/programs/`
 
-### 6.5 Host hardware module
-`modules/nixosModules/hosts/bare/hardware-configuration.nix` must set:
+### 6.6 Host hardware contract (`modules/nixosModules/hosts/<host>/hardware-configuration.nix`)
+Each host hardware module must set:
 1. `nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux"`
 
-### 6.6 Home Manager user module
-`modules/homeModules/users/bob.nix` must:
-1. export `flake.homeModules.userBob`
-2. import shared HM module path `home/shell/fish-env.nix`
-3. set `home.stateVersion = "24.11"`
-4. set `programs.home-manager.enable = true`
+### 6.7 Wrapped programs policy (`modules/wrappedPrograms/`)
+1. Wrapped programs are optional and are not part of baseline feature parity.
+2. Module-first policy applies: if a program can be expressed through Home Manager modules, it must be.
+3. If a wrapper is reintroduced, it must use `wrappers.lib.wrapPackage` with an explicit rationale.
+4. Do not reintroduce bundled tool environments (for example `fish-env`).
 
-### 6.7 Shared HM shell module
-`home/shell/fish-env.nix` must:
-1. enable `programs.fish`
-2. set `programs.fish.package = wrappedPrograms.fish`
-3. install `wrappedPrograms.fish-env` in `home.packages`
+### 6.8 Shared Home Manager module contracts (`modules/homeModules/shared/*.nix`)
+1. `base.nix` exports `flake.homeModules.base` and provides shared must-have user packages that require no program-specific configuration.
+2. `programs/fish.nix` exports `flake.homeModules.fish` and is responsible for fish enablement + fish shell behavior only.
+3. `aliases.nix` exports `flake.homeModules.aliasRegistry`, defines `my.home.aliases.fragments`, merges aliases into all enabled shells (`bash`, `fish`, `zsh`), and hard-fails on duplicate alias keys.
+4. `aliases-common.nix` exports `flake.homeModules.aliasesCommon` and provides baseline non-package aliases through `my.home.aliases.fragments`.
+5. `environment.nix` exports `flake.homeModules.environment` and provides baseline `xdg.enable`, cross-shell session path, and baseline session variables.
 
-### 6.8 Wrapped programs modules
-`modules/wrappedPrograms/*.nix` must export per-system packages using `wrappers.lib.wrapPackage`:
-1. `fish` wraps `pkgs.fish` with zoxide runtime init
-2. `git` wraps `pkgs.git`
-3. `jj` wraps `pkgs.jj` or falls back to `pkgs.jujutsu`
-4. `fish-env` is a `pkgs.buildEnv` bundle that includes common CLI tools plus wrapped `git` and `jj`
+### 6.9 Reusable Home module naming
+1. Reusable HM modules must be user-agnostic in both filename and exported name.
+2. User-prefixed naming is reserved for user-scoped modules (`userAlice`, `userAliceGit`, etc.), not reusable program/policy modules.
+3. Reusable HM modules should avoid duplicate basenames to keep tree reorganization non-semantic.
+4. Reusable HM modules should live in category directories (for example `shared/`, `programs/`, `desktop/`) and export neutral names (for example `base`, `fish`, `environment`, `bat`, `eza`, `brave`, `fastfetch`, `fzf`, `ghostty`, `mangohud`, `nixMonitor`, `starship`, `tlrc`, `vscode`, `zedEditor`, `zoxide`, `dms`, `niri`).
+5. User-scoped helper modules under `modules/homeModules/users/<user>/` are allowed when they remain strictly user-specific.
 
-## 7. Repository Layout
-```text
-.
-├── flake.nix
-├── modules
-│   ├── flake-parts.nix
-│   ├── nixosModules
-│   │   ├── core/base.nix
-│   │   ├── users/bob.nix
-│   │   └── hosts/bare
-│   │       ├── configuration.nix
-│   │       └── hardware-configuration.nix
-│   ├── homeModules
-│   │   └── users/bob.nix
-│   └── wrappedPrograms
-│       ├── fish.nix
-│       ├── fish-env.nix
-│       ├── git.nix
-│       └── jj.nix
-├── home
-│   └── shell/fish-env.nix
-├── scripts
-│   ├── fmt.sh
-│   ├── check.sh
-│   ├── check-vm.sh
-│   └── switch.sh
-└── justfile
-```
+### 6.10 Home module file layout and mutable runtime config policy
+1. A module is either a single file (`<name>.nix`) or a folder (`<name>/<name>.nix`) with all module-local assets (templates, default configs, docs) colocated under that folder.
+2. Prefer folder modules when a feature has supporting files that should travel with the module.
+3. For applications that intentionally mutate their own config at runtime (for example DMS), do not manage those mutable files as read-only HM store links.
+4. For mutable app configs tracked in the repo, HM should create symlinks from app runtime paths to repo-tracked files, and those links must resolve to non-store paths.
+5. Repo-root discovery for runtime symlinks should happen at activation time by reusing existing non-store symlink targets when possible, then falling back to bounded `find` under `$HOME`; avoid hardcoded known paths.
+6. Runtime config activation must hard-fail when repo root cannot be resolved, source files are missing, or existing runtime targets are non-symlink files.
+
+## 7. Scaffolding and Naming
+Scaffolding is the standard path for adding new entities:
+1. `just new-user user=<user> [sops_key_path=<path>]` creates:
+   1. `modules/nixosModules/users/<user>.nix`
+   2. `modules/homeModules/users/<user>.nix`
+   3. `modules/homeModules/users/<user>/` (user-scoped helper modules when present in baseline)
+   4. user scaffolding is cloned from the baseline `oj` user modules and rewritten with `<user>` placeholders
+2. `just new-host host=<host> user=<user> [sops_key_path=<path>]` creates:
+   1. `modules/nixosModules/hosts/<host>/configuration.nix`
+   2. `modules/nixosModules/hosts/<host>/hardware-configuration.nix`
+   3. host scaffolding is cloned from the baseline `lotus` host modules and rewritten with `<host>/<user>` placeholders
+3. generated HM user modules import:
+   1. `self.homeModules.base`
+   2. `self.homeModules.fish`
+   3. `self.homeModules.aliasRegistry`
+   4. `self.homeModules.aliasesCommon`
+   5. `self.homeModules.environment`
+
+Naming rules:
+1. `<host>` and `<user>` must match `^[a-z][a-z0-9]*$`
+2. scaffolded module suffixes are first-letter capitalized (`userAlice`, `hostLaptop`)
+3. reusable HM modules must not carry a specific username in filename or export name
 
 ## 8. Command Surface
-The interface is:
+The supported interface is:
 1. `just fmt`
 2. `just check`
 3. `just check-vm`
-4. `just switch host=<host>`
+4. `just switch [host=<host>]`
+5. `just new-user user=<user> [sops_key_path=<path>]`
+6. `just new-host host=<host> user=<user> [sops_key_path=<path>]`
+7. `just sops-user-password user=<user> [recipients_file=<path>]`
 
 `justfile` contains routing only. Execution logic lives in `/scripts`.
 
 ## 9. Verification Policy
-For this machine (already configured), do not use `just switch` during routine validation.
+Do not use `just switch` for routine validation on this already configured machine.
 
-Required verification flow:
+Required validation flow before merge:
 1. `just fmt`
 2. `just check`
 3. `just check-vm`
 
 `just check-vm` must build:
-1. `.#nixosConfigurations.bare.config.system.build.toplevel`
-2. `.#nixosConfigurations.bare.config.system.build.vm`
+1. `.#nixosConfigurations.lotus.config.system.build.toplevel`
+2. `.#nixosConfigurations.lotus.config.system.build.vm`
 
 ## 10. Non-goals
 1. No standalone `homeConfigurations` output.
@@ -172,12 +217,10 @@ Required verification flow:
 
 ## 11. Acceptance Criteria
 1. `flake.nix` remains thin and delegates to `import-tree ./modules`.
-2. `nixosConfigurations.bare` evaluates successfully.
-3. Home Manager functions only through NixOS integration.
-4. User `bob` is present and has `wheel`.
-5. Wrapped packages are built from `wrappers` only.
-6. `just check` passes.
-7. `just check-vm` passes without switching the live system.
-
----
-Authorship attribution: `casper` (fresh baseline prose), `velma` (consistency and correctness pass), `dexter` (architecture constraints).
+2. Baseline `nixosConfigurations.lotus` evaluates successfully.
+3. Home Manager functions through NixOS integration only.
+4. Host-declared users are normal users and include `wheel`.
+5. Program and tool behavior is modeled through explicit Home Manager modules (module-first), with wrappers reserved for exceptional future cases.
+6. Scaffolding commands generate PRD-compliant module boilerplate without manual flake wiring.
+7. `just check` passes.
+8. `just check-vm` passes without switching the live system.

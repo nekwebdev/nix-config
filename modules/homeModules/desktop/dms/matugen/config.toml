@@ -1,0 +1,9 @@
+[config]
+
+[templates.starship]
+input_path = '~/.config/matugen/templates/starship.toml'
+output_path = '~/.config/starship/starship.toml'
+
+[templates.bat]
+input_path = '~/.config/matugen/templates/bat.tmTheme'
+output_path = '~/.config/bat/themes/dms.tmTheme'

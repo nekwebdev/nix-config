@@ -1,14 +1,26 @@
-{inputs, ...}: {
+{
+  inputs,
+  lib,
+  ...
+}: {
   imports = [inputs.treefmt-nix.flakeModule];
 
-  systems = ["x86_64-linux"];
+  options.flake.homeModules = lib.mkOption {
+    type = lib.types.lazyAttrsOf lib.types.raw;
+    default = {};
+    description = "Home Manager modules exported by this flake.";
+  };
 
-  perSystem = {config, ...}: {
-    treefmt = {
-      projectRootFile = "flake.nix";
-      programs.alejandra.enable = true;
+  config = {
+    systems = ["x86_64-linux"];
+
+    perSystem = {config, ...}: {
+      treefmt = {
+        projectRootFile = "flake.nix";
+        programs.alejandra.enable = true;
+      };
+
+      formatter = config.treefmt.build.wrapper;
     };
-
-    formatter = config.treefmt.build.wrapper;
   };
 }
