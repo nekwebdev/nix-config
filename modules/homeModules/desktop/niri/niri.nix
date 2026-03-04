@@ -357,7 +357,7 @@
       };
 
       programs.niri.settings = {
-        binds = niriBinds;
+        # binds = niriBinds;
 
         environment = {
           XDG_CURRENT_DESKTOP = "niri";
