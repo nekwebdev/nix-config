@@ -1,5 +1,5 @@
 # PRD: Dendritic NixOS + Home Manager Pattern
-Version: `1.20`
+Version: `1.21`
 Status: Active specification
 
 ## 1. Product Definition
@@ -156,10 +156,14 @@ Each host hardware module must set:
 ### 6.10 Home module file layout and mutable runtime config policy
 1. A module is either a single file (`<name>.nix`) or a folder (`<name>/<name>.nix`) with all module-local assets (templates, default configs, docs) colocated under that folder.
 2. Prefer folder modules when a feature has supporting files that should travel with the module.
-3. For applications that intentionally mutate their own config at runtime (for example DMS), do not manage those mutable files as read-only HM store links.
-4. For mutable app configs tracked in the repo, HM should create symlinks from app runtime paths to repo-tracked files, and those links must resolve to non-store paths.
-5. Repo-root discovery for runtime symlinks should happen at activation time by reusing existing non-store symlink targets when possible, then falling back to bounded `find` under `$HOME`; avoid hardcoded known paths.
-6. Runtime config activation must hard-fail when repo root cannot be resolved, source files are missing, or existing runtime targets are non-symlink files.
+3. Use a hybrid HM + dotfiles model for app config management.
+4. HM-first still applies: when program configuration is stable and not frequently changed by in-app UI, manage it declaratively through Home Manager modules.
+5. If a program frequently rewrites config through UI interactions, manage that config as copy-synced runtime dotfiles instead of immutable HM store links.
+6. Copy-synced runtime configs must use the repo helper flow:
+   1. source of truth files live under `configs/*`
+   2. `scripts/runtime-config-helper.sh seed <map>` copies repo files into runtime paths only when missing
+   3. `just config-update` (via `scripts/config-update.sh`) pulls runtime changes back into `configs/*`
+7. Mutable runtime configs must not be managed as read-only `xdg.configFile` store symlinks.
 
 ## 7. Scaffolding and Naming
 Scaffolding is the standard path for adding new entities:
@@ -193,6 +197,7 @@ The supported interface is:
 5. `just new-user user=<user> [sops_key_path=<path>]`
 6. `just new-host host=<host> user=<user> [sops_key_path=<path>]`
 7. `just sops-user-password user=<user> [recipients_file=<path>]`
+8. `just config-update`
 
 `justfile` contains routing only. Execution logic lives in `/scripts`.
 
@@ -224,3 +229,4 @@ Required validation flow before merge:
 6. Scaffolding commands generate PRD-compliant module boilerplate without manual flake wiring.
 7. `just check` passes.
 8. `just check-vm` passes without switching the live system.
+9. Mutable UI-driven runtime configs follow the copy-sync helper flow (`runtime-config-helper` + `just config-update`) instead of immutable HM store links.
