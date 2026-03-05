@@ -3,7 +3,6 @@ set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd "${script_dir}/.." && pwd)"
-source_root="${repo_root}/configs"
 target_root="${HOME}"
 
 usage() {
@@ -16,8 +15,51 @@ operations:
   maps  Print available sync map names.
   seed  Copy config files from configs to HOME if target does not already exist.
   pull  Copy runtime config files from HOME back into configs.
+
+environment overrides:
+  RUNTIME_CONFIG_USER  Override the user segment used under configs/users/<user>/...
+  RUNTIME_CONFIG_HOST  Override the host segment used under configs/users/<user>/hosts/<host>/...
 USAGE
 }
+
+resolve_runtime_user() {
+  if [[ -n "${RUNTIME_CONFIG_USER:-}" ]]; then
+    printf '%s\n' "${RUNTIME_CONFIG_USER}"
+    return
+  fi
+
+  if [[ -n "${USER:-}" ]]; then
+    printf '%s\n' "${USER}"
+    return
+  fi
+
+  id -un
+}
+
+resolve_runtime_host() {
+  local host_name="${RUNTIME_CONFIG_HOST:-${HOSTNAME:-}}"
+
+  if [[ -z "${host_name}" ]]; then
+    host_name="$(hostname 2>/dev/null || true)"
+  fi
+
+  host_name="${host_name%%.*}"
+  printf '%s\n' "${host_name}"
+}
+
+runtime_user="$(resolve_runtime_user)"
+runtime_host="$(resolve_runtime_host)"
+
+source_roots=(
+  "${repo_root}/configs/common"
+  "${repo_root}/configs/users/${runtime_user}/common"
+)
+
+if [[ -n "${runtime_host}" ]]; then
+  source_roots+=("${repo_root}/configs/users/${runtime_user}/hosts/${runtime_host}")
+fi
+
+default_pull_root="${repo_root}/configs/users/${runtime_user}/common"
 
 list_maps() {
   cat <<'MAPS'
@@ -34,8 +76,8 @@ list_sync_entries() {
     dms)
       cat <<'ENTRIES'
 # kind|source_rel|target_rel
-# Source paths are relative to configs
-# Target paths are relative to HOME
+# Source paths are relative to layered config roots.
+# Target paths are relative to HOME.
 
 dir|dms|.config/DankMaterialShell
 ENTRIES
@@ -43,8 +85,8 @@ ENTRIES
     niri)
       cat <<'ENTRIES'
 # kind|source_rel|target_rel
-# Source paths are relative to configs
-# Target paths are relative to HOME
+# Source paths are relative to layered config roots.
+# Target paths are relative to HOME.
 
 dir|niri|.config/niri/dms
 ENTRIES
@@ -52,8 +94,8 @@ ENTRIES
     zed)
       cat <<'ENTRIES'
 # kind|source_rel|target_rel
-# Source paths are relative to configs
-# Target paths are relative to HOME
+# Source paths are relative to layered config roots.
+# Target paths are relative to HOME.
 
 file|zed/settings.json|.config/zed/settings.json
 ENTRIES
@@ -96,6 +138,8 @@ copy_back() {
     return 0
   fi
 
+  mkdir -p "$(dirname "${dst}")"
+
   if [[ -e "${src}" && -e "${dst}" && "${src}" -ef "${dst}" ]]; then
     echo "skip: source already points at ${dst}"
     return 0
@@ -105,6 +149,107 @@ copy_back() {
   echo "updated ${dst}"
 }
 
+resolve_seed_source_file() {
+  local source_rel="$1"
+  local selected=""
+  local candidate
+
+  for source_root in "${source_roots[@]}"; do
+    candidate="${source_root}/${source_rel}"
+    if [[ -f "${candidate}" ]]; then
+      selected="${candidate}"
+    fi
+  done
+
+  if [[ -z "${selected}" ]]; then
+    echo "error: no source file found for ${source_rel}" >&2
+    exit 1
+  fi
+
+  printf '%s\n' "${selected}"
+}
+
+resolve_pull_destination_file() {
+  local source_rel="$1"
+  local candidate
+
+  for ((idx=${#source_roots[@]} - 1; idx >= 0; idx--)); do
+    candidate="${source_roots[$idx]}/${source_rel}"
+    if [[ -e "${candidate}" || -L "${candidate}" ]]; then
+      printf '%s\n' "${candidate}"
+      return
+    fi
+  done
+
+  printf '%s\n' "${default_pull_root}/${source_rel}"
+}
+
+seed_dir_sources() {
+  local source_rel="$1"
+  local source_root source_dir source_file rel_path
+  local had_sources=0
+  declare -A selected_by_rel=()
+
+  for source_root in "${source_roots[@]}"; do
+    source_dir="${source_root}/${source_rel}"
+    if [[ ! -d "${source_dir}" ]]; then
+      continue
+    fi
+
+    had_sources=1
+    while IFS= read -r -d '' source_file; do
+      rel_path="${source_file#${source_dir}/}"
+      selected_by_rel["${rel_path}"]="${source_file}"
+    done < <(find "${source_dir}" -type f -print0 | sort -z)
+  done
+
+  if [[ "${had_sources}" -eq 0 ]]; then
+    echo "error: no source directories found for ${source_rel}" >&2
+    exit 1
+  fi
+
+  if [[ "${#selected_by_rel[@]}" -eq 0 ]]; then
+    echo "error: no source files found for ${source_rel}" >&2
+    exit 1
+  fi
+
+  while IFS= read -r rel_path; do
+    printf '%s|%s\n' "${rel_path}" "${selected_by_rel[${rel_path}]}"
+  done < <(printf '%s\n' "${!selected_by_rel[@]}" | LC_ALL=C sort)
+}
+
+pull_dir_rel_paths() {
+  local source_rel="$1"
+  local source_root source_dir source_file rel_path
+  local had_sources=0
+  declare -A rel_paths=()
+
+  for source_root in "${source_roots[@]}"; do
+    source_dir="${source_root}/${source_rel}"
+    if [[ ! -d "${source_dir}" ]]; then
+      continue
+    fi
+
+    had_sources=1
+    while IFS= read -r -d '' source_file; do
+      rel_path="${source_file#${source_dir}/}"
+      rel_paths["${rel_path}"]=1
+    done < <(find "${source_dir}" -type f -print0 | sort -z)
+  done
+
+  if [[ "${had_sources}" -eq 0 ]]; then
+    echo "error: no source directories found for ${source_rel}" >&2
+    exit 1
+  fi
+
+  if [[ "${#rel_paths[@]}" -eq 0 ]]; then
+    echo "error: no source files found for ${source_rel}" >&2
+    exit 1
+  fi
+
+  printf '%s\n' "${!rel_paths[@]}" | LC_ALL=C sort
+}
+
 seed_entry() {
   local kind="$1"
   local source_rel="$2"
@@ -112,23 +257,15 @@ seed_entry() {
 
   case "${kind}" in
     file)
-      copy_if_missing "${source_root}/${source_rel}" "${target_root}/${target_rel}"
+      copy_if_missing "$(resolve_seed_source_file "${source_rel}")" "${target_root}/${target_rel}"
       ;;
     dir)
-      local source_dir="${source_root}/${source_rel}"
       local target_dir="${target_root}/${target_rel}"
-      local source_file rel_path target_file
+      local rel_path source_file
 
-      if [[ ! -d "${source_dir}" ]]; then
-        echo "error: missing source directory ${source_dir}" >&2
-        exit 1
-      fi
-
-      while IFS= read -r -d '' source_file; do
-        rel_path="${source_file#${source_dir}/}"
-        target_file="${target_dir}/${rel_path}"
-        copy_if_missing "${source_file}" "${target_file}"
-      done < <(find "${source_dir}" -type f -print0 | sort -z)
+      while IFS='|' read -r rel_path source_file; do
+        copy_if_missing "${source_file}" "${target_dir}/${rel_path}"
+      done < <(seed_dir_sources "${source_rel}")
       ;;
     *)
       echo "error: unsupported sync entry kind '${kind}'" >&2
@@ -144,23 +281,17 @@ pull_entry() {
 
   case "${kind}" in
     file)
-      copy_back "${target_root}/${target_rel}" "${source_root}/${source_rel}"
+      copy_back "${target_root}/${target_rel}" "$(resolve_pull_destination_file "${source_rel}")"
       ;;
     dir)
-      local source_dir="${source_root}/${source_rel}"
       local target_dir="${target_root}/${target_rel}"
-      local source_file rel_path runtime_file
+      local rel_path runtime_file source_file
 
-      if [[ ! -d "${source_dir}" ]]; then
-        echo "error: missing source directory ${source_dir}" >&2
-        exit 1
-      fi
-
-      while IFS= read -r -d '' source_file; do
-        rel_path="${source_file#${source_dir}/}"
+      while IFS= read -r rel_path; do
         runtime_file="${target_dir}/${rel_path}"
+        source_file="$(resolve_pull_destination_file "${source_rel}/${rel_path}")"
         copy_back "${runtime_file}" "${source_file}"
-      done < <(find "${source_dir}" -type f -print0 | sort -z)
+      done < <(pull_dir_rel_paths "${source_rel}")
       ;;
     *)
       echo "error: unsupported sync entry kind '${kind}'" >&2

@@ -1,14 +1,18 @@
 {inputs, ...}: {
   flake.homeModules.dms = {
+    config,
     lib,
+    osConfig ? {},
     pkgs,
     ...
   }: let
     repoRoot = ../../../.;
     runtimeConfigHelper = "${repoRoot}/scripts/runtime-config-helper.sh";
-    matugenConfigToml = "${repoRoot}/configs/matugen/config.toml";
-    matugenStarshipTemplate = "${repoRoot}/configs/matugen/templates/starship.toml";
-    matugenBatTemplate = "${repoRoot}/configs/matugen/templates/bat.tmTheme";
+    runtimeUser = config.home.username or "";
+    runtimeHost = osConfig.networking.hostName or "";
+    matugenConfigToml = "${repoRoot}/configs/common/matugen/config.toml";
+    matugenStarshipTemplate = "${repoRoot}/configs/common/matugen/templates/starship.toml";
+    matugenBatTemplate = "${repoRoot}/configs/common/matugen/templates/bat.tmTheme";
   in {
     imports = [
       inputs.dms.homeModules.dank-material-shell
@@ -20,7 +24,10 @@
 
       # Seed runtime configs from repo configs list via shared helper.
       home.activation.dmsRuntimeConfigs = lib.hm.dag.entryAfter ["writeBoundary"] ''
-        $DRY_RUN_CMD ${pkgs.bash}/bin/bash ${runtimeConfigHelper} seed dms
+        $DRY_RUN_CMD ${pkgs.coreutils}/bin/env \
+          RUNTIME_CONFIG_USER=${lib.escapeShellArg runtimeUser} \
+          RUNTIME_CONFIG_HOST=${lib.escapeShellArg runtimeHost} \
+          ${pkgs.bash}/bin/bash ${runtimeConfigHelper} seed dms
       '';
 
       programs.dank-material-shell = {

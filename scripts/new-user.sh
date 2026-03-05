@@ -62,22 +62,25 @@ user_module_name="${user^}"
 nixos_user_file="modules/nixosModules/users/${user}.nix"
 hm_user_file="modules/homeModules/users/${user}.nix"
 hm_user_dir="modules/homeModules/users/${user}"
+user_configs_dir="configs/users/${user}"
 source_nixos_user_file="modules/nixosModules/users/oj.nix"
 source_hm_user_file="modules/homeModules/users/oj.nix"
 source_hm_user_dir="modules/homeModules/users/oj"
+source_user_configs_dir="configs/users/oj"
 recipient_file="secrets/recipients/users/${user}.txt"
 
-if [[ -e "${nixos_user_file}" || -e "${hm_user_file}" || -e "${hm_user_dir}" ]]; then
+if [[ -e "${nixos_user_file}" || -e "${hm_user_file}" || -e "${hm_user_dir}" || -e "${user_configs_dir}" ]]; then
   echo "error: user '${user}' already exists (one or more target files already present)" >&2
   exit 1
 fi
 
-if [[ ! -f "${source_nixos_user_file}" || ! -f "${source_hm_user_file}" || ! -d "${source_hm_user_dir}" ]]; then
+if [[ ! -f "${source_nixos_user_file}" || ! -f "${source_hm_user_file}" || ! -d "${source_hm_user_dir}" || ! -d "${source_user_configs_dir}" ]]; then
   echo "error: expected oj source modules are missing" >&2
   echo "required sources:" >&2
   echo "  - ${source_nixos_user_file}" >&2
   echo "  - ${source_hm_user_file}" >&2
   echo "  - ${source_hm_user_dir}/" >&2
+  echo "  - ${source_user_configs_dir}/" >&2
   exit 1
 fi
 
@@ -154,6 +157,7 @@ mkdir -p "$(dirname "${nixos_user_file}")" "$(dirname "${hm_user_file}")"
 cp "${source_nixos_user_file}" "${nixos_user_file}"
 cp "${source_hm_user_file}" "${hm_user_file}"
 cp -R "${source_hm_user_dir}" "${hm_user_dir}"
+cp -R "${source_user_configs_dir}" "${user_configs_dir}"
 
 replace_user_placeholders "${nixos_user_file}" "${user}" "${user_module_name}"
 replace_user_placeholders "${hm_user_file}" "${user}" "${user_module_name}"
@@ -169,6 +173,7 @@ sed -i -E \
 echo "created ${nixos_user_file}"
 echo "created ${hm_user_file}"
 echo "created ${hm_user_dir}/"
+echo "created ${user_configs_dir}/"
 
 mkdir -p "$(dirname "${recipient_file}")"
 cat >"${recipient_file}" <<EOF_RECIPIENT

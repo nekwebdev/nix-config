@@ -14,7 +14,9 @@ Minimal dendritic NixOS + Home Manager setup:
 - `modules/flake-parts.nix`: shared flake-parts settings (`systems`, treefmt).
 - `modules/nixosModules/*`: exported NixOS modules and hosts.
 - `modules/homeModules/*`: exported Home Manager user profiles.
-- `configs/*`: repo-tracked app/runtime config sources synced to `~/.config/*` by module activation helpers.
+- `configs/common/*`: global fallback runtime config defaults.
+- `configs/users/<user>/common/*`: per-user runtime config defaults.
+- `configs/users/<user>/hosts/<host>/*`: per-user host-specific runtime config overrides.
 - `modules/wrappedPrograms/*`: per-system wrapped packages.
 - `secrets/*`: encrypted SOPS files (track in git).
 
@@ -27,7 +29,6 @@ just check-vm
 just switch <host>
 just update
 just new-user <user>
-just new-user <user>
 just new-user <user> ~/.ssh/id_ed25519
 just new-host <host> <user>
 just new-host <host> <user> sops_key_path=~/.ssh/id_ed25519
@@ -36,7 +37,7 @@ just config-update
 ```
 
 `just check-vm` is the preferred final validation on a 3rd party machine because it builds `toplevel` and VM artifacts without switching the running host.
-`just config-update` updates the config files in `configs/*` to match the current state of the system.
+`just config-update` updates the active layered runtime config sources in `configs/users/<user>/{common,hosts/<host>}` from the current system state.
 
 For `<host>`/`<user>` password secrets, see [secrets/README.md](./secrets/README.md).
 

@@ -76,8 +76,10 @@ hardware_file="${host_dir}/hardware-configuration.nix"
 source_host_dir="modules/nixosModules/hosts/lotus"
 source_config_file="${source_host_dir}/configuration.nix"
 source_hardware_file="${source_host_dir}/hardware-configuration.nix"
+user_host_configs_dir="configs/users/${user}/hosts/${host}"
+source_user_lotus_configs_dir="configs/users/${user}/hosts/lotus"
 
-if [[ -e "${config_file}" || -e "${hardware_file}" ]]; then
+if [[ -e "${config_file}" || -e "${hardware_file}" || -e "${user_host_configs_dir}" ]]; then
   echo "error: host '${host}' already exists (one or more target files already present)" >&2
   exit 1
 fi
@@ -118,6 +120,15 @@ sed -i -E \
 mv "${config_tmp}" "${config_file}"
 mv "${hardware_tmp}" "${hardware_file}"
 trap - EXIT
+
+if [[ -d "${source_user_lotus_configs_dir}" ]]; then
+  mkdir -p "$(dirname "${user_host_configs_dir}")"
+  cp -R "${source_user_lotus_configs_dir}" "${user_host_configs_dir}"
+  echo "created ${user_host_configs_dir}/ (copied from ${source_user_lotus_configs_dir}/)"
+else
+  mkdir -p "${user_host_configs_dir}"
+  echo "created ${user_host_configs_dir}/"
+fi
 
 echo "created ${config_file}"
 echo "created ${hardware_file}"

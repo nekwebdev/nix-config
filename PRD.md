@@ -1,5 +1,5 @@
 # PRD: Dendritic NixOS + Home Manager Pattern
-Version: `1.21`
+Version: `1.22`
 Status: Active specification
 
 ## 1. Product Definition
@@ -160,9 +160,13 @@ Each host hardware module must set:
 4. HM-first still applies: when program configuration is stable and not frequently changed by in-app UI, manage it declaratively through Home Manager modules.
 5. If a program frequently rewrites config through UI interactions, manage that config as copy-synced runtime dotfiles instead of immutable HM store links.
 6. Copy-synced runtime configs must use the repo helper flow:
-   1. source of truth files live under `configs/*`
-   2. `scripts/runtime-config-helper.sh seed <map>` copies repo files into runtime paths only when missing
-   3. `just config-update` (via `scripts/config-update.sh`) pulls runtime changes back into `configs/*`
+   1. source of truth files use a three-tier layout:
+      1. `configs/common/*` (global fallback defaults)
+      2. `configs/users/<user>/common/*` (user defaults)
+      3. `configs/users/<user>/hosts/<host>/*` (host-specific user overrides)
+   2. seed precedence is `configs/common` < `configs/users/<user>/common` < `configs/users/<user>/hosts/<host>`
+   3. `scripts/runtime-config-helper.sh seed <map>` copies the highest-precedence repo file for each tracked runtime file, only when runtime targets are missing
+   4. `just config-update` (via `scripts/config-update.sh`) pulls runtime changes back into repo-tracked files for the active `<user>/<host>` scope
 7. Mutable runtime configs must not be managed as read-only `xdg.configFile` store symlinks.
 
 ## 7. Scaffolding and Naming
@@ -171,11 +175,13 @@ Scaffolding is the standard path for adding new entities:
    1. `modules/nixosModules/users/<user>.nix`
    2. `modules/homeModules/users/<user>.nix`
    3. `modules/homeModules/users/<user>/` (user-scoped helper modules when present in baseline)
-   4. user scaffolding is cloned from the baseline `oj` user modules and rewritten with `<user>` placeholders
+   4. `configs/users/<user>/` cloned from baseline `configs/users/oj/` for runtime config parity
+   5. user scaffolding is cloned from the baseline `oj` user modules and rewritten with `<user>` placeholders
 2. `just new-host host=<host> user=<user> [sops_key_path=<path>]` creates:
    1. `modules/nixosModules/hosts/<host>/configuration.nix`
    2. `modules/nixosModules/hosts/<host>/hardware-configuration.nix`
-   3. host scaffolding is cloned from the baseline `lotus` host modules and rewritten with `<host>/<user>` placeholders
+   3. `configs/users/<user>/hosts/<host>/` (copied from `configs/users/<user>/hosts/lotus/` when present, otherwise initialized empty)
+   4. host scaffolding is cloned from the baseline `lotus` host modules and rewritten with `<host>/<user>` placeholders
 3. generated HM user modules import:
    1. `self.homeModules.base`
    2. `self.homeModules.fish`
@@ -229,4 +235,4 @@ Required validation flow before merge:
 6. Scaffolding commands generate PRD-compliant module boilerplate without manual flake wiring.
 7. `just check` passes.
 8. `just check-vm` passes without switching the live system.
-9. Mutable UI-driven runtime configs follow the copy-sync helper flow (`runtime-config-helper` + `just config-update`) instead of immutable HM store links.
+9. Mutable UI-driven runtime configs follow the layered copy-sync helper flow (`runtime-config-helper` + `just config-update`) instead of immutable HM store links.

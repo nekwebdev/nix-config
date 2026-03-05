@@ -2,21 +2,37 @@
   flake.homeModules.niri = {
     config,
     lib,
+    osConfig ? {},
     pkgs,
     ...
   }: let
     repoRoot = ../../../.;
     runtimeConfigHelper = "${repoRoot}/scripts/runtime-config-helper.sh";
-    niriIncludeSource = "${repoRoot}/configs/niri";
+    runtimeUser = config.home.username or "";
+    runtimeHost = osConfig.networking.hostName or "";
+    niriIncludeSources =
+      [
+        "${repoRoot}/configs/common/niri"
+        "${repoRoot}/configs/users/${runtimeUser}/common/niri"
+      ]
+      ++ lib.optionals (runtimeHost != "") ["${repoRoot}/configs/users/${runtimeUser}/hosts/${runtimeHost}/niri"];
+    niriIncludeDirs = lib.filter builtins.pathExists niriIncludeSources;
     niriIncludeNames = lib.sort builtins.lessThan (
-      lib.attrNames (lib.filterAttrs (_: fileType: fileType == "regular") (builtins.readDir niriIncludeSource))
+      lib.unique (
+        lib.concatMap
+        (dir: lib.attrNames (lib.filterAttrs (_: fileType: fileType == "regular") (builtins.readDir dir)))
+        niriIncludeDirs
+      )
     );
   in {
     imports = [inputs.dms.homeModules.niri];
 
     config = {
       home.activation.niriRuntimeConfigs = lib.hm.dag.entryAfter ["writeBoundary"] ''
-        $DRY_RUN_CMD ${pkgs.bash}/bin/bash ${runtimeConfigHelper} seed niri
+        $DRY_RUN_CMD ${pkgs.coreutils}/bin/env \
+          RUNTIME_CONFIG_USER=${lib.escapeShellArg runtimeUser} \
+          RUNTIME_CONFIG_HOST=${lib.escapeShellArg runtimeHost} \
+          ${pkgs.bash}/bin/bash ${runtimeConfigHelper} seed niri
       '';
 
       home.packages =
