@@ -5,8 +5,9 @@
     pkgs,
     ...
   }: let
-    runtimeConfigHelper = ../../../scripts/runtime-config-helper.sh;
-    niriIncludeSource = ../../../configs/niri;
+    repoRoot = ../../../.;
+    runtimeConfigHelper = "${repoRoot}/scripts/runtime-config-helper.sh";
+    niriIncludeSource = "${repoRoot}/configs/niri";
     niriIncludeNames = lib.sort builtins.lessThan (
       lib.attrNames (lib.filterAttrs (_: fileType: fileType == "regular") (builtins.readDir niriIncludeSource))
     );

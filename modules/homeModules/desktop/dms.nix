@@ -4,10 +4,11 @@
     pkgs,
     ...
   }: let
-    runtimeConfigHelper = ../../../scripts/runtime-config-helper.sh;
-    matugenConfigToml = ../../../configs/matugen/config.toml;
-    matugenStarshipTemplate = ../../../configs/matugen/templates/starship.toml;
-    matugenBatTemplate = ../../../configs/matugen/templates/bat.tmTheme;
+    repoRoot = ../../../.;
+    runtimeConfigHelper = "${repoRoot}/scripts/runtime-config-helper.sh";
+    matugenConfigToml = "${repoRoot}/configs/matugen/config.toml";
+    matugenStarshipTemplate = "${repoRoot}/configs/matugen/templates/starship.toml";
+    matugenBatTemplate = "${repoRoot}/configs/matugen/templates/bat.tmTheme";
   in {
     imports = [
       inputs.dms.homeModules.dank-material-shell

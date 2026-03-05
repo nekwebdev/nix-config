@@ -10,6 +10,7 @@
       pkgs.openvpn
       pkgs.protonup-qt
       pkgs.codex
+      pkgs.mpv
     ];
   };
 }

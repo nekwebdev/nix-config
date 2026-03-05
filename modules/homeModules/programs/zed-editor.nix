@@ -4,7 +4,7 @@
     pkgs,
     ...
   }: let
-    runtimeConfigHelper = ../../../scripts/runtime-config-helper.sh;
+    runtimeConfigHelper = "../../../scripts/runtime-config-helper.sh";
   in {
     home.activation.zedRuntimeConfigs = lib.hm.dag.entryAfter ["writeBoundary"] ''
       $DRY_RUN_CMD ${pkgs.bash}/bin/bash ${runtimeConfigHelper} seed zed

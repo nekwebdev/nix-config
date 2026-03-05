@@ -25,15 +25,18 @@ just fmt
 just check
 just check-vm
 just switch <host>
+just update
 just new-user <user>
 just new-user <user>
 just new-user <user> ~/.ssh/id_ed25519
 just new-host <host> <user>
 just new-host <host> <user> sops_key_path=~/.ssh/id_ed25519
 just sops-user-password <user>
+just config-update
 ```
 
 `just check-vm` is the preferred final validation on a 3rd party machine because it builds `toplevel` and VM artifacts without switching the running host.
+`just config-update` updates the config files in `configs/*` to match the current state of the system.
 
 For `<host>`/`<user>` password secrets, see [secrets/README.md](./secrets/README.md).
 
