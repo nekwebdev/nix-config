@@ -11,6 +11,7 @@
     imports = [
       inputs.home-manager.nixosModules.home-manager
       inputs.sops-nix.nixosModules.sops
+      inputs.nix-sweep.nixosModules.default
 
       self.nixosModules.base
       self.nixosModules.system
@@ -39,6 +40,20 @@
     # HM-first exception: bootloader/EFI are host-level boot plumbing.
     boot.loader.systemd-boot.enable = true;
     boot.loader.efi.canTouchEfiVariables = true;
+
+    # HM-first exception: this is a root-owned maintenance service.
+    services.nix-sweep = {
+      enable = true;
+      interval = "daily";
+      gc = true;
+      gcInterval = "weekly";
+      profiles = [
+        "system"
+      ];
+      keepNewer = "7d";
+      removeOlder = "30d";
+      keepMin = 10;
+    };
 
     home-manager.useGlobalPkgs = true;
     home-manager.useUserPackages = true;
