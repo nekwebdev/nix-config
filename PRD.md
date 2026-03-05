@@ -1,5 +1,5 @@
 # PRD: Dendritic NixOS + Home Manager Pattern
-Version: `1.22`
+Version: `1.23`
 Status: Active specification
 
 ## 1. Product Definition
@@ -168,6 +168,7 @@ Each host hardware module must set:
    3. `scripts/runtime-config-helper.sh seed <map>` copies the highest-precedence repo file for each tracked runtime file, only when runtime targets are missing
    4. `just config-update` (via `scripts/config-update.sh`) pulls runtime changes back into repo-tracked files for the active `<user>/<host>` scope
 7. Mutable runtime configs must not be managed as read-only `xdg.configFile` store symlinks.
+8. Pull exclusions are allowed for intentionally volatile files and must be declared in `scripts/runtime-config-helper.sh` as repo-relative paths.
 
 ## 7. Scaffolding and Naming
 Scaffolding is the standard path for adding new entities:

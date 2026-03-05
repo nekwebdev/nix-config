@@ -41,6 +41,35 @@ just config-update
 
 For `<host>`/`<user>` password secrets, see [secrets/README.md](./secrets/README.md).
 
+## Using Parts of This Repo (WIP)
+
+### 1) Runtime config files (`configs/*`)
+
+Use this when app configs are UI-mutated and should be copy-synced instead of immutable HM links.
+
+- Layer order (lowest -> highest):
+  - `configs/common/*`
+  - `configs/users/<user>/common/*`
+  - `configs/users/<user>/hosts/<host>/*`
+- On activation, HM runs `scripts/runtime-config-helper.sh seed <map>` to copy missing runtime files into `~/.config/*`.
+- To sync runtime changes back into the repo, run:
+
+```bash
+just config-update
+```
+
+- Pull-back exclusions (for intentionally volatile files) are defined in:
+  - `scripts/runtime-config-helper.sh` (`pull_exclude_repo_rel_paths`)
+
+### 2) User and host scaffolding
+WIP (to be documented during onboarding pass).
+
+### 3) Secrets workflow
+WIP (to be documented during onboarding pass).
+
+### 4) Wrapped programs and wrappers
+WIP (to be documented during onboarding pass).
+
 ## Future TODO
 
 - Add a helper script to securely fetch per-user SSH keypairs from Vaultwarden and install them into `~/.ssh` before rebuild/switch.

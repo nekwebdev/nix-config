@@ -61,6 +61,11 @@ fi
 
 default_pull_root="${repo_root}/configs/users/${runtime_user}/common"
 
+# Repo-relative pull excludes. Use exact paths or shell-style globs.
+pull_exclude_repo_rel_paths=(
+  "configs/users/oj/hosts/lotus/niri/cursor.kdl"
+)
+
 list_maps() {
   cat <<'MAPS'
 dms
@@ -147,6 +152,21 @@ copy_back() {
 
   cp --dereference "${src}" "${dst}"
   echo "updated ${dst}"
+}
+
+is_pull_excluded() {
+  local destination_path="$1"
+  local destination_rel="${destination_path#${repo_root}/}"
+  local pattern
+
+  for pattern in "${pull_exclude_repo_rel_paths[@]}"; do
+    if [[ "${destination_rel}" == ${pattern} ]]; then
+      echo "skip: pull excluded ${destination_rel}"
+      return 0
+    fi
+  done
+
+  return 1
 }
 
 resolve_seed_source_file() {
@@ -281,7 +301,14 @@ pull_entry() {
 
   case "${kind}" in
     file)
-      copy_back "${target_root}/${target_rel}" "$(resolve_pull_destination_file "${source_rel}")"
+      local destination_file
+      destination_file="$(resolve_pull_destination_file "${source_rel}")"
+
+      if is_pull_excluded "${destination_file}"; then
+        return 0
+      fi
+
+      copy_back "${target_root}/${target_rel}" "${destination_file}"
       ;;
     dir)
       local target_dir="${target_root}/${target_rel}"
@@ -290,6 +317,11 @@ pull_entry() {
       while IFS= read -r rel_path; do
         runtime_file="${target_dir}/${rel_path}"
         source_file="$(resolve_pull_destination_file "${source_rel}/${rel_path}")"
+
+        if is_pull_excluded "${source_file}"; then
+          continue
+        fi
+
         copy_back "${runtime_file}" "${source_file}"
       done < <(pull_dir_rel_paths "${source_rel}")
       ;;
