@@ -19,8 +19,10 @@
     niriIncludeDirs = lib.filter builtins.pathExists niriIncludeSources;
     niriIncludeNames = lib.sort builtins.lessThan (
       lib.unique (
-        lib.concatMap
-        (dir: lib.attrNames (lib.filterAttrs (_: fileType: fileType == "regular") (builtins.readDir dir)))
+        lib.concatMap (dir:
+          map
+          (name: lib.removeSuffix ".kdl" name)
+          (lib.attrNames (lib.filterAttrs (_: fileType: fileType == "regular") (builtins.readDir dir))))
         niriIncludeDirs
       )
     );
