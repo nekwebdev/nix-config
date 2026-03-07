@@ -1,5 +1,8 @@
 set shell := ["bash", "-eu", "-o", "pipefail", "-c"]
 
+help:
+    @bash ./scripts/help.sh
+
 fmt:
     @echo "==> Formatting"
     @bash ./scripts/fmt.sh

@@ -24,6 +24,7 @@ Minimal dendritic NixOS + Home Manager setup:
 ## Commands
 
 ```bash
+just help
 just fmt
 just check
 just check-vm
@@ -40,7 +41,6 @@ just config-update
 
 `just check-vm` is the preferred final validation on a 3rd party machine because it builds `toplevel` and VM artifacts without switching the running host.
 `just config-update` updates the active layered runtime config sources in `configs/users/<user>/{common,hosts/<host>}` from the current system state.
-
 For SOPS-backed VPN credentials, see [secrets/README.md](./secrets/README.md).
 
 ## NordVPN OVPN workflow
@@ -125,7 +125,3 @@ It also prints an install hint using:
 
 ### 4) Wrapped programs and wrappers
 WIP (to be documented during onboarding pass).
-
-## Future TODO
-
-- Add a `just help` command that documents all recipes, parameters, and common examples.

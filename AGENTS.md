@@ -23,6 +23,7 @@
 
 ## Commands
 ```bash
+just help
 just fmt
 just check
 just check-vm
