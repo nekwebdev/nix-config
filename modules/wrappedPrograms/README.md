@@ -1,9 +1,11 @@
 # wrappedPrograms
 
-This directory is reserved for future wrapped package modules.
+This directory exports wrapped packages through `perSystem.packages.*`.
 
-Current baseline policy is module-first:
-- program behavior and package selection should live in explicit Home Manager modules under `modules/homeModules/*`
-- host modules should not inject wrapped package sets through `home-manager.extraSpecialArgs`
+Current wrappers:
+- `monsters-and-memories-launcher`: pinned AppImage wrapped with `wrappers.lib.wrapPackage`, staged to `$XDG_DATA_HOME/monsters-and-memories-launcher` at runtime, executed through `appimage-run`, includes `umu-launcher` in PATH, defaults `UMU_NO_RUNTIME=1` + `UMU_RUNTIME_UPDATE=0`, and ships a desktop entry/icon.
 
-If wrappers are reintroduced later, use `wrappers.lib.wrapPackage` and document the reason in `PRD.md`.
+Policy:
+- keep behavior module-first in `modules/homeModules/*`
+- use wrappers only for package-level wrapping (`wrappers.lib.wrapPackage`)
+- do not pass wrapper sets through `home-manager.extraSpecialArgs`
