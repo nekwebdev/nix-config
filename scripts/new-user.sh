@@ -40,7 +40,6 @@ user="${1:-}"
 shift || true
 sops_key_input="${1:-${SOPS_KEY_PATH:-}}"
 shift || true
-script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 if [[ -z "${user}" ]]; then
   usage
@@ -185,8 +184,3 @@ EOF_RECIPIENT
 
 echo "created ${recipient_file}"
 echo "important: copy private key to target host at ${target_key_path} before rebuild/switch"
-
-echo "bootstrapping password secret for ${user}"
-bash "${script_dir}/sops-user-password.sh" "${user}" "${recipient_file}"
-
-echo "if secrets/users.yaml was created or updated, add it to git"

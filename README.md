@@ -16,6 +16,7 @@ Minimal dendritic NixOS + Home Manager setup:
 - `modules/homeModules/*`: exported Home Manager user profiles.
 - `configs/common/*`: global fallback runtime config defaults.
 - `configs/users/<user>/common/*`: per-user runtime config defaults.
+- `configs/users/<user>/common/nordvpn/*.ovpn`: declarative NordVPN source profiles (imported into NetworkManager).
 - `configs/users/<user>/hosts/<host>/*`: per-user host-specific runtime config overrides.
 - `modules/wrappedPrograms/*`: per-system wrapped packages.
 - `secrets/*`: encrypted SOPS files (track in git).
@@ -32,14 +33,39 @@ just new-user <user>
 just new-user <user> ~/.ssh/id_ed25519
 just new-host <host> <user>
 just new-host <host> <user> sops_key_path=~/.ssh/id_ed25519
-just sops-user-password <user>
+just sops-vpn-credentials
+just vaultwarden-keys <user> <host> <age_item> <ssh_item>
 just config-update
 ```
 
 `just check-vm` is the preferred final validation on a 3rd party machine because it builds `toplevel` and VM artifacts without switching the running host.
 `just config-update` updates the active layered runtime config sources in `configs/users/<user>/{common,hosts/<host>}` from the current system state.
 
-For `<host>`/`<user>` password secrets, see [secrets/README.md](./secrets/README.md).
+For SOPS-backed VPN credentials, see [secrets/README.md](./secrets/README.md).
+
+## NordVPN OVPN workflow
+
+1. Put `.ovpn` files in:
+   - `configs/users/<user>/common/nordvpn/`
+2. Encrypt shared NordVPN credentials:
+
+```bash
+just sops-vpn-credentials
+```
+
+3. Rebuild:
+
+```bash
+just check
+```
+
+At evaluation time, each `.ovpn` in that folder is converted into a declarative NetworkManager VPN profile and all of them reuse `vpn/nordvpn-username` + `vpn/nordvpn-password`.
+
+## Password bootstrap behavior
+
+- User modules use a temporary bootstrap password hash (`changeme`) for first account creation.
+- A fish reminder is shown until `passwd` succeeds once in fish.
+- Passwords are no longer sourced from `secrets/users.yaml`.
 
 ## Using Parts of This Repo (WIP)
 
@@ -65,12 +91,41 @@ just config-update
 WIP (to be documented during onboarding pass).
 
 ### 3) Secrets workflow
-WIP (to be documented during onboarding pass).
+
+Use this for first-install key bootstrap from Vaultwarden in a fresh ISO shell.
+
+1. Install/unlock Bitwarden CLI (`bw`) in the live environment:
+
+```bash
+bw login --apikey    # or bw login
+export BW_SESSION="$(bw unlock --raw)"
+```
+
+2. Ensure two Vaultwarden items exist and store key material in item **notes**:
+- `<age_item>` notes: full age key file content (`keys.txt`, including `AGE-SECRET-KEY-...`)
+- `<ssh_item>` notes: SSH private key content for host signing/auth
+
+3. Fetch and stage keys into the target install root:
+
+```bash
+just vaultwarden-keys <user> <host> <age_item> <ssh_item>
+```
+
+Optional:
+- set target root (default `/mnt`): `... target_root=/mnt`
+- set Vaultwarden server URL: `... server=https://vault.example.com`
+
+The script writes:
+- `<target_root>/home/<user>/.config/sops/age/keys.txt`
+- `<target_root>/home/<user>/.ssh/nixos-<host>`
+- `<target_root>/home/<user>/.ssh/nixos-<host>.pub`
+
+It also prints an install hint using:
+- `SOPS_AGE_KEY_FILE=<target_root>/home/<user>/.config/sops/age/keys.txt`
 
 ### 4) Wrapped programs and wrappers
 WIP (to be documented during onboarding pass).
 
 ## Future TODO
 
-- Add a helper script to securely fetch per-user SSH keypairs from Vaultwarden and install them into `~/.ssh` before rebuild/switch.
 - Add a `just help` command that documents all recipes, parameters, and common examples.

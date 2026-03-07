@@ -11,6 +11,11 @@
         if not set -q __done_min_cmd_duration
           set -U __done_min_cmd_duration 10000
         end
+
+        set reminder_file "$HOME/.local/state/nix/password-bootstrap-reminder"
+        if test -f $reminder_file
+          echo "[nixos] Bootstrap password reminder: run 'passwd' to set your password, then open a new shell."
+        end
       '';
 
       plugins = [
@@ -36,6 +41,23 @@
           end
 
           cp $argv[1] $argv[1].bak
+        '';
+
+        passwd.body = ''
+          command passwd $argv
+          set passwd_status $status
+
+          if test $passwd_status -eq 0
+            set state_dir "$HOME/.local/state/nix"
+            set reminder_file "$state_dir/password-bootstrap-reminder"
+            set ack_file "$state_dir/password-bootstrap-ack"
+
+            mkdir -p $state_dir
+            touch $ack_file
+            rm -f $reminder_file
+          end
+
+          return $passwd_status
         '';
       };
     };

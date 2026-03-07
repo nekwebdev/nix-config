@@ -1,5 +1,5 @@
 # PRD: Dendritic NixOS + Home Manager Pattern
-Version: `1.23`
+Version: `1.24`
 Status: Active specification
 
 ## 1. Product Definition
@@ -170,6 +170,17 @@ Each host hardware module must set:
 7. Mutable runtime configs must not be managed as read-only `xdg.configFile` store symlinks.
 8. Pull exclusions are allowed for intentionally volatile files and must be declared in `scripts/runtime-config-helper.sh` as repo-relative paths.
 
+### 6.11 First-install key bootstrap contract (`scripts/vaultwarden-bootstrap-keys.sh`)
+1. The repo provides a bootstrap script that fetches key material from Vaultwarden via `bw`.
+2. Script input includes: `<user>`, `<host>`, age-item name, ssh-item name, optional target root (default `/mnt`), optional Vaultwarden server URL.
+3. Age and SSH private key material are read from Vaultwarden item notes.
+4. Script writes into target user home under the selected root:
+   1. `/home/<user>/.config/sops/age/keys.txt`
+   2. `/home/<user>/.ssh/nixos-<host>`
+   3. `/home/<user>/.ssh/nixos-<host>.pub`
+5. Script must apply strict key permissions and attempt to apply target ownership when target user metadata is available.
+6. Script output must include an install hint using `SOPS_AGE_KEY_FILE` for initial install/rebuild.
+
 ## 7. Scaffolding and Naming
 Scaffolding is the standard path for adding new entities:
 1. `just new-user user=<user> [sops_key_path=<path>]` creates:
@@ -205,6 +216,7 @@ The supported interface is:
 6. `just new-host host=<host> user=<user> [sops_key_path=<path>]`
 7. `just sops-user-password user=<user> [recipients_file=<path>]`
 8. `just config-update`
+9. `just vaultwarden-keys user=<user> host=<host> age_item=<item> ssh_item=<item> [target_root=<path>] [server=<url>]`
 
 `justfile` contains routing only. Execution logic lives in `/scripts`.
 
@@ -237,3 +249,4 @@ Required validation flow before merge:
 7. `just check` passes.
 8. `just check-vm` passes without switching the live system.
 9. Mutable UI-driven runtime configs follow the layered copy-sync helper flow (`runtime-config-helper` + `just config-update`) instead of immutable HM store links.
+10. First-install key bootstrap command stages age + host SSH keys into target user home for install-time and post-install usage.

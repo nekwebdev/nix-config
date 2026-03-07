@@ -32,6 +32,10 @@ new-host host user sops_key_path='':
     @echo "==> Creating host scaffold: {{ host }} (user: {{ user }})"
     @bash ./scripts/new-host.sh "{{ host }}" "{{ user }}" "{{ sops_key_path }}"
 
-sops-user-password user recipients_file='':
-    @echo "==> Encrypting user password: {{ user }}"
-    @bash ./scripts/sops-user-password.sh "{{ user }}" "{{ recipients_file }}"
+sops-vpn-credentials recipients_file='':
+    @echo "==> Encrypting NordVPN credentials"
+    @bash ./scripts/sops-vpn-credentials.sh "{{ recipients_file }}"
+
+vaultwarden-keys user host age_item ssh_item target_root='/mnt' server='':
+    @echo "==> Fetching age/ssh keys from Vaultwarden for {{ user }}@{{ host }}"
+    @bash ./scripts/vaultwarden-bootstrap-keys.sh "{{ user }}" "{{ host }}" "{{ age_item }}" "{{ ssh_item }}" "{{ target_root }}" "{{ server }}"
