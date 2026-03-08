@@ -7,12 +7,30 @@
       url = "https://pub-f06cad9ebbcd412bb0f4ff64f0f6a3d7.r2.dev/launcher_v2/${version}/${appImageFile}";
       hash = "sha256-UImtt6bokj1f1TxPLpG393AOUsL3A3ONM6Ezs1GlzeM=";
     };
+    umuRunFhsShim = pkgs.writeShellScriptBin "umu-run" ''
+      set -o errexit
+      set -o nounset
+      set -o pipefail
+
+      # AppImage runtime vars break umu's Python interpreter and grep linkage.
+      unset PYTHONHOME
+      unset PYTHONPATH
+      unset PYTHONDONTWRITEBYTECODE
+      unset PERLLIB
+      unset QT_PLUGIN_PATH
+      unset GSETTINGS_SCHEMA_DIR
+      unset GST_PLUGIN_SYSTEM_PATH
+      unset GST_PLUGIN_SYSTEM_PATH_1_0
+      unset LD_LIBRARY_PATH
+
+      exec "${pkgs.umu-launcher}/bin/umu-run" "$@"
+    '';
     appimageContents = pkgs.appimageTools.extractType2 {
       inherit pname version src;
     };
     appimageRunner = pkgs.appimage-run.override {
       extraPkgs = ps: [
-        ps.umu-launcher
+        umuRunFhsShim
         ps.webkitgtk_4_1
         ps.gtk3
         ps.libsoup_3
@@ -26,7 +44,7 @@
       binName = pname;
       args = [src];
 
-      runtimeInputs = [pkgs.umu-launcher pkgs.coreutils];
+      runtimeInputs = [pkgs.umu-launcher pkgs.coreutils pkgs.gnugrep];
       env = {
         UMU_NO_RUNTIME = "1";
         UMU_RUNTIME_UPDATE = "0";
@@ -36,6 +54,29 @@
       patchHook = ''
         # Stage the AppImage into a writable user path so the launcher does not
         # derive install dirs from the immutable Nix store path.
+        mkdir -p "$out/libexec/${pname}/bin"
+        cat > "$out/libexec/${pname}/bin/umu-run" <<'EOF'
+        #!${pkgs.bash}/bin/bash
+        set -o errexit
+        set -o nounset
+        set -o pipefail
+
+        # The AppImage runtime exports Python/loader env vars for its bundled
+        # app, but those break the external umu-run interpreter.
+        unset PYTHONHOME
+        unset PYTHONPATH
+        unset PYTHONDONTWRITEBYTECODE
+        unset PERLLIB
+        unset QT_PLUGIN_PATH
+        unset GSETTINGS_SCHEMA_DIR
+        unset GST_PLUGIN_SYSTEM_PATH
+        unset GST_PLUGIN_SYSTEM_PATH_1_0
+        unset LD_LIBRARY_PATH
+
+        exec "${pkgs.umu-launcher}/bin/umu-run" "$@"
+        EOF
+        chmod 0755 "$out/libexec/${pname}/bin/umu-run"
+
         rm -f "$out/bin/${pname}"
         cat > "$out/bin/${pname}" <<'EOF'
         #!${pkgs.bash}/bin/bash
@@ -43,7 +84,10 @@
         set -o nounset
         set -o pipefail
 
-        export PATH="${pkgs.lib.makeBinPath [pkgs.umu-launcher pkgs.coreutils]}:$PATH"
+        script_dir="$(cd -- "$(dirname -- "''${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+        prefix_dir="$(cd -- "$script_dir/.." >/dev/null 2>&1 && pwd)"
+
+        export PATH="$prefix_dir/libexec/${pname}/bin:${pkgs.lib.makeBinPath [pkgs.umu-launcher pkgs.coreutils pkgs.gnugrep]}:$PATH"
         export GAMEID="monsters-and-memories"
         export UMU_NO_RUNTIME="1"
         export UMU_RUNTIME_UPDATE="0"
