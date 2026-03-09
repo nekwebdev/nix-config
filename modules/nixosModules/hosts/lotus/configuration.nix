@@ -58,7 +58,7 @@
     home-manager.useGlobalPkgs = true;
     home-manager.useUserPackages = true;
     home-manager.users.oj = {
-      imports = [self.homeModules.userOj];
+      imports = [self.homeModules.ojNiri];
       home.username = lib.mkDefault "oj";
       home.homeDirectory = lib.mkDefault "/home/oj";
     };

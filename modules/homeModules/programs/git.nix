@@ -1,19 +1,9 @@
 {...}: {
-  flake.homeModules.userOjGit = {
-    pkgs,
-    config,
-    osConfig ? {},
-    ...
-  }: {
+  flake.homeModules.git = {pkgs, ...}: {
     programs.git = {
       enable = true;
       package = pkgs.git;
       settings = {
-        user = {
-          name = "nekwebdev";
-          email = "nekwebdev@users.noreply.github.com";
-          signingkey = "${config.home.homeDirectory}/.ssh/nixos-${osConfig.networking.hostName}";
-        };
         init.defaultBranch = "main";
         gpg.format = "ssh";
         commit.gpgSign = true;

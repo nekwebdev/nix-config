@@ -1,5 +1,5 @@
 # PRD: Dendritic NixOS + Home Manager Pattern
-Version: `1.24`
+Version: `1.25`
 Status: Active specification
 
 ## 1. Product Definition
@@ -41,23 +41,24 @@ No host/user composition logic lives directly in `flake.nix`.
 2. `nixosModules.base`
 3. `nixosModules.userOj`
 4. `nixosModules.hostLotus`
-5. `homeModules.userOj`
+5. `homeModules.ojNiri`
 6. `homeModules.base`
 7. `homeModules.fish`
 8. `homeModules.aliasRegistry`
 9. `homeModules.aliasesCommon`
 10. `homeModules.environment`
+11. `homeModules.git`
 
 ### 5.2 Extensible pattern outputs
 For each scaffolded user `<user>`:
 1. `nixosModules.user<User>`
-2. `homeModules.user<User>`
+2. `homeModules.<user>Niri` (default scaffolded profile)
 
 For each scaffolded host `<host>` bound to user `<user>`:
 1. `nixosConfigurations.<host>`
 2. `nixosModules.host<Host>`
 3. host module imports `self.nixosModules.user<User>`
-4. host HM wiring imports `self.homeModules.user<User>`
+4. host HM wiring imports `self.homeModules.<user>Niri`
 
 `<User>` and `<Host>` follow scaffold naming (`[a-z][a-z0-9]*` input, first letter capitalized for module names).
 
@@ -93,20 +94,21 @@ Each host-declared user module must:
 4. include `wheel` in `extraGroups`
 5. declare `users.groups.<user> = {}`
 
-### 6.4 Home Manager user module contract (`modules/homeModules/users/<user>.nix`)
-Each HM user module must:
-1. export `flake.homeModules.user<User>`
+### 6.4 Home Manager user profile contract (`modules/homeModules/users/<user>/<profile>.nix`)
+Each HM user profile module must:
+1. export `flake.homeModules.<user><Profile>` (baseline profile export is `ojNiri`)
 2. import shared HM modules explicitly (current baseline:
    1. `self.homeModules.base`
    2. `self.homeModules.fish`
    3. `self.homeModules.aliasRegistry`
    4. `self.homeModules.aliasesCommon`
-   5. `self.homeModules.environment`)
+   5. `self.homeModules.environment`
+   6. `self.homeModules.git`)
 3. set `home.stateVersion = "25.11"`
 4. set `programs.home-manager.enable = true`
 5. keep program-level behavior in focused reusable HM modules (for example `self.homeModules.bat`, `self.homeModules.eza`) and import them explicitly
-6. `self.homeModules.base` is the allowed shared bundle for user-level must-have packages that do not require program-specific configuration
-7. user entry modules may decompose into per-feature user-scoped modules (for example exports like `self.homeModules.userAliceGit`) when those modules remain strictly user-specific
+6. `self.homeModules.base` is the shared user baseline and may include shared bootstrap reminder activation logic
+7. user profile modules may set user-specific identity/theme/packages/session values directly
 
 ### 6.5 Host module contract (`modules/nixosModules/hosts/<host>/configuration.nix`)
 Each host configuration must:
@@ -123,7 +125,7 @@ Each host configuration must:
    1. `home-manager.useGlobalPkgs = true`
    2. `home-manager.useUserPackages = true`
 7. pass only explicitly required HM args through `home-manager.extraSpecialArgs` (for example `sopsUserSshKeyPath`); do not inject wrapper bundles by default
-8. set `home-manager.users.<user>.imports = [ self.homeModules.user<User> ]`
+8. set `home-manager.users.<user>.imports = [ self.homeModules.<user><Profile> ]` (baseline profile export is `<user>Niri`)
 9. set HM defaults:
    1. `home.username = "<user>"` (default)
    2. `home.homeDirectory = "/home/<user>"` (default)
@@ -140,18 +142,19 @@ Each host hardware module must set:
 4. Do not reintroduce bundled tool environments (for example `fish-env`).
 
 ### 6.8 Shared Home Manager module contracts (`modules/homeModules/shared/*.nix`)
-1. `base.nix` exports `flake.homeModules.base` and provides shared must-have user packages that require no program-specific configuration.
+1. `base.nix` exports `flake.homeModules.base`, provides shared must-have user packages, and carries shared password-bootstrap reminder activation logic.
 2. `programs/fish.nix` exports `flake.homeModules.fish` and is responsible for fish enablement + fish shell behavior only.
 3. `aliases.nix` exports `flake.homeModules.aliasRegistry`, defines `my.home.aliases.fragments`, merges aliases into all enabled shells (`bash`, `fish`, `zsh`), and hard-fails on duplicate alias keys.
 4. `aliases-common.nix` exports `flake.homeModules.aliasesCommon` and provides baseline non-package aliases through `my.home.aliases.fragments`.
 5. `environment.nix` exports `flake.homeModules.environment` and provides baseline `xdg.enable`, cross-shell session path, and baseline session variables.
+6. `programs/git.nix` exports `flake.homeModules.git` and provides shared git behavior that is not identity-specific.
 
 ### 6.9 Reusable Home module naming
 1. Reusable HM modules must be user-agnostic in both filename and exported name.
-2. User-prefixed naming is reserved for user-scoped modules (`userAlice`, `userAliceGit`, etc.), not reusable program/policy modules.
+2. User-scoped HM profiles must be exported as flat names under `flake.homeModules` (`<user><Profile>`, for example `ojNiri`, `aliceNiri`).
 3. Reusable HM modules should avoid duplicate basenames to keep tree reorganization non-semantic.
 4. Reusable HM modules should live in category directories (for example `shared/`, `programs/`, `desktop/`) and export neutral names (for example `base`, `fish`, `environment`, `bat`, `eza`, `brave`, `fastfetch`, `fzf`, `ghostty`, `mangohud`, `nixMonitor`, `starship`, `tlrc`, `vscode`, `zedEditor`, `zoxide`, `dms`, `niri`).
-5. User-scoped helper modules under `modules/homeModules/users/<user>/` are allowed when they remain strictly user-specific.
+5. User-scoped profile modules live under `modules/homeModules/users/<user>/` (for example `niri.nix`, `kde.nix`).
 
 ### 6.10 Home module file layout and mutable runtime config policy
 1. A module is either a single file (`<name>.nix`) or a folder (`<name>/<name>.nix`) with all module-local assets (templates, default configs, docs) colocated under that folder.
@@ -185,8 +188,8 @@ Each host hardware module must set:
 Scaffolding is the standard path for adding new entities:
 1. `just new-user user=<user> [sops_key_path=<path>]` creates:
    1. `modules/nixosModules/users/<user>.nix`
-   2. `modules/homeModules/users/<user>.nix`
-   3. `modules/homeModules/users/<user>/` (user-scoped helper modules when present in baseline)
+   2. `modules/homeModules/users/<user>/niri.nix`
+   3. `modules/homeModules/users/<user>/` (profile folder cloned from baseline)
    4. `configs/users/<user>/` cloned from baseline `configs/users/oj/` for runtime config parity
    5. user scaffolding is cloned from the baseline `oj` user modules and rewritten with `<user>` placeholders
 2. `just new-host host=<host> user=<user> [sops_key_path=<path>]` creates:
@@ -194,16 +197,17 @@ Scaffolding is the standard path for adding new entities:
    2. `modules/nixosModules/hosts/<host>/hardware-configuration.nix`
    3. `configs/users/<user>/hosts/<host>/` (copied from `configs/users/<user>/hosts/lotus/` when present, otherwise initialized empty)
    4. host scaffolding is cloned from the baseline `lotus` host modules and rewritten with `<host>/<user>` placeholders
-3. generated HM user modules import:
+3. generated HM user profile modules import:
    1. `self.homeModules.base`
    2. `self.homeModules.fish`
    3. `self.homeModules.aliasRegistry`
    4. `self.homeModules.aliasesCommon`
    5. `self.homeModules.environment`
+   6. `self.homeModules.git`
 
 Naming rules:
 1. `<host>` and `<user>` must match `^[a-z][a-z0-9]*$`
-2. scaffolded module suffixes are first-letter capitalized (`userAlice`, `hostLaptop`)
+2. scaffolded NixOS module suffixes are first-letter capitalized (`userAlice`, `hostLaptop`), while HM profile exports use flat concatenated names (`homeModules.<user>Niri`)
 3. reusable HM modules must not carry a specific username in filename or export name
 
 ## 8. Command Surface

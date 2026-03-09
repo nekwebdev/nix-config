@@ -14,6 +14,7 @@ Minimal dendritic NixOS + Home Manager setup:
 - `modules/flake-parts.nix`: shared flake-parts settings (`systems`, treefmt).
 - `modules/nixosModules/*`: exported NixOS modules and hosts.
 - `modules/homeModules/*`: exported Home Manager user profiles.
+- `modules/homeModules/users/<user>/<profile>.nix`: user profile entry modules (baseline: `users/oj/niri.nix`).
 - `configs/common/*`: global fallback runtime config defaults.
 - `configs/users/<user>/common/*`: per-user runtime config defaults.
 - `configs/users/<user>/common/nordvpn/*.ovpn`: declarative NordVPN source profiles (imported into NetworkManager).

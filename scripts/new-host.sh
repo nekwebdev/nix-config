@@ -23,6 +23,7 @@ replace_host_placeholders() {
     -e "s/\\<lotus\\>/${host_name}/g" \
     -e "s/Lotus/${host_module_name}/g" \
     -e "s/\\<oj\\>/${user_name}/g" \
+    -e "s/ojNiri/${user_name}Niri/g" \
     -e "s/Oj/${user_module_name}/g" \
     "${file_path}"
 }
@@ -57,16 +58,16 @@ host_module_name="${host^}"
 user_module_name="${user^}"
 
 nixos_user_file="modules/nixosModules/users/${user}.nix"
-hm_user_file="modules/homeModules/users/${user}.nix"
+hm_user_profile_file="modules/homeModules/users/${user}/niri.nix"
 
-if [[ ! -f "${nixos_user_file}" && ! -f "${hm_user_file}" ]]; then
+if [[ ! -f "${nixos_user_file}" && ! -f "${hm_user_profile_file}" ]]; then
   echo "user '${user}' not found; scaffolding user first"
   bash "${script_dir}/new-user.sh" "${user}" "${sops_key_path}"
-elif [[ ! -f "${nixos_user_file}" || ! -f "${hm_user_file}" ]]; then
+elif [[ ! -f "${nixos_user_file}" || ! -f "${hm_user_profile_file}" ]]; then
   echo "error: user '${user}' is in a partial state" >&2
-  echo "expected both files:" >&2
+  echo "expected both modules:" >&2
   echo "  - ${nixos_user_file}" >&2
-  echo "  - ${hm_user_file}" >&2
+  echo "  - ${hm_user_profile_file}" >&2
   exit 1
 fi
 
