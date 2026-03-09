@@ -44,38 +44,12 @@
       binName = pname;
       args = [src];
 
-      runtimeInputs = [pkgs.umu-launcher pkgs.coreutils pkgs.gnugrep];
-      env = {
-        UMU_NO_RUNTIME = "1";
-        UMU_RUNTIME_UPDATE = "0";
-        GAMEID = "monsters-and-memories";
-      };
+      runtimeInputs = [pkgs.coreutils pkgs.gnugrep];
 
       patchHook = ''
         # Stage the AppImage into a writable user path so the launcher does not
         # derive install dirs from the immutable Nix store path.
-        mkdir -p "$out/libexec/${pname}/bin"
-        cat > "$out/libexec/${pname}/bin/umu-run" <<'EOF'
-        #!${pkgs.bash}/bin/bash
-        set -o errexit
-        set -o nounset
-        set -o pipefail
-
-        # The AppImage runtime exports Python/loader env vars for its bundled
-        # app, but those break the external umu-run interpreter.
-        unset PYTHONHOME
-        unset PYTHONPATH
-        unset PYTHONDONTWRITEBYTECODE
-        unset PERLLIB
-        unset QT_PLUGIN_PATH
-        unset GSETTINGS_SCHEMA_DIR
-        unset GST_PLUGIN_SYSTEM_PATH
-        unset GST_PLUGIN_SYSTEM_PATH_1_0
-        unset LD_LIBRARY_PATH
-
-        exec "${pkgs.umu-launcher}/bin/umu-run" "$@"
-        EOF
-        chmod 0755 "$out/libexec/${pname}/bin/umu-run"
+        install -Dm755 "${umuRunFhsShim}/bin/umu-run" "$out/libexec/${pname}/bin/umu-run"
 
         rm -f "$out/bin/${pname}"
         cat > "$out/bin/${pname}" <<'EOF'
@@ -87,7 +61,7 @@
         script_dir="$(cd -- "$(dirname -- "''${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
         prefix_dir="$(cd -- "$script_dir/.." >/dev/null 2>&1 && pwd)"
 
-        export PATH="$prefix_dir/libexec/${pname}/bin:${pkgs.lib.makeBinPath [pkgs.umu-launcher pkgs.coreutils pkgs.gnugrep]}:$PATH"
+        export PATH="$prefix_dir/libexec/${pname}/bin:${pkgs.lib.makeBinPath [pkgs.coreutils pkgs.gnugrep]}:$PATH"
         export GAMEID="monsters-and-memories"
         export UMU_NO_RUNTIME="1"
         export UMU_RUNTIME_UPDATE="0"
