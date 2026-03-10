@@ -63,7 +63,7 @@ default_pull_root="${repo_root}/configs/users/${runtime_user}/common"
 
 # Repo-relative pull excludes. Use exact paths or shell-style globs.
 pull_exclude_repo_rel_paths=(
-  "configs/users/oj/hosts/lotus/niri/cursor.kdl"
+  "configs/users/oj/hosts/lotus/niri/colors.kdl"
 )
 
 list_maps() {
