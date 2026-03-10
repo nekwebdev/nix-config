@@ -24,6 +24,7 @@
       self.nixosModules.udev
       self.nixosModules.niri
       self.nixosModules.dmsGreeter
+      self.nixosModules.docker
       self.nixosModules.userOj
     ];
 
