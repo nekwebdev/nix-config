@@ -48,6 +48,7 @@
       pkgs.nerd-fonts.fira-code
       pkgs.openvpn
       pkgs.protonup-qt
+      pkgs.faugus-launcher
       pkgs.codex
       pkgs.mpv
     ];
