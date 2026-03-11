@@ -117,9 +117,7 @@ binds {
     Mod+Shift+P { screenshot; }
     Ctrl+Alt+Delete { quit; }
     Mod+Shift+E { quit; }
-    Mod+D hotkey-overlay-title="Run an Application: fuzzel" { spawn "fuzzel"; }
     Mod+Return hotkey-overlay-title="Open a Terminal: ghostty" { spawn "ghostty"; }
-    Super+Alt+S allow-when-locked=true { spawn-sh "pkill orca || exec orca"; }
     Mod+Escape allow-inhibiting=false { toggle-keyboard-shortcuts-inhibit; }
     Mod+O repeat=false { toggle-overview; }
     Super+Shift+Slash { show-hotkey-overlay; }

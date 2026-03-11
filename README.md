@@ -29,16 +29,21 @@ just help
 just fmt
 just check
 just check-vm
-just switch <host>
+just switch host=<host>
 just update
-just new-user <user>
-just new-user <user> ~/.ssh/id_ed25519
-just new-host <host> <user>
-just new-host <host> <user> sops_key_path=~/.ssh/id_ed25519
+just new-user user=<user>
+just new-user user=<user> sops_key_path=~/.ssh/id_ed25519
+just new-host host=<host> user=<user>
+just new-host host=<host> user=<user> sops_key_path=~/.ssh/id_ed25519
 just sops-vpn-credentials
-just vaultwarden-keys <user> <host> <age_item> <ssh_item>
+just vaultwarden-keys user=<user> host=<host> age_item=<age_item> ssh_item=<ssh_item>
 just config-update
 ```
+
+## Deployment Guides
+
+- fresh install from a live ISO: [docs/install-new-system.md](/home/oj/.config/nixos/docs/install-new-system.md)
+- changes on an existing host: [docs/deploy-existing-system.md](/home/oj/.config/nixos/docs/deploy-existing-system.md)
 
 `just check-vm` is the preferred final validation on a 3rd party machine because it builds `toplevel` and VM artifacts without switching the running host.
 `just config-update` updates the active layered runtime config sources in `configs/users/<user>/{common,hosts/<host>}` from the current system state.
