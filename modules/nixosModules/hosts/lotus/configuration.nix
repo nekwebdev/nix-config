@@ -13,7 +13,6 @@
       inputs.sops-nix.nixosModules.sops
       inputs.nix-sweep.nixosModules.default
 
-      self.nixosModules.base
       self.nixosModules.system
       self.nixosModules.policy
       self.nixosModules.services
