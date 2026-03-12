@@ -14,36 +14,44 @@
     # HM-first exception: Flatpak daemon and system remotes are root-managed host services.
     services.flatpak.enable = true;
 
-    # HM-first exception: system activation scripts are privileged host bootstrap plumbing.
-    system.activationScripts.flatpakBootstrap.text = ''
-      FLATPAK_BIN="${pkgs.flatpak}/bin/flatpak"
-      GREP_BIN="${pkgs.gnugrep}/bin/grep"
-      REMOTE_NAME=${lib.escapeShellArg remoteName}
-      REMOTE_URL=${lib.escapeShellArg remoteUrl}
+    # HM-first exception: system-level Flatpak bootstrap is root-managed host plumbing.
+    systemd.services.flatpak-bootstrap = {
+      description = "Bootstrap Flatpak remote and apps";
+      wantedBy = ["multi-user.target"];
+      after = [
+        "network-online.target"
+        "flatpak-system-helper.service"
+      ];
+      wants = ["network-online.target"];
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+        TimeoutStartSec = "5min";
+      };
+      script = ''
+        FLATPAK="${pkgs.flatpak}/bin/flatpak"
+        GREP="${pkgs.gnugrep}/bin/grep"
 
-      remote_ready=1
-
-      if ! "$FLATPAK_BIN" --system remotes --columns=name | "$GREP_BIN" -Fxq "$REMOTE_NAME"; then
-        if ! "$FLATPAK_BIN" --system remote-add --if-not-exists "$REMOTE_NAME" "$REMOTE_URL"; then
-          echo "flatpak-bootstrap: warning: failed to add remote $REMOTE_NAME" >&2
-          remote_ready=0
+        if ! "$FLATPAK" --system remotes --columns=name \
+            | "$GREP" -Fxq ${lib.escapeShellArg remoteName}; then
+          "$FLATPAK" --system remote-add --if-not-exists \
+            ${lib.escapeShellArg remoteName} \
+            ${lib.escapeShellArg remoteUrl} || {
+            echo "flatpak-bootstrap: failed to add remote" >&2
+            exit 1
+          }
         fi
-      fi
 
-      if [ "$remote_ready" -eq 0 ]; then
-        echo "flatpak-bootstrap: warning: skipping app install because remote is unavailable" >&2
-        exit 0
-      fi
-
-      while IFS= read -r app; do
-        [ -n "$app" ] || continue
-
-        if ! "$FLATPAK_BIN" --system list --app --columns=application | "$GREP_BIN" -Fxq "$app"; then
-          if ! "$FLATPAK_BIN" --system install -y "$REMOTE_NAME" "$app"; then
-            echo "flatpak-bootstrap: warning: failed to install $app" >&2
+        while IFS= read -r app; do
+          [ -n "$app" ] || continue
+          if ! "$FLATPAK" --system list --app --columns=application \
+              | "$GREP" -Fxq "$app"; then
+            "$FLATPAK" --system install -y \
+              ${lib.escapeShellArg remoteName} "$app" \
+              || echo "flatpak-bootstrap: warning: failed to install $app" >&2
           fi
-        fi
-      done < ${appsFile}
-    '';
+        done < ${appsFile}
+      '';
+    };
   };
 }
