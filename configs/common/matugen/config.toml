@@ -7,7 +7,3 @@ output_path = '~/.config/starship/starship.toml'
 [templates.bat]
 input_path = '~/.config/matugen/templates/bat.tmTheme'
 output_path = '~/.config/bat/themes/dms.tmTheme'
-
-[templates.zed]
-input_path = '~/.config/matugen/templates/zed-settings.json'
-output_path = '~/.config/zed/settings.json'

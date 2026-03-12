@@ -14,7 +14,9 @@
       users.users.oj = {
         isNormalUser = true;
         group = "oj";
-        extraGroups = ["wheel"] ++ lib.optional config.networking.networkmanager.enable "networkmanager";
+        extraGroups =
+          ["wheel" "greeter"]
+          ++ lib.optional config.networking.networkmanager.enable "networkmanager";
         # Applied only when the account is first created.
         initialHashedPassword = bootstrapPasswordHash;
       };

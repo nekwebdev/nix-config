@@ -13,7 +13,11 @@
     matugenConfigToml = "${repoRoot}/configs/common/matugen/config.toml";
     matugenStarshipTemplate = "${repoRoot}/configs/common/matugen/templates/starship.toml";
     matugenBatTemplate = "${repoRoot}/configs/common/matugen/templates/bat.tmTheme";
-    matugenZedSettingsTemplate = "${repoRoot}/configs/common/matugen/templates/zed-settings.json";
+    dmsPatchedSrc = pkgs.applyPatches {
+      name = "dms-patched";
+      src = inputs.dms.outPath;
+      patches = [(repoRoot + "/patches/dms/zed-matugen-single-quotes.patch")];
+    };
   in {
     imports = [
       inputs.dms.homeModules.dank-material-shell
@@ -33,6 +37,15 @@
 
       programs.dank-material-shell = {
         enable = true;
+        package = inputs.dms.packages.${pkgs.system}.dms-shell.overrideAttrs (old: {
+          postInstall =
+            (old.postInstall or "")
+            + ''
+              chmod -R u+w $out/share/quickshell/dms
+              rm -rf $out/share/quickshell/dms
+              cp -r ${dmsPatchedSrc}/quickshell/. $out/share/quickshell/dms/
+            '';
+        });
 
         enableSystemMonitoring = true;
         enableVPN = true;
@@ -51,11 +64,9 @@
         ${pkgs.coreutils}/bin/rm -f "$config_dir/config.toml"
         ${pkgs.coreutils}/bin/rm -f "$template_dir/bat.tmTheme"
         ${pkgs.coreutils}/bin/rm -f "$template_dir/starship.toml"
-        ${pkgs.coreutils}/bin/rm -f "$template_dir/zed-settings.json"
         ${pkgs.coreutils}/bin/install -m 0644 ${matugenConfigToml} "$config_dir/config.toml"
         ${pkgs.coreutils}/bin/install -m 0644 ${matugenBatTemplate} "$template_dir/bat.tmTheme"
         ${pkgs.coreutils}/bin/install -m 0644 ${matugenStarshipTemplate} "$template_dir/starship.toml"
-        ${pkgs.coreutils}/bin/install -m 0644 ${matugenZedSettingsTemplate} "$template_dir/zed-settings.json"
       '';
     };
   };

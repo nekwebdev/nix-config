@@ -71,7 +71,6 @@ At evaluation time, each `.ovpn` in that folder is converted into a declarative 
 
 - User modules use a temporary bootstrap password hash (`changeme`) for first account creation.
 - A fish reminder is shown until `passwd` succeeds once in fish.
-- Passwords are no longer sourced from `secrets/users.yaml`.
 
 ## Using Parts of This Repo (WIP)
 

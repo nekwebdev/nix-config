@@ -70,6 +70,7 @@ list_maps() {
   cat <<'MAPS'
 dms
 niri
+zed
 MAPS
 }
 
@@ -93,6 +94,15 @@ ENTRIES
 # Target paths are relative to HOME.
 
 dir|niri|.config/niri/dms
+ENTRIES
+      ;;
+    zed)
+      cat <<'ENTRIES'
+# kind|source_rel|target_rel
+# Source paths are relative to layered config roots.
+# Target paths are relative to HOME.
+
+file|zed/settings.json|.config/zed/settings.json
 ENTRIES
       ;;
     *)

@@ -1,0 +1,10 @@
+diff --git a/quickshell/matugen/configs/zed.toml b/quickshell/matugen/configs/zed.toml
+index 6173314..c1b59f6 100644
+--- a/quickshell/matugen/configs/zed.toml
++++ b/quickshell/matugen/configs/zed.toml
+@@ -1,3 +1,3 @@
+ [templates.dmszed]
+-input_path = "SHELL_DIR/matugen/templates/dank-zed.json"
+-output_path = "CONFIG_DIR/zed/themes/dank-zed-theme.json"
++input_path = 'SHELL_DIR/matugen/templates/dank-zed.json'
++output_path = 'CONFIG_DIR/zed/themes/dank-zed-theme.json'

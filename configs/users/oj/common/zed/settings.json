@@ -1,0 +1,23 @@
+{
+  "agent_servers": {
+    "codex": {
+      "default_config_options": {
+        "mode": "auto"
+      }
+    }
+  },
+  "tab_size": 2,
+  "minimap": {
+    "show": "auto"
+  },
+  "agent_ui_font_size": 18.0,
+  "buffer_font_family": "FiraCode Nerd Font",
+  "base_keymap": "VSCode",
+  "icon_theme": {
+    "mode": "system",
+    "light": "Zed (Default)",
+    "dark": "Zed (Default)"
+  },
+  "ui_font_size": 16,
+  "buffer_font_size": 15
+}
