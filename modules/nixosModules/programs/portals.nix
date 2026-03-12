@@ -3,7 +3,13 @@
     # HM-first exception: portal providers are system-integrated desktop services.
     xdg.portal = {
       enable = true;
-      config.common.default = "*";
+      config = {
+        niri.default = [
+          "gtk"
+          "*"
+        ];
+        common.default = ["*"];
+      };
       extraPortals = with pkgs; [
         xdg-desktop-portal-gtk
         xdg-desktop-portal-gnome
