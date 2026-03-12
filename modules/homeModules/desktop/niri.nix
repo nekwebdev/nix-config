@@ -42,6 +42,7 @@
         ++ [
           pkgs.xwayland-satellite
           pkgs.alacritty
+          pkgs.cliphist
           pkgs.grim
           pkgs.slurp
           pkgs.wl-clipboard
@@ -63,6 +64,20 @@
         };
       };
 
+      systemd.user.services.cliphist = {
+        Unit = {
+          Description = "Clipboard history watcher";
+          PartOf = ["graphical-session.target"];
+          After = ["graphical-session.target"];
+        };
+        Service = {
+          ExecStart = "${pkgs.wl-clipboard}/bin/wl-paste --watch ${pkgs.cliphist}/bin/cliphist store";
+          Restart = "on-failure";
+          RestartSec = 1;
+        };
+        Install.WantedBy = ["graphical-session.target"];
+      };
+
       programs.niri.settings = {
         # binds = niriBinds;
 
@@ -74,16 +89,6 @@
           QT_QPA_PLATFORMTHEME = "gtk3";
           QT_QPA_PLATFORMTHEME_QT6 = "gtk3";
         };
-
-        spawn-at-startup = [
-          {
-            argv = [
-              "bash"
-              "-c"
-              "wl-paste --watch cliphist store &"
-            ];
-          }
-        ];
 
         config-notification.disable-failed = true;
 

@@ -37,7 +37,7 @@
 
       programs.dank-material-shell = {
         enable = true;
-        package = inputs.dms.packages.${pkgs.system}.dms-shell.overrideAttrs (old: {
+        package = inputs.dms.packages.${pkgs.stdenv.hostPlatform.system}.dms-shell.overrideAttrs (old: {
           postInstall =
             (old.postInstall or "")
             + ''
