@@ -34,7 +34,7 @@
 
     # HM-first exception: console configuration is system tty behavior.
     console.useXkbConfig = true;
-    console.font = "lat1-16";
+    console.font = "Lat2-Terminus16";
 
     # HM-first exception: compressed swap is host memory management.
     zramSwap.enable = true;

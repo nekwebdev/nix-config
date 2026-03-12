@@ -36,7 +36,7 @@ new-host host user sops_key_path='':
     @bash ./scripts/new-host.sh "{{ host }}" "{{ user }}" "{{ sops_key_path }}"
 
 sops-vpn-credentials recipients_file='':
-    @echo "==> Encrypting NordVPN credentials"
+    @echo "==> Encrypting VPN credentials"
     @bash ./scripts/sops-vpn-credentials.sh "{{ recipients_file }}"
 
 vaultwarden-keys user host age_item ssh_item target_root='/mnt' server='':

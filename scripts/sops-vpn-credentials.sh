@@ -7,7 +7,6 @@ usage: just sops-vpn-credentials [recipients_file=<path>]
 EOF
 }
 
-profile="nordvpn"
 recipients_file="${1:-}"
 secret_file="secrets/vpn.yaml"
 
@@ -79,10 +78,10 @@ EOF
   exit 1
 fi
 
-read -r -p "NordVPN username: " vpn_username
-read -r -s -p "NordVPN password: " vpn_password
+read -r -p "VPN username: " vpn_username
+read -r -s -p "VPN password: " vpn_password
 echo
-read -r -s -p "Confirm NordVPN password: " vpn_password_confirm
+read -r -s -p "Confirm VPN password: " vpn_password_confirm
 echo
 
 if [[ "${vpn_password}" != "${vpn_password_confirm}" ]]; then
@@ -98,8 +97,8 @@ escaped_password="$(yaml_escape "${vpn_password}")"
 
 cat >"${tmp}" <<EOF
 vpn:
-  "nordvpn-username": "${escaped_username}"
-  "nordvpn-password": "${escaped_password}"
+  "username": "${escaped_username}"
+  "password": "${escaped_password}"
 EOF
 
 mkdir -p "$(dirname "${secret_file}")"
@@ -108,7 +107,7 @@ sops --encrypt --age "${sops_recipients_csv}" --input-type yaml --output-type ya
 
 echo "wrote ${secret_file}"
 echo "secret keys:"
-echo "  - vpn/nordvpn-username"
-echo "  - vpn/nordvpn-password"
+echo "  - vpn/username"
+echo "  - vpn/password"
 echo "recipient count: ${#recipients[@]}"
 echo "if ${secret_file} is new, add it to git so flake evaluation can see it"

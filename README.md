@@ -17,7 +17,7 @@ Minimal dendritic NixOS + Home Manager setup:
 - `modules/homeModules/users/<user>/<profile>.nix`: user profile entry modules (baseline: `users/oj/niri.nix`).
 - `configs/common/*`: global fallback runtime config defaults.
 - `configs/users/<user>/common/*`: per-user runtime config defaults.
-- `configs/users/<user>/common/nordvpn/*.ovpn`: declarative NordVPN source profiles (imported into NetworkManager).
+- `configs/users/<user>/common/vpn/*.ovpn`: user-supplied OpenVPN profiles (imported into NetworkManager at runtime).
 - `configs/users/<user>/hosts/<host>/*`: per-user host-specific runtime config overrides.
 - `modules/wrappedPrograms/*`: per-system wrapped packages.
 - `secrets/*`: encrypted SOPS files (track in git).
@@ -49,11 +49,11 @@ just config-update
 `just config-update` updates the active layered runtime config sources in `configs/users/<user>/{common,hosts/<host>}` from the current system state.
 For SOPS-backed VPN credentials, see [secrets/README.md](./secrets/README.md).
 
-## NordVPN OVPN workflow
+## VPN OVPN workflow
 
 1. Put `.ovpn` files in:
-   - `configs/users/<user>/common/nordvpn/`
-2. Encrypt shared NordVPN credentials:
+   - `configs/users/<user>/common/vpn/`
+2. Encrypt shared VPN credentials:
 
 ```bash
 just sops-vpn-credentials
@@ -65,7 +65,7 @@ just sops-vpn-credentials
 just check
 ```
 
-At evaluation time, each `.ovpn` in that folder is converted into a declarative NetworkManager VPN profile and all of them reuse `vpn/nordvpn-username` + `vpn/nordvpn-password`.
+At runtime, `vpn-profile-import` imports each `.ovpn` in that folder into NetworkManager and applies `vpn/username` + `vpn/password` when present.
 
 ## Password bootstrap behavior
 

@@ -3,11 +3,11 @@
 This directory is for local encrypted SOPS files.
 
 - Encrypted files in this directory should be tracked in git.
-- Current VPN secret keys used by `networking.networkmanager.ensureProfiles`:
-  - `vpn/nordvpn-username`
-  - `vpn/nordvpn-password`
-- These credentials are shared across all NordVPN profiles loaded from:
-  - `configs/users/<user>/common/nordvpn/*.ovpn`
+- Current VPN secret keys used by `vpn-profile-import`:
+  - `vpn/username`
+  - `vpn/password`
+- These credentials are shared across all `.ovpn` profiles loaded from:
+  - `configs/users/<user>/common/vpn/*.ovpn`
 - Per-user SOPS recipients live at `secrets/recipients/users/<user>.txt`.
 
 ## Recommended Recipient Model
@@ -67,10 +67,10 @@ just sops-vpn-credentials
 git add secrets/vpn.yaml
 ```
 
-Then ensure your NordVPN `.ovpn` files are present:
+Then ensure your `.ovpn` files are present:
 
 ```bash
-ls configs/users/<user>/common/nordvpn/*.ovpn
+ls configs/users/<user>/common/vpn/*.ovpn
 ```
 
 Then rebuild:

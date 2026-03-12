@@ -20,3 +20,6 @@ Thumbs.db
 *.log
 tmp/
 .cache/
+
+# User-supplied VPN profiles
+configs/users/*/common/vpn/*.ovpn
