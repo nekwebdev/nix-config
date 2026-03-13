@@ -54,7 +54,6 @@
       };
 
       programs.dank-material-shell.niri = {
-        enableSpawn = true;
         enableKeybinds = false;
         includes = {
           enable = true;
