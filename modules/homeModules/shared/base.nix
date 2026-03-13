@@ -14,6 +14,7 @@
       pkgs.just
       pkgs.keychain
       pkgs.ncdu
+      pkgs.python3
       pkgs.ripgrep
       pkgs.unzip
       pkgs.vim
