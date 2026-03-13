@@ -1,5 +1,5 @@
 {self, ...}: {
-  flake.homeModules.ojNiri = {
+  flake.homeModules.ojProfile = {
     pkgs,
     config,
     osConfig ? {},
