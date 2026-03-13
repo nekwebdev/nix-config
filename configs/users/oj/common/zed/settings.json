@@ -2,13 +2,13 @@
   "agent_servers": {
     "codex": {
       "default_config_options": {
-        "mode": "auto",
-      },
-    },
+        "mode": "auto"
+      }
+    }
   },
   "tab_size": 2,
   "minimap": {
-    "show": "auto",
+    "show": "auto"
   },
   "agent_ui_font_size": 18.0,
   "buffer_font_family": "FiraCode Nerd Font",
@@ -16,13 +16,18 @@
   "icon_theme": {
     "mode": "system",
     "light": "Zed (Default)",
-    "dark": "Zed (Default)",
+    "dark": "Zed (Default)"
+  },
+  "languages": {
+    "JSONC": {
+      "formatter": "language_server"
+    }
   },
   "ui_font_size": 16,
   "buffer_font_size": 15,
   "theme": {
     "mode": "system",
-    "light": "DankShell Light Transparent",
-    "dark": "DankShell Dark Transparent",
-  },
+    "light": "DankShell Light Blurred Transparent",
+    "dark": "DankShell Dark Blurred Transparent"
+  }
 }

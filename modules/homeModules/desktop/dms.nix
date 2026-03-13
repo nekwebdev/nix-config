@@ -13,6 +13,7 @@
     matugenConfigToml = "${repoRoot}/configs/common/matugen/config.toml";
     matugenStarshipTemplate = "${repoRoot}/configs/common/matugen/templates/starship.toml";
     matugenBatTemplate = "${repoRoot}/configs/common/matugen/templates/bat.tmTheme";
+    matugenZedTemplate = "${repoRoot}/configs/common/matugen/templates/dank-zed-blurred.json";
   in {
     imports = [
       inputs.dms.homeModules.dank-material-shell
@@ -50,9 +51,11 @@
         ${pkgs.coreutils}/bin/rm -f "$config_dir/config.toml"
         ${pkgs.coreutils}/bin/rm -f "$template_dir/bat.tmTheme"
         ${pkgs.coreutils}/bin/rm -f "$template_dir/starship.toml"
+        ${pkgs.coreutils}/bin/rm -f "$template_dir/dank-zed-blurred.json"
         ${pkgs.coreutils}/bin/install -m 0644 ${matugenConfigToml} "$config_dir/config.toml"
         ${pkgs.coreutils}/bin/install -m 0644 ${matugenBatTemplate} "$template_dir/bat.tmTheme"
         ${pkgs.coreutils}/bin/install -m 0644 ${matugenStarshipTemplate} "$template_dir/starship.toml"
+        ${pkgs.coreutils}/bin/install -m 0644 ${matugenZedTemplate} "$template_dir/dank-zed-blurred.json"
       '';
     };
   };

@@ -7,3 +7,7 @@ output_path = '~/.config/starship/starship.toml'
 [templates.bat]
 input_path = '~/.config/matugen/templates/bat.tmTheme'
 output_path = '~/.config/bat/themes/dms.tmTheme'
+
+[templates.dmszedblurred]
+input_path = "~/.config/matugen/templates/dank-zed-blurred.json"
+output_path = "~/.config/zed/themes/dank-zed-blurred-theme.json"
