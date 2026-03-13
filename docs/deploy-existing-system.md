@@ -53,16 +53,6 @@ Then edit the generated modules and configs.
 
 For a new host, replace the scaffolded hardware file with hardware data generated on the real machine before install or switch.
 
-## Secrets
-
-If the host uses SOPS secrets, make sure the expected key files exist at the paths referenced by the user and host modules before switching.
-
-Vaultwarden bootstrap on an already-running system:
-
-```bash
-just vaultwarden-keys user=<user> host=<host> age_item=<age-item> ssh_item=<ssh-item> target_root=/
-```
-
 ## Runtime Config Sync
 
 If you changed a UI-managed app config on the live system and want to pull it back into the repo:

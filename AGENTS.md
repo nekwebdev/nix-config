@@ -16,7 +16,7 @@
 - rule: **HM-first** (if it can be Home Manager, it must be Home Manager)
 - HM-first exceptions (allowed in NixOS modules): boot/kernel/hardware, filesystems, networking/firewall, users/groups, PAM/sudo/polkit, root-owned services
 - users policy: host-declared users are normal users and must include `wheel`
-- VPN convention: put user-supplied `.ovpn` files in `configs/users/<user>/common/vpn/`; `policy.nix` imports them at runtime via `vpn-profile-import`
+- VPN convention: put user-supplied `.ovpn` files in `~/.config/ovpn/`; `policy.nix` imports them at runtime via `vpn-profile-import`
 - wrapped programs: use **wrappers** only (do not use `wrapper-modules`)
 - formatting: **treefmt-nix** (Nix formatter: **alejandra**)
 - runner: **justfile** calling `/scripts/*.sh`

@@ -17,10 +17,8 @@ Minimal dendritic NixOS + Home Manager setup:
 - `modules/homeModules/users/<user>/<profile>.nix`: user profile entry modules (baseline: `users/oj/niri.nix`).
 - `configs/common/*`: global fallback runtime config defaults.
 - `configs/users/<user>/common/*`: per-user runtime config defaults.
-- `configs/users/<user>/common/vpn/*.ovpn`: user-supplied OpenVPN profiles (imported into NetworkManager at runtime).
 - `configs/users/<user>/hosts/<host>/*`: per-user host-specific runtime config overrides.
 - `modules/wrappedPrograms/*`: per-system wrapped packages.
-- `secrets/*`: encrypted SOPS files (track in git).
 
 ## Commands
 
@@ -32,11 +30,7 @@ just check-vm
 just switch host=<host>
 just update
 just new-user user=<user>
-just new-user user=<user> sops_key_path=~/.ssh/id_ed25519
 just new-host host=<host> user=<user>
-just new-host host=<host> user=<user> sops_key_path=~/.ssh/id_ed25519
-just sops-vpn-credentials
-just vaultwarden-keys user=<user> host=<host> age_item=<age_item> ssh_item=<ssh_item>
 just config-update
 ```
 
@@ -47,25 +41,34 @@ just config-update
 
 `just check-vm` is the preferred final validation on a 3rd party machine because it builds `toplevel` and VM artifacts without switching the running host.
 `just config-update` updates the active layered runtime config sources in `configs/users/<user>/{common,hosts/<host>}` from the current system state.
-For SOPS-backed VPN credentials, see [secrets/README.md](./secrets/README.md).
 
 ## VPN OVPN workflow
 
-1. Put `.ovpn` files in:
-   - `configs/users/<user>/common/vpn/`
-2. Encrypt shared VPN credentials:
+1. Put OpenVPN profile files in `~/.config/ovpn/`:
 
 ```bash
-just sops-vpn-credentials
+mkdir -p ~/.config/ovpn
+cp /path/to/provider/*.ovpn ~/.config/ovpn/
 ```
 
-3. Rebuild:
+2. Rebuild once (or manually start the import service):
 
 ```bash
 just check
 ```
 
-At runtime, `vpn-profile-import` imports each `.ovpn` in that folder into NetworkManager and applies `vpn/username` + `vpn/password` when present.
+`vpn-profile-import` imports `.ovpn` files from `~/.config/ovpn` into NetworkManager.
+
+- Existing imported VPN connection names are kept; only missing profiles are imported.
+- Username/password are not stored by this repo; enter credentials the first time you connect in NetworkManager.
+
+If you add new `.ovpn` files later and want to import immediately without rebuilding:
+
+```bash
+sudo systemctl start vpn-profile-import.service
+```
+
+If you edit an existing `.ovpn` and want NetworkManager to use the updated version, delete that VPN connection in NetworkManager first, then run the import service again.
 
 ## Password bootstrap behavior
 
@@ -95,38 +98,5 @@ just config-update
 ### 2) User and host scaffolding
 WIP (to be documented during onboarding pass).
 
-### 3) Secrets workflow
-
-Use this for first-install key bootstrap from Vaultwarden in a fresh ISO shell.
-
-1. Install/unlock Bitwarden CLI (`bw`) in the live environment:
-
-```bash
-bw login --apikey    # or bw login
-export BW_SESSION="$(bw unlock --raw)"
-```
-
-2. Ensure two Vaultwarden items exist and store key material in item **notes**:
-- `<age_item>` notes: full age key file content (`keys.txt`, including `AGE-SECRET-KEY-...`)
-- `<ssh_item>` notes: SSH private key content for host signing/auth
-
-3. Fetch and stage keys into the target install root:
-
-```bash
-just vaultwarden-keys <user> <host> <age_item> <ssh_item>
-```
-
-Optional:
-- set target root (default `/mnt`): `... target_root=/mnt`
-- set Vaultwarden server URL: `... server=https://vault.example.com`
-
-The script writes:
-- `<target_root>/home/<user>/.config/sops/age/keys.txt`
-- `<target_root>/home/<user>/.ssh/nixos-<host>`
-- `<target_root>/home/<user>/.ssh/nixos-<host>.pub`
-
-It also prints an install hint using:
-- `SOPS_AGE_KEY_FILE=<target_root>/home/<user>/.config/sops/age/keys.txt`
-
-### 4) Wrapped programs and wrappers
+### 3) Wrapped programs and wrappers
 WIP (to be documented during onboarding pass).

@@ -159,51 +159,22 @@ Then review it and make sure it matches your intended layout:
 
 If the generated file misses your preferred Btrfs mount options, add them before install.
 
-## 6. Bootstrap Secrets if Needed
-
-If the host needs SOPS decryption on first install, stage the user's age key and host SSH key into `/mnt` before running `nixos-install`.
-
-Vaultwarden flow:
-
-```bash
-just vaultwarden-keys user=<user> host=<host> age_item=<age-item> ssh_item=<ssh-item> target_root=/mnt
-```
-
-The script writes:
-
-- `/mnt/home/<user>/.config/sops/age/keys.txt`
-- `/mnt/home/<user>/.ssh/nixos-<host>`
-- `/mnt/home/<user>/.ssh/nixos-<host>.pub`
-
-If the target user does not exist in `/mnt/etc/passwd` yet, the script cannot apply final ownership. In that case, rerun it after first boot or fix ownership manually.
-
-If you already have the needed key files, place them at the paths expected by the user module instead.
-
-## 7. Install the System
+## 6. Install the System
 
 Run the install from the repo root.
-
-Without SOPS secrets:
 
 ```bash
 nixos-install --flake .#<host>
 ```
 
-With an age key staged into `/mnt`:
-
-```bash
-SOPS_AGE_KEY_FILE=/mnt/home/<user>/.config/sops/age/keys.txt nixos-install --flake .#<host>
-```
-
-## 8. First Boot Follow-Up
+## 7. First Boot Follow-Up
 
 After the machine boots into the installed system:
 
 1. Clone the repo to `/home/<user>/.config/nixos`.
-2. If needed, rerun `just vaultwarden-keys user=<user> host=<host> age_item=<age-item> ssh_item=<ssh-item> target_root=/` to apply ownership and restage keys on the live system.
-3. Run `just check`.
-4. Run `just check-vm`.
-5. Apply further changes with `just switch host=<host>`.
+2. Run `just check`.
+3. Run `just check-vm`.
+4. Apply further changes with `just switch host=<host>`.
 
 ## Notes
 

@@ -3,13 +3,8 @@ set -euo pipefail
 
 usage() {
   cat >&2 <<'EOF'
-usage: just new-host host=<host> user=<user> [sops_key_path=<path>]
+usage: just new-host host=<host> user=<user>
 EOF
-}
-
-extract_sops_user_key_path() {
-  local user_module_file="$1"
-  sed -nE 's/^[[:space:]]*sopsUserKeyPath[[:space:]]*=[[:space:]]*"([^"]+)";/\1/p' "${user_module_file}" | head -n1
 }
 
 replace_host_placeholders() {
@@ -30,7 +25,6 @@ replace_host_placeholders() {
 
 host="${1:-}"
 user="${2:-}"
-sops_key_path="${3:-}"
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 if [[ -z "${host}" || -z "${user}" ]]; then
@@ -38,7 +32,7 @@ if [[ -z "${host}" || -z "${user}" ]]; then
   exit 1
 fi
 
-if [[ $# -gt 3 ]]; then
+if [[ $# -gt 2 ]]; then
   echo "error: too many arguments" >&2
   usage
   exit 1
@@ -62,7 +56,7 @@ hm_user_profile_file="modules/homeModules/users/${user}/niri.nix"
 
 if [[ ! -f "${nixos_user_file}" && ! -f "${hm_user_profile_file}" ]]; then
   echo "user '${user}' not found; scaffolding user first"
-  bash "${script_dir}/new-user.sh" "${user}" "${sops_key_path}"
+  bash "${script_dir}/new-user.sh" "${user}"
 elif [[ ! -f "${nixos_user_file}" || ! -f "${hm_user_profile_file}" ]]; then
   echo "error: user '${user}' is in a partial state" >&2
   echo "expected both modules:" >&2
@@ -93,12 +87,6 @@ if [[ ! -f "${source_config_file}" || ! -f "${source_hardware_file}" ]]; then
   exit 1
 fi
 
-sops_user_key_path="$(extract_sops_user_key_path "${nixos_user_file}")"
-if [[ -z "${sops_user_key_path}" ]]; then
-  echo "error: unable to extract sopsUserKeyPath from ${nixos_user_file}" >&2
-  exit 1
-fi
-
 mkdir -p "${host_dir}"
 
 tmp_dir="$(mktemp -d)"
@@ -112,11 +100,6 @@ cp "${source_hardware_file}" "${hardware_tmp}"
 
 replace_host_placeholders "${config_tmp}" "${host}" "${host_module_name}" "${user}" "${user_module_name}"
 replace_host_placeholders "${hardware_tmp}" "${host}" "${host_module_name}" "${user}" "${user_module_name}"
-
-escaped_sops_user_key_path="$(printf '%s' "${sops_user_key_path}" | sed -e 's/[&|]/\\&/g')"
-sed -i -E \
-  "s|sopsUserSshKeyPath = \".*\";|sopsUserSshKeyPath = \"${escaped_sops_user_key_path}\";|" \
-  "${config_tmp}"
 
 mv "${config_tmp}" "${config_file}"
 mv "${hardware_tmp}" "${hardware_file}"

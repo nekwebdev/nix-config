@@ -13,11 +13,6 @@
     matugenConfigToml = "${repoRoot}/configs/common/matugen/config.toml";
     matugenStarshipTemplate = "${repoRoot}/configs/common/matugen/templates/starship.toml";
     matugenBatTemplate = "${repoRoot}/configs/common/matugen/templates/bat.tmTheme";
-    dmsPatchedSrc = pkgs.applyPatches {
-      name = "dms-patched";
-      src = inputs.dms.outPath;
-      patches = [(repoRoot + "/patches/dms/zed-matugen-single-quotes.patch")];
-    };
   in {
     imports = [
       inputs.dms.homeModules.dank-material-shell
@@ -37,15 +32,6 @@
 
       programs.dank-material-shell = {
         enable = true;
-        package = inputs.dms.packages.${pkgs.stdenv.hostPlatform.system}.dms-shell.overrideAttrs (old: {
-          postInstall =
-            (old.postInstall or "")
-            + ''
-              chmod -R u+w $out/share/quickshell/dms
-              rm -rf $out/share/quickshell/dms
-              cp -r ${dmsPatchedSrc}/quickshell/. $out/share/quickshell/dms/
-            '';
-        });
 
         enableSystemMonitoring = true;
         enableVPN = true;

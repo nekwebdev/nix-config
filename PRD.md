@@ -116,15 +116,14 @@ Each host configuration must:
 2. define `flake.nixosModules.host<Host>`
 3. import:
    1. `inputs.home-manager.nixosModules.home-manager`
-   2. `inputs.sops-nix.nixosModules.sops`
-   3. `self.nixosModules.base`
-   4. `self.nixosModules.user<User>`
+   2. `self.nixosModules.base`
+   3. `self.nixosModules.user<User>`
 4. set `networking.hostName = "<host>"`
 5. set `system.stateVersion = "25.11"` either directly or via explicitly imported host-local modules in the same host stack
 6. enable HM integration:
    1. `home-manager.useGlobalPkgs = true`
    2. `home-manager.useUserPackages = true`
-7. pass only explicitly required HM args through `home-manager.extraSpecialArgs` (for example `sopsUserSshKeyPath`); do not inject wrapper bundles by default
+7. pass only explicitly required HM args through `home-manager.extraSpecialArgs`; do not inject wrapper bundles by default
 8. set `home-manager.users.<user>.imports = [ self.homeModules.<user><Profile> ]` (baseline profile export is `<user>Niri`)
 9. set HM defaults:
    1. `home.username = "<user>"` (default)
@@ -173,26 +172,15 @@ Each host hardware module must set:
 7. Mutable runtime configs must not be managed as read-only `xdg.configFile` store symlinks.
 8. Pull exclusions are allowed for intentionally volatile files and must be declared in `scripts/runtime-config-helper.sh` as repo-relative paths.
 
-### 6.11 First-install key bootstrap contract (`scripts/vaultwarden-bootstrap-keys.sh`)
-1. The repo provides a bootstrap script that fetches key material from Vaultwarden via `bw`.
-2. Script input includes: `<user>`, `<host>`, age-item name, ssh-item name, optional target root (default `/mnt`), optional Vaultwarden server URL.
-3. Age and SSH private key material are read from Vaultwarden item notes.
-4. Script writes into target user home under the selected root:
-   1. `/home/<user>/.config/sops/age/keys.txt`
-   2. `/home/<user>/.ssh/nixos-<host>`
-   3. `/home/<user>/.ssh/nixos-<host>.pub`
-5. Script must apply strict key permissions and attempt to apply target ownership when target user metadata is available.
-6. Script output must include an install hint using `SOPS_AGE_KEY_FILE` for initial install/rebuild.
-
 ## 7. Scaffolding and Naming
 Scaffolding is the standard path for adding new entities:
-1. `just new-user user=<user> [sops_key_path=<path>]` creates:
+1. `just new-user user=<user>` creates:
    1. `modules/nixosModules/users/<user>.nix`
    2. `modules/homeModules/users/<user>/niri.nix`
    3. `modules/homeModules/users/<user>/` (profile folder cloned from baseline)
    4. `configs/users/<user>/` cloned from baseline `configs/users/oj/` for runtime config parity
    5. user scaffolding is cloned from the baseline `oj` user modules and rewritten with `<user>` placeholders
-2. `just new-host host=<host> user=<user> [sops_key_path=<path>]` creates:
+2. `just new-host host=<host> user=<user>` creates:
    1. `modules/nixosModules/hosts/<host>/configuration.nix`
    2. `modules/nixosModules/hosts/<host>/hardware-configuration.nix`
    3. `configs/users/<user>/hosts/<host>/` (copied from `configs/users/<user>/hosts/lotus/` when present, otherwise initialized empty)
@@ -216,11 +204,9 @@ The supported interface is:
 2. `just check`
 3. `just check-vm`
 4. `just switch [host=<host>]`
-5. `just new-user user=<user> [sops_key_path=<path>]`
-6. `just new-host host=<host> user=<user> [sops_key_path=<path>]`
-7. `just sops-user-password user=<user> [recipients_file=<path>]`
-8. `just config-update`
-9. `just vaultwarden-keys user=<user> host=<host> age_item=<item> ssh_item=<item> [target_root=<path>] [server=<url>]`
+5. `just new-user user=<user>`
+6. `just new-host host=<host> user=<user>`
+7. `just config-update`
 
 `justfile` contains routing only. Execution logic lives in `/scripts`.
 

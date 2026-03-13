@@ -10,7 +10,6 @@
   flake.nixosModules.hostLotus = {lib, ...}: {
     imports = [
       inputs.home-manager.nixosModules.home-manager
-      inputs.sops-nix.nixosModules.sops
       inputs.nix-sweep.nixosModules.default
 
       self.nixosModules.system
@@ -76,8 +75,5 @@
         scale 1
       }
     '';
-
-    # HM-first exception: secret format selection is host-level secret plumbing.
-    sops.defaultSopsFormat = "yaml";
   };
 }
