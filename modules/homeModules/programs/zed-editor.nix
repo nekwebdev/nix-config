@@ -15,14 +15,6 @@
       enable = true;
       mutableUserSettings = true;
       userSettings = repoSettings;
-      extensions = [
-        "catppuccin-blur"
-        "git-firefly"
-        "html"
-        "just"
-        "nix"
-        "toml"
-      ];
       extraPackages = with pkgs; [
         nil
         nixd

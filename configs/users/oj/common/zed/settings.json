@@ -6,28 +6,36 @@
       }
     }
   },
-  "tab_size": 2,
-  "minimap": {
-    "show": "auto"
-  },
   "agent_ui_font_size": 18.0,
-  "buffer_font_family": "FiraCode Nerd Font",
+  "auto_install_extensions": {
+    "catppuccin-blur": true,
+    "git-firefly": true,
+    "html": true,
+    "just": true,
+    "nix": true,
+    "toml": true
+  },
   "base_keymap": "VSCode",
+  "buffer_font_family": "FiraCode Nerd Font",
+  "buffer_font_size": 15,
   "icon_theme": {
-    "mode": "system",
+    "dark": "Zed (Default)",
     "light": "Zed (Default)",
-    "dark": "Zed (Default)"
+    "mode": "system"
   },
   "languages": {
     "JSONC": {
       "formatter": "language_server"
     }
   },
-  "ui_font_size": 16,
-  "buffer_font_size": 15,
+  "minimap": {
+    "show": "auto"
+  },
+  "tab_size": 2,
   "theme": {
-    "mode": "system",
+    "dark": "DankShell Dark Blurred Transparent",
     "light": "DankShell Light Blurred Transparent",
-    "dark": "DankShell Dark Blurred Transparent"
-  }
+    "mode": "system"
+  },
+  "ui_font_size": 16
 }
