@@ -57,7 +57,6 @@
     home.sessionVariables = {
       CODEX_HOME = "${config.home.homeDirectory}/.config/codex";
       TERMINAL = "ghostty";
-      DOCKER_HOST = "unix:///run/user/${toString osConfig.users.users.${config.home.username}.uid}/docker.sock";
     };
 
     gtk = {
