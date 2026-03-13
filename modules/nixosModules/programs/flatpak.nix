@@ -2,11 +2,26 @@
   flake.nixosModules.flatpak = {
     lib,
     pkgs,
+    config,
     ...
   }: let
-    flatpakApps = [
-      "com.stremio.Stremio"
-    ];
+    flatpakApps =
+      lib.unique
+      (
+        lib.concatLists (
+          lib.mapAttrsToList (
+            _: hmUserConfig:
+              if
+                hmUserConfig ? my
+                && hmUserConfig.my ? home
+                && hmUserConfig.my.home ? flatpak
+                && hmUserConfig.my.home.flatpak ? apps
+              then hmUserConfig.my.home.flatpak.apps
+              else []
+          )
+          (config.home-manager.users or {})
+        )
+      );
     appsFile = pkgs.writeText "lotus-flatpak-apps.txt" (lib.concatStringsSep "\n" flatpakApps + "\n");
     remoteName = "flathub";
     remoteUrl = "https://flathub.org/repo/flathub.flatpakrepo";

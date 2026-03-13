@@ -5,5 +5,11 @@
       "nix-command"
       "flakes"
     ];
+
+    # HM-first exception: AppImage binfmt registration is system-level kernel/runtime plumbing.
+    programs.appimage = {
+      enable = true;
+      binfmt = true;
+    };
   };
 }
