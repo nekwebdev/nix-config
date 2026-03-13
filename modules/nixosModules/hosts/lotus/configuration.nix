@@ -64,16 +64,7 @@
 
     # HM-first exception: greeter wiring and monitor layout are host login/session plumbing.
     programs.dank-material-shell.greeter.configHome = "/home/oj";
-    environment.etc."greetd/niri_overrides.kdl".text = ''
-      output "DP-2" {
-        position x=0 y=0
-        scale 1
-      }
-
-      output "DP-1" {
-        position x=5120 y=0
-        scale 1
-      }
-    '';
+    environment.etc."greetd/niri_overrides.kdl".text =
+      builtins.readFile ../../../../configs/users/oj/hosts/lotus/niri/outputs.kdl;
   };
 }
