@@ -3,8 +3,14 @@
     "Nix": {
       "formatter": {
         "external": {
-          "command": "alejandra",
-          "arguments": []
+          "command": "nix",
+          "arguments": [
+            "fmt",
+            "--",
+            "--stdin",
+            "{buffer_path}",
+            "-q"
+          ]
         }
       },
       "format_on_save": "on"
