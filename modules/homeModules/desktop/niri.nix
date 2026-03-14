@@ -82,11 +82,10 @@
 
         environment = {
           XDG_CURRENT_DESKTOP = "niri";
-          QT_QPA_PLATFORM = "wayland";
-          ELECTRON_OZONE_PLATFORM_HINT = "auto";
-          NIXOS_OZONE_WL = "1";
+          QT_QPA_PLATFORM = "wayland;xcb";
           QT_QPA_PLATFORMTHEME = "gtk3";
           QT_QPA_PLATFORMTHEME_QT6 = "gtk3";
+          ELECTRON_OZONE_PLATFORM_HINT = "auto";
         };
 
         config-notification.disable-failed = true;

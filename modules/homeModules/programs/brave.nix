@@ -3,6 +3,9 @@
     programs.brave = {
       enable = true;
       package = pkgs.brave;
+      commandLineArgs = [
+        "--ui-toolkit=gtk"
+      ];
       extensions = [
         "nngceckbapebfimnlniiiahkandclblb" # Bitwarden
       ];

@@ -74,10 +74,7 @@
           name = "adw-gtk3";
           package = pkgs.adw-gtk3;
         };
-      };
-
-      xdg.configFile."gtk-4.0/gtk.css" = {
-        source = pkgs.writeText "gtk-4.0-gtk.css" ''
+        gtk4.extraCss = ''
           @import url("dank-colors.css");
         '';
       };
