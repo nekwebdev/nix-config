@@ -15,6 +15,7 @@
       self.nixosModules.system
       self.nixosModules.policy
       self.nixosModules.services
+      self.nixosModules.hostLotusHardware
       self.nixosModules.nvidia
       self.nixosModules.gaming
       self.nixosModules.portals

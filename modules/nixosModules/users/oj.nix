@@ -13,7 +13,8 @@
         isNormalUser = true;
         group = "oj";
         extraGroups =
-          ["wheel" "greeter"]
+          ["wheel"]
+          ++ lib.optional config.services.greetd.enable "greeter"
           ++ lib.optional config.networking.networkmanager.enable "networkmanager";
         # Applied only when the account is first created.
         initialHashedPassword = bootstrapPasswordHash;

@@ -1,5 +1,5 @@
 {
-  flake.nixosModules.hostLotus = {
+  flake.nixosModules.hostLotusHardware = {
     config,
     lib,
     modulesPath,
