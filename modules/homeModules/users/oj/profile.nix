@@ -52,6 +52,7 @@
         pkgs.nautilus
         pkgs.nerd-fonts.fira-code
         pkgs.openvpn
+        self.packages.${pkgs.stdenv.hostPlatform.system}.orca-slicer
         pkgs.protonup-qt
         pkgs.faugus-launcher
         pkgs.codex
