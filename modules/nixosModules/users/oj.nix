@@ -15,7 +15,11 @@
         extraGroups =
           ["wheel"]
           ++ lib.optional config.services.greetd.enable "greeter"
-          ++ lib.optional config.networking.networkmanager.enable "networkmanager";
+          ++ lib.optional config.networking.networkmanager.enable "networkmanager"
+          ++ lib.optionals config.services.printing.enable [
+            "lp"
+            "lpadmin"
+          ];
         # Applied only when the account is first created.
         initialHashedPassword = bootstrapPasswordHash;
       };

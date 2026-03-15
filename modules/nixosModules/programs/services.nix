@@ -1,5 +1,5 @@
 {
-  flake.nixosModules.services = {...}: {
+  flake.nixosModules.services = {pkgs, ...}: {
     # HM-first exception: audio daemon and compatibility layers are privileged system services.
     services.pipewire = {
       enable = true;
@@ -43,5 +43,13 @@
     services.power-profiles-daemon.enable = true;
     services.accounts-daemon.enable = true;
     services.gvfs.enable = true;
+
+    # HM-first exception: printer daemon/drivers are privileged system services.
+    services.printing = {
+      enable = true;
+      drivers = with pkgs; [
+        canon-capt
+      ];
+    };
   };
 }

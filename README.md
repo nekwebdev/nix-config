@@ -75,6 +75,35 @@ If you edit an existing `.ovpn` and want NetworkManager to use the updated versi
 - User modules use a temporary bootstrap password hash (`changeme`) for first account creation.
 - A fish reminder is shown until `passwd` succeeds once in fish.
 
+## Canon USB printer (LBP6000/LBP6018)
+
+Working setup for this host (CUPS queue + default printer):
+
+```bash
+lpadmin -p Canon_LBP6018 -E \
+  -v 'usb://Canon/LBP6000/LBP6018?serial=0000A1B27M28' \
+  -m 'canon/CanonLBP-3010-3018-3050.ppd'
+lpoptions -d Canon_LBP6018
+```
+
+Verify:
+
+```bash
+lpstat -t
+```
+
+Queue a quick test page:
+
+```bash
+echo "Canon printer test from CUPS" | lp -d Canon_LBP6018
+```
+
+If USB URI changes, list devices and update `-v`:
+
+```bash
+lpinfo -v
+```
+
 ## Using Parts of This Repo (WIP)
 
 ### 1) Runtime config files (`configs/*`)
