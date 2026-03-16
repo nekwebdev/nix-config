@@ -6,6 +6,12 @@
 
     flake-parts.url = "github:hercules-ci/flake-parts";
     import-tree.url = "github:vic/import-tree";
+
+    claude-code = {
+      url = "github:sadjow/claude-code-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     wrappers = {
       url = "github:Lassulus/wrappers";
       inputs.nixpkgs.follows = "nixpkgs";

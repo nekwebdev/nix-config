@@ -9,6 +9,7 @@
       pkgs.curl
       pkgs.diff-so-fancy
       pkgs.direnv
+      pkgs.tree
       pkgs.fd
       pkgs.jq
       pkgs.just

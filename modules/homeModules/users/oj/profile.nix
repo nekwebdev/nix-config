@@ -55,6 +55,7 @@
         self.packages.${pkgs.stdenv.hostPlatform.system}.orca-slicer
         pkgs.protonup-qt
         pkgs.faugus-launcher
+        pkgs.claude-code
         pkgs.codex
         pkgs.mpv
       ];
