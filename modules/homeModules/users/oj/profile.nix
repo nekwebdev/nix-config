@@ -22,6 +22,7 @@
       self.homeModules.mangohud
       self.homeModules.nixMonitor
       self.homeModules.starship
+      self.homeModules.tmux
       self.homeModules.tlrc
       self.homeModules.vscode
       self.homeModules.zedEditor
@@ -51,6 +52,7 @@
         self.packages.${pkgs.stdenv.hostPlatform.system}.monsters-and-memories-launcher
         pkgs.nautilus
         pkgs.nerd-fonts.fira-code
+        pkgs.nodejs
         pkgs.openvpn
         self.packages.${pkgs.stdenv.hostPlatform.system}.orca-slicer
         pkgs.protonup-qt

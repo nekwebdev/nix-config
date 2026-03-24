@@ -6,6 +6,7 @@
     # HM-first exception: GPU driver selection is host kernel/hardware plumbing.
     services.xserver.enable = true;
     services.xserver.videoDrivers = ["nvidia"];
+    boot.kernelParams = ["nvidia-drm.modeset=1"];
 
     # HM-first exception: NVIDIA kernel/userspace driver stack is system hardware configuration.
     hardware.nvidia = {
@@ -14,7 +15,7 @@
       powerManagement.finegrained = false;
       open = true;
       nvidiaSettings = true;
-      package = config.boot.kernelPackages.nvidiaPackages.stable;
+      package = config.boot.kernelPackages.nvidiaPackages.beta;
     };
 
     # HM-first exception: OpenGL/graphics acceleration backend is host-level hardware integration.

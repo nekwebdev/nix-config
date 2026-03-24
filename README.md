@@ -34,6 +34,10 @@ just new-host host=<host> user=<user>
 just config-update
 ```
 
+## Backlog note
+
+- Add `borgmatic` for backups.
+
 ## Deployment Guides
 
 - fresh install from a live ISO: [docs/install-new-system.md](/home/oj/.config/nixos/docs/install-new-system.md)

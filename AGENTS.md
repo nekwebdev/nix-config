@@ -57,7 +57,6 @@ just new-host host=<host> user=<user>
 - do not run `just switch` on this already-configured machine during validation; use `just check` + `just check-vm`
 - commit and review `flake.lock` input updates intentionally; do not drift input versions accidentally
 - do not commit secrets (tokens, private keys, machine-specific credentials) to tracked files
-- never run Git commands that modify repository state (for example: git commit, git push, git pull, git merge, git rebase, git reset, git tag)
 
 ## Merge gates (required)
 - run `just fmt` before merge
@@ -67,3 +66,14 @@ just new-host host=<host> user=<user>
 ## Test expectations
 - any new/changed module must keep evaluation passing under `just check`
 - host or user scaffolding changes must include `just check-vm` verification notes
+
+## Extending `.agents`
+- New assistants are supported in this repo.
+- To make a new assistant routable, add `.agents/assistants/<name>.md`, add the assistant to the roster above, and add the assistant to `.agents/skills/meet-the-agents/SKILL.md`.
+- Keep assistant domains distinct; do not add near-duplicates of existing roles without a clear repo-specific gap.
+
+## Reminders
+- Never run git commands that would write to the repo directly without asking.
+- Always use the fish style for bash commands.
+- Flake-evaluating Nix commands (`nix build`, `nix develop`, `nix run`, `nix check`, `nix flake show`, `nix flake check`) read from Git's index, so new or changed files must be staged first or you can get confusing "file not found" errors.
+- No commit is needed; `git add -A` (or `git add <paths>`) is enough.

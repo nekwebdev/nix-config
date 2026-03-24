@@ -43,6 +43,30 @@
     services.power-profiles-daemon.enable = true;
     services.accounts-daemon.enable = true;
     services.gvfs.enable = true;
+    services.tumbler.enable = true;
+    services.udisks2.enable = true;
+
+    # HM-first exception: SSH is a root-owned remote access service.
+    services.openssh = {
+      enable = true;
+      openFirewall = true;
+      settings = {
+        KbdInteractiveAuthentication = false;
+        PasswordAuthentication = false;
+        PermitRootLogin = "no";
+        X11Forwarding = false;
+      };
+    };
+
+    # HM-first exception: desktop file manager integration needs system services/policy hooks.
+    programs.xfconf.enable = true;
+    programs.thunar = {
+      enable = true;
+      plugins = with pkgs; [
+        thunar-archive-plugin
+        thunar-volman
+      ];
+    };
 
     # HM-first exception: printer daemon/drivers are privileged system services.
     services.printing = {

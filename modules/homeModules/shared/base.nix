@@ -15,7 +15,9 @@
       pkgs.just
       pkgs.keychain
       pkgs.ncdu
-      pkgs.python3
+      (pkgs.python3.withPackages (ps: [
+        ps.pyyaml
+      ]))
       pkgs.ripgrep
       pkgs.unzip
       pkgs.vim

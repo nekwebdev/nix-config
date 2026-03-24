@@ -13,7 +13,9 @@
     "html": true,
     "just": true,
     "nix": true,
-    "toml": true
+    "toml": true,
+    "terraform": true,
+    "dockerfile": true
   },
   "base_keymap": "VSCode",
   "buffer_font_family": "FiraCode Nerd Font",

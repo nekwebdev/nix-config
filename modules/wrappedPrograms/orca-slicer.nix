@@ -10,11 +10,12 @@
       env = {
         __EGL_VENDOR_LIBRARY_FILENAMES = "${pkgs.mesa}/share/glvnd/egl_vendor.d/50_mesa.json";
         __GLX_VENDOR_LIBRARY_NAME = "mesa";
-        GALLIUM_DRIVER = "zink";
+        GALLIUM_DRIVER = "llvmpipe";
         GBM_BACKEND = "dri";
         GDK_DPI_SCALE = "1";
         GDK_SCALE = "1";
-        MESA_LOADER_DRIVER_OVERRIDE = "zink";
+        LIBGL_ALWAYS_SOFTWARE = "1";
+        MESA_LOADER_DRIVER_OVERRIDE = "llvmpipe";
         WEBKIT_DISABLE_COMPOSITING_MODE = "1";
         WEBKIT_DISABLE_DMABUF_RENDERER = "1";
       };
