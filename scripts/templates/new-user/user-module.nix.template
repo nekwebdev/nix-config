@@ -26,7 +26,6 @@
       # HM-first exception: users/groups are system-level declarations.
       users.users.${user.username} = {
         isNormalUser = true;
-        description = user.githubUsername;
         group = user.primaryGroup;
         home = lib.mkDefault user.homeDirectory;
         extraGroups = user.extraGroups;

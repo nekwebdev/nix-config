@@ -141,6 +141,8 @@ just new-host host=<host> user=<user>
 
 Scaffolding copies the baseline `oj` and `lotus` structure. It does not detect the new machine's hardware automatically.
 
+After scaffolding a user, edit `modules/nixosModules/users/<user>.nix` for identity/admin settings and `modules/homeModules/users/<user>/profile.nix` for user packages and session config.
+
 ## 5. Replace the Scaffolded Hardware File
 
 Copy the generated hardware config into the repo host path:
@@ -175,6 +177,14 @@ After the machine boots into the installed system:
 2. Run `just check`.
 3. Run `just check-vm`.
 4. Apply further changes with `just switch host=<host>`.
+
+If you are working on Rust tooling or a Rust-based package in this repo later, enter the self-contained Rust shell with:
+
+```bash
+nix develop
+# or
+nix develop .#rust
+```
 
 ## Notes
 

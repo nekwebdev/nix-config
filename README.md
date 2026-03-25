@@ -7,14 +7,18 @@ Minimal dendritic NixOS + Home Manager setup:
 - host modules explicitly import the NixOS modules they want.
 - user modules explicitly import the Home Manager modules they want.
 - Home Manager is integrated through NixOS only.
+- user identity lives in the matching NixOS user module and is passed into HM through `osConfig`.
 - wrapped programs use `wrappers` only.
 
 ## Layout
 
 - `modules/flake-parts.nix`: shared flake-parts settings (`systems`, treefmt).
+- `modules/dev/*.nix`: optional flake dev shells per language or environment.
 - `modules/nixosModules/*`: exported NixOS modules and hosts.
+- `modules/nixosModules/users/<user>.nix`: typed user contract plus system user declaration.
 - `modules/homeModules/*`: exported Home Manager user profiles.
-- `modules/homeModules/users/<user>/<profile>.nix`: user profile entry modules (baseline: `users/oj/profile.nix`).
+- `modules/homeModules/users/<user>/base.nix`: shared per-user HM baseline.
+- `modules/homeModules/users/<user>/profile.nix`: editable user-specific HM packages and session config.
 - `configs/common/*`: global fallback runtime config defaults.
 - `configs/users/<user>/common/*`: per-user runtime config defaults.
 - `configs/users/<user>/hosts/<host>/*`: per-user host-specific runtime config overrides.
@@ -33,6 +37,24 @@ just new-user user=<user>
 just new-host host=<host> user=<user>
 just config-update
 ```
+
+## Development Shells
+
+`just` remains the public runner for repo tasks. Dev shells are optional, self-contained language environments.
+
+Current shell:
+
+```bash
+nix develop
+# or
+nix develop .#rust
+```
+
+The Rust shell is intended for Rust package or tooling work and includes:
+
+- Rust toolchain binaries from `nixpkgs`
+- common native build inputs (`pkg-config`, `openssl`, `cmake`, `python3`)
+- helper commands on `PATH`: `check`, `test`, `fmt`, `lint`, `run`, `watch`, `doc`, `rust-info`
 
 ## Backlog note
 
@@ -131,6 +153,11 @@ just config-update
 ### 2) User and host scaffolding
 
 `just new-user` and `just new-host` render static templates from `scripts/templates/` that mirror the current `oj` + `lotus` baseline, instead of cloning live modules from the repo tree.
+
+After `just new-user user=<user>`:
+
+- edit `modules/nixosModules/users/<user>.nix` for `githubUsername`, email, admin state, and any derived groups
+- edit `modules/homeModules/users/<user>/profile.nix` for packages, flatpaks, and session variables
 
 ### 3) Wrapped programs and wrappers
 WIP (to be documented during onboarding pass).

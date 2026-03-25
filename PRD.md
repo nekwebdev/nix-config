@@ -1,5 +1,5 @@
 # PRD: Dendritic NixOS + Home Manager Pattern
-Version: `1.25`
+Version: `1.26`
 Status: Active specification
 
 ## 1. Product Definition
@@ -67,6 +67,11 @@ For each scaffolded host `<host>` bound to user `<user>`:
 2. Current baseline does not require wrapper package outputs under `perSystem.packages.x86_64-linux`.
 3. Default behavior should be expressed through explicit Home Manager modules.
 
+### 5.4 Optional development shells
+1. Optional language or environment shells may be exported under `devShells.<name>`.
+2. Dev shells live in `modules/dev/*.nix`.
+3. Dev shells are contributor environments, not replacements for `just` as the public runner.
+
 ## 6. Composition Contracts
 ### 6.1 flake-parts module (`modules/flake-parts.nix`)
 1. `systems = [ "x86_64-linux" ]`
@@ -89,10 +94,17 @@ Current baseline includes:
 ### 6.3 NixOS user module contract (`modules/nixosModules/users/<user>.nix`)
 Each host-declared user module must:
 1. export `flake.nixosModules.user<User>`
-2. define a normal user (`isNormalUser = true`)
-3. set primary group to `<user>`
-4. include `wheel` in `extraGroups`
-5. declare `users.groups.<user> = {}`
+2. define `my.users.<user>` as the typed user contract for host/HM wiring
+3. set at least:
+   1. `githubUsername`
+   2. `email`
+   3. `isAdmin`
+   4. derived `extraGroups`
+4. define a normal user (`isNormalUser = true`)
+5. set primary group to `<user>`
+6. include `wheel` in `extraGroups`
+7. declare `users.groups.<user> = {}`
+8. user `description` is optional and not required by this pattern
 
 ### 6.4 Home Manager user profile contract (`modules/homeModules/users/<user>/<profile>.nix`)
 Each HM user profile module must:
@@ -108,7 +120,8 @@ Each HM user profile module must:
 4. set `programs.home-manager.enable = true`
 5. keep program-level behavior in focused reusable HM modules (for example `self.homeModules.bat`, `self.homeModules.eza`) and import them explicitly
 6. `self.homeModules.base` is the shared user baseline and may include shared bootstrap reminder activation logic
-7. user profile modules may set user-specific identity/theme/packages/session values directly
+7. user profile modules read identity from `osConfig.my.users.<user>` instead of hardcoding it locally
+8. user profile modules may set user-specific packages, theme, flatpaks, and session values directly
 
 ### 6.5 Host module contract (`modules/nixosModules/hosts/<host>/configuration.nix`)
 Each host configuration must:
@@ -124,11 +137,13 @@ Each host configuration must:
    1. `home-manager.useGlobalPkgs = true`
    2. `home-manager.useUserPackages = true`
 7. pass only explicitly required HM args through `home-manager.extraSpecialArgs`; do not inject wrapper bundles by default
-8. set `home-manager.users.<user>.imports = [ self.homeModules.<user><Profile> ]` (baseline profile export is `<user>Profile`)
-9. set HM defaults:
+8. set `my.primaryUser = "<user>"`
+9. derive HM wiring from `config.my.users.<user>`
+10. set `home-manager.users.<user>.imports = [ self.homeModules.<user><Profile> ]` (baseline profile export is `<user>Profile`)
+11. set HM defaults:
    1. `home.username = "<user>"` (default)
    2. `home.homeDirectory = "/home/<user>"` (default)
-10. host-specific decomposition is explicit: `configuration.nix` may import shared feature modules (for example `self.nixosModules.system`, `self.nixosModules.policy`) exported from `modules/nixosModules/programs/`
+12. host-specific decomposition is explicit: `configuration.nix` may import shared feature modules (for example `self.nixosModules.system`, `self.nixosModules.policy`) exported from `modules/nixosModules/programs/`
 
 ### 6.6 Host hardware contract (`modules/nixosModules/hosts/<host>/hardware-configuration.nix`)
 Each host hardware module must set:
@@ -172,12 +187,19 @@ Each host hardware module must set:
 7. Mutable runtime configs must not be managed as read-only `xdg.configFile` store symlinks.
 8. Pull exclusions are allowed for intentionally volatile files and must be declared in `scripts/runtime-config-helper.sh` as repo-relative paths.
 
+### 6.11 Development shell module contracts (`modules/dev/*.nix`)
+1. Each file under `modules/dev/` must itself be a valid flake-parts module.
+2. Dev shells are optional and may export `perSystem.devShells.<name>`.
+3. Dev shells should be self-contained for a language or environment, including the tools and helper commands that make the shell useful on its own.
+4. `devShells.default` may point to one of the named shells with `lib.mkDefault`.
+5. Dev shells do not replace `just` as the repo's public task runner.
+
 ## 7. Scaffolding and Naming
 Scaffolding is the standard path for adding new entities:
 1. `just new-user user=<user>` creates:
    1. `modules/nixosModules/users/<user>.nix`
-   2. `modules/homeModules/users/<user>/profile.nix`
-   3. `modules/homeModules/users/<user>/` (profile folder rendered from static templates)
+   2. `modules/homeModules/users/<user>/base.nix`
+   3. `modules/homeModules/users/<user>/profile.nix`
    4. `configs/users/<user>/common/` rendered from static baseline templates for runtime config parity
    5. user scaffolding is rendered from `scripts/templates/new-user/` with `<user>` placeholders
 2. `just new-host host=<host> user=<user>` creates:
@@ -193,6 +215,9 @@ Scaffolding is the standard path for adding new entities:
    4. `self.homeModules.aliasesCommon`
    5. `self.homeModules.environment`
    6. `self.homeModules.git`
+4. after scaffolding:
+   1. edit `modules/nixosModules/users/<user>.nix` for identity and admin settings
+   2. edit `modules/homeModules/users/<user>/profile.nix` for packages, flatpaks, and session variables
 
 Naming rules:
 1. `<host>` and `<user>` must match `^[a-z][a-z0-9]*$`
@@ -210,6 +235,10 @@ The supported interface is:
 7. `just config-update`
 
 `justfile` contains routing only. Execution logic lives in `/scripts`.
+
+Optional contributor environment:
+1. `nix develop`
+2. `nix develop .#rust`
 
 ## 9. Verification Policy
 Do not use `just switch` for routine validation on this already configured machine.

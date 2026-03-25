@@ -24,7 +24,7 @@
 
               githubUsername = lib.mkOption {
                 type = lib.types.str;
-                description = "GitHub username used for Git identity and user description.";
+                description = "GitHub username used for Git identity.";
               };
 
               email = lib.mkOption {

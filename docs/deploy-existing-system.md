@@ -18,6 +18,14 @@ Example:
 cd /home/<user>/.config/nixos
 ```
 
+If you are working on Rust tooling or a Rust-based package in this repo, use the self-contained Rust shell:
+
+```bash
+nix develop
+# or
+nix develop .#rust
+```
+
 ## Standard Change Flow
 
 Update the repo contents, then validate before switching:
@@ -49,7 +57,10 @@ just new-user user=<user>
 just new-host host=<host> user=<user>
 ```
 
-Then edit the generated modules and configs.
+Then edit the generated modules and configs:
+
+- `modules/nixosModules/users/<user>.nix` for identity and admin settings
+- `modules/homeModules/users/<user>/profile.nix` for packages, flatpaks, and session variables
 
 For a new host, replace the scaffolded hardware file with hardware data generated on the real machine before install or switch.
 
