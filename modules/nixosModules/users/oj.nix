@@ -6,12 +6,13 @@
   }: let
     # Temporary bootstrap password hash for "changeme".
     bootstrapPasswordHash = "$y$j9T$0JuRKfvwr2c3q8t6Xwhq50$gtXn6SMWDBPocjip50.HzR/3KhImTPXZWY7QKtF9WwD";
+    user = config.my.users.oj;
   in {
     config = {
-      # HM-first exception: users/groups are system-level declarations.
-      users.users.oj = {
-        isNormalUser = true;
-        group = "oj";
+      my.users.oj = {
+        githubUsername = "nekwebdev";
+        email = "nekwebdev@users.noreply.github.com";
+        isAdmin = true;
         extraGroups =
           ["wheel"]
           ++ lib.optional config.services.greetd.enable "greeter"
@@ -20,11 +21,23 @@
             "lp"
             "lpadmin"
           ];
+      };
+
+      # HM-first exception: users/groups are system-level declarations.
+      users.users.${user.username} = {
+        isNormalUser = true;
+        description = user.githubUsername;
+        group = user.primaryGroup;
+        home = lib.mkDefault user.homeDirectory;
+        extraGroups = user.extraGroups;
         # Applied only when the account is first created.
         initialHashedPassword = bootstrapPasswordHash;
       };
 
-      users.groups.oj = {};
+      users.groups.${user.primaryGroup} = {};
+
+      # HM-first exception: trusted users are a global daemon policy concern.
+      nix.settings.trusted-users = lib.optionals user.isAdmin [user.username];
     };
   };
 }

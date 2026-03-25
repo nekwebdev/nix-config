@@ -1,20 +1,34 @@
 {self, ...}: {
   flake.homeModules.ojProfile = {
     pkgs,
+    lib,
     config,
     osConfig ? {},
     ...
-  }: {
+  }: let
+    userContract = lib.attrByPath ["my" "users" config.home.username] null osConfig;
+    gitIdentity =
+      if userContract == null
+      then {}
+      else {
+        name = userContract.githubUsername;
+        email = userContract.email;
+        signingkey = "${config.home.homeDirectory}/.ssh/nixos-${osConfig.networking.hostName}";
+      };
+  in {
     imports = [
       self.homeModules.ojBase
     ];
 
+    assertions = [
+      {
+        assertion = userContract != null;
+        message = "Expected osConfig.my.users.${config.home.username} to be defined by the matching NixOS user module.";
+      }
+    ];
+
     # Keep frequently edited personal settings here.
-    programs.git.settings.user = {
-      name = "nekwebdev";
-      email = "nekwebdev@users.noreply.github.com";
-      signingkey = "${config.home.homeDirectory}/.ssh/nixos-${osConfig.networking.hostName}";
-    };
+    programs.git.settings.user = gitIdentity;
 
     # HM-first: user-scoped packages from the niri profile.
     home.packages = [
