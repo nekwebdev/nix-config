@@ -56,15 +56,17 @@ hardware_template="${template_root}/hardware-configuration.nix.template"
 niri_template_dir="${template_root}/niri"
 
 nixos_user_file="modules/nixosModules/users/${user}.nix"
+hm_user_base_file="modules/homeModules/users/${user}/base.nix"
 hm_user_profile_file="modules/homeModules/users/${user}/profile.nix"
 
-if [[ ! -f "${nixos_user_file}" && ! -f "${hm_user_profile_file}" ]]; then
+if [[ ! -f "${nixos_user_file}" && ! -f "${hm_user_base_file}" && ! -f "${hm_user_profile_file}" ]]; then
   echo "user '${user}' not found; scaffolding user first"
   bash "${script_dir}/new-user.sh" "${user}"
-elif [[ ! -f "${nixos_user_file}" || ! -f "${hm_user_profile_file}" ]]; then
+elif [[ ! -f "${nixos_user_file}" || ! -f "${hm_user_base_file}" || ! -f "${hm_user_profile_file}" ]]; then
   echo "error: user '${user}' is in a partial state" >&2
-  echo "expected both modules:" >&2
+  echo "expected user module files:" >&2
   echo "  - ${nixos_user_file}" >&2
+  echo "  - ${hm_user_base_file}" >&2
   echo "  - ${hm_user_profile_file}" >&2
   exit 1
 fi
