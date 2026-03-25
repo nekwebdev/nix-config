@@ -55,6 +55,7 @@
         pkgs.nodejs
         pkgs.openvpn
         self.packages.${pkgs.stdenv.hostPlatform.system}.orca-slicer
+        self.packages.${pkgs.stdenv.hostPlatform.system}.pinokio
         pkgs.protonup-qt
         pkgs.faugus-launcher
         pkgs.claude-code
