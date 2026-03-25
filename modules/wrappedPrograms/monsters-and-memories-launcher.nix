@@ -47,6 +47,10 @@
       runtimeInputs = [pkgs.coreutils pkgs.gnugrep];
 
       patchHook = ''
+        # Keep only the user-facing launcher in the wrapped output.
+        rm -f "$out/bin/appimage-run"
+        rm -f "$out/share/applications/appimage-run.desktop"
+
         # Stage the AppImage into a writable user path so the launcher does not
         # derive install dirs from the immutable Nix store path.
         install -Dm755 "${umuRunFhsShim}/bin/umu-run" "$out/libexec/${pname}/bin/umu-run"

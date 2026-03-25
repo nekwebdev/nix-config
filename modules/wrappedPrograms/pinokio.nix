@@ -19,6 +19,10 @@
       args = [src];
 
       patchHook = ''
+        # Keep only the user-facing launcher in the wrapped output.
+        rm -f "$out/bin/appimage-run"
+        rm -f "$out/share/applications/appimage-run.desktop"
+
         icon_source="$(${pkgs.findutils}/bin/find -L "${appimageContents}" \
           \( -path '*/usr/share/icons/hicolor/*/apps/*' -o -name '.DirIcon' \) \
           -type f | ${pkgs.coreutils}/bin/sort | ${pkgs.coreutils}/bin/tail -n 1 || true)"
