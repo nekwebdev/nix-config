@@ -48,15 +48,15 @@
         config_dir="$HOME/.config/matugen"
         template_dir="$config_dir/templates"
 
-        ${pkgs.coreutils}/bin/mkdir -p "$template_dir"
-        ${pkgs.coreutils}/bin/rm -f "$config_dir/config.toml"
-        ${pkgs.coreutils}/bin/rm -f "$template_dir/bat.tmTheme"
-        ${pkgs.coreutils}/bin/rm -f "$template_dir/starship.toml"
-        ${pkgs.coreutils}/bin/rm -f "$template_dir/dank-zed-blurred.json"
-        ${pkgs.coreutils}/bin/install -m 0644 ${matugenConfigToml} "$config_dir/config.toml"
-        ${pkgs.coreutils}/bin/install -m 0644 ${matugenBatTemplate} "$template_dir/bat.tmTheme"
-        ${pkgs.coreutils}/bin/install -m 0644 ${matugenStarshipTemplate} "$template_dir/starship.toml"
-        ${pkgs.coreutils}/bin/install -m 0644 ${matugenZedTemplate} "$template_dir/dank-zed-blurred.json"
+        $DRY_RUN_CMD ${pkgs.coreutils}/bin/mkdir -p "$template_dir"
+        $DRY_RUN_CMD ${pkgs.coreutils}/bin/rm -f "$config_dir/config.toml"
+        $DRY_RUN_CMD ${pkgs.coreutils}/bin/rm -f "$template_dir/bat.tmTheme"
+        $DRY_RUN_CMD ${pkgs.coreutils}/bin/rm -f "$template_dir/starship.toml"
+        $DRY_RUN_CMD ${pkgs.coreutils}/bin/rm -f "$template_dir/dank-zed-blurred.json"
+        $DRY_RUN_CMD ${pkgs.coreutils}/bin/install -m 0644 ${matugenConfigToml} "$config_dir/config.toml"
+        $DRY_RUN_CMD ${pkgs.coreutils}/bin/install -m 0644 ${matugenBatTemplate} "$template_dir/bat.tmTheme"
+        $DRY_RUN_CMD ${pkgs.coreutils}/bin/install -m 0644 ${matugenStarshipTemplate} "$template_dir/starship.toml"
+        $DRY_RUN_CMD ${pkgs.coreutils}/bin/install -m 0644 ${matugenZedTemplate} "$template_dir/dank-zed-blurred.json"
       '';
     };
   };

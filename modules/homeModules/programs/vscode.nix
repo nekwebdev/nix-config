@@ -6,6 +6,11 @@
     ...
   }: let
     homeDirectory = config.home.homeDirectory;
+    vscodeArgvTemplate = pkgs.writeText "vscodium-argv.json" ''
+      {
+        "password-store":"gnome-libsecret"
+      }
+    '';
   in {
     config = {
       programs.vscode = {
@@ -49,26 +54,30 @@
         argv_file="${homeDirectory}/.vscode-oss/argv.json"
         password_store_line='"password-store":"gnome-libsecret"'
 
-        ${pkgs.coreutils}/bin/mkdir -p "$(${pkgs.coreutils}/bin/dirname "$argv_file")"
-
-        if [ ! -f "$argv_file" ]; then
-          cat > "$argv_file" <<'EOF'
-        {
-          "password-store":"gnome-libsecret"
-        }
-        EOF
-        elif ! ${pkgs.gnugrep}/bin/grep -Fq "$password_store_line" "$argv_file"; then
-          close_line="$(${pkgs.gnugrep}/bin/grep -n '^[[:space:]]*}[[:space:]]*$' "$argv_file" | ${pkgs.coreutils}/bin/tail -n1 | ${pkgs.coreutils}/bin/cut -d: -f1)"
-          if [ -n "$close_line" ] && [ "$close_line" -gt 1 ]; then
-            prev_line="$((close_line - 1))"
-            if ${pkgs.gnused}/bin/sed -n "''${prev_line}p" "$argv_file" | ${pkgs.gnugrep}/bin/grep -Eq '^[[:space:]]*"[^"]+":.*,[[:space:]]*$'; then
-              :
-            else
-              ${pkgs.gnused}/bin/sed -i "''${prev_line}s/[[:space:]]*$/,/" "$argv_file"
-            fi
+        if [ -n "''${DRY_RUN:-}" ]; then
+          if [ ! -f "$argv_file" ]; then
+            echo "Would create $argv_file"
+          elif ! ${pkgs.gnugrep}/bin/grep -Fq "$password_store_line" "$argv_file"; then
+            echo "Would update $argv_file"
           fi
+        else
+          ${pkgs.coreutils}/bin/mkdir -p "$(${pkgs.coreutils}/bin/dirname "$argv_file")"
 
-          ${pkgs.gnused}/bin/sed -i '/^[[:space:]]*}[[:space:]]*$/i\  "password-store":"gnome-libsecret"' "$argv_file"
+          if [ ! -f "$argv_file" ]; then
+            ${pkgs.coreutils}/bin/install -m 0644 ${vscodeArgvTemplate} "$argv_file"
+          elif ! ${pkgs.gnugrep}/bin/grep -Fq "$password_store_line" "$argv_file"; then
+            close_line="$(${pkgs.gnugrep}/bin/grep -n '^[[:space:]]*}[[:space:]]*$' "$argv_file" | ${pkgs.coreutils}/bin/tail -n1 | ${pkgs.coreutils}/bin/cut -d: -f1)"
+            if [ -n "$close_line" ] && [ "$close_line" -gt 1 ]; then
+              prev_line="$((close_line - 1))"
+              if ${pkgs.gnused}/bin/sed -n "''${prev_line}p" "$argv_file" | ${pkgs.gnugrep}/bin/grep -Eq '^[[:space:]]*"[^"]+":.*,[[:space:]]*$'; then
+                :
+              else
+                ${pkgs.gnused}/bin/sed -i "''${prev_line}s/[[:space:]]*$/,/" "$argv_file"
+              fi
+            fi
+
+            ${pkgs.gnused}/bin/sed -i '/^[[:space:]]*}[[:space:]]*$/i\  "password-store":"gnome-libsecret"' "$argv_file"
+          fi
         fi
       '';
     };

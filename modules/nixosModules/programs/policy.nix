@@ -1,10 +1,19 @@
 {
   flake.nixosModules.policy = {
     lib,
+    config,
     pkgs,
     ...
   }: let
-    vpnProfileDir = "/home/oj/.config/ovpn";
+    primaryUserName = lib.attrByPath ["my" "primaryUser"] null config;
+    primaryUser =
+      if primaryUserName == null
+      then null
+      else lib.attrByPath ["my" "users" primaryUserName] null config;
+    vpnProfileDir =
+      if primaryUser == null
+      then null
+      else "${primaryUser.homeDirectory}/.config/ovpn";
   in {
     # HM-first exception: NetworkManager and firewall are host networking plumbing.
     networking.networkmanager.enable = true;
@@ -12,8 +21,8 @@
     networking.firewall.enable = true;
 
     # HM-first exception: VPN profile import is root-owned NetworkManager plumbing.
-    systemd.services.vpn-profile-import = {
-      description = "One-time import of OpenVPN profiles from ~/.config/ovpn";
+    systemd.services.vpn-profile-import = lib.mkIf (vpnProfileDir != null) {
+      description = "One-time import of OpenVPN profiles from the primary user's ~/.config/ovpn";
       wantedBy = ["multi-user.target"];
       after = ["NetworkManager.service"];
       wants = ["NetworkManager.service"];

@@ -110,11 +110,11 @@ Do not reuse `lotus` hardware settings blindly. Every new host needs its own `ha
 
 ## 3. Clone the Repo for Install-Time Use
 
-Clone the repo into the target root:
+Clone the repo into a temporary working directory inside the target root:
 
 ```bash
-git clone <repo-url> /mnt/etc/nixos
-cd /mnt/etc/nixos
+git clone <repo-url> /mnt/root/nixos-config
+cd /mnt/root/nixos-config
 ```
 
 This install-time checkout is temporary. After first boot, keep the persistent working checkout at:
