@@ -14,7 +14,7 @@ Minimal dendritic NixOS + Home Manager setup:
 - `modules/flake-parts.nix`: shared flake-parts settings (`systems`, treefmt).
 - `modules/nixosModules/*`: exported NixOS modules and hosts.
 - `modules/homeModules/*`: exported Home Manager user profiles.
-- `modules/homeModules/users/<user>/<profile>.nix`: user profile entry modules (baseline: `users/oj/niri.nix`).
+- `modules/homeModules/users/<user>/<profile>.nix`: user profile entry modules (baseline: `users/oj/profile.nix`).
 - `configs/common/*`: global fallback runtime config defaults.
 - `configs/users/<user>/common/*`: per-user runtime config defaults.
 - `configs/users/<user>/hosts/<host>/*`: per-user host-specific runtime config overrides.
@@ -129,7 +129,8 @@ just config-update
   - `scripts/runtime-config-helper.sh` (`pull_exclude_repo_rel_paths`)
 
 ### 2) User and host scaffolding
-WIP (to be documented during onboarding pass).
+
+`just new-user` and `just new-host` render static templates from `scripts/templates/` that mirror the current `oj` + `lotus` baseline, instead of cloning live modules from the repo tree.
 
 ### 3) Wrapped programs and wrappers
 WIP (to be documented during onboarding pass).

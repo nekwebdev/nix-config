@@ -38,10 +38,10 @@ No host/user composition logic lives directly in `flake.nix`.
 ## 5. Output Model
 ### 5.1 Baseline outputs (required)
 1. `nixosConfigurations.lotus`
-2. `nixosModules.base`
+2. `nixosModules.system`
 3. `nixosModules.userOj`
 4. `nixosModules.hostLotus`
-5. `homeModules.ojNiri`
+5. `homeModules.ojProfile`
 6. `homeModules.base`
 7. `homeModules.fish`
 8. `homeModules.aliasRegistry`
@@ -52,13 +52,13 @@ No host/user composition logic lives directly in `flake.nix`.
 ### 5.2 Extensible pattern outputs
 For each scaffolded user `<user>`:
 1. `nixosModules.user<User>`
-2. `homeModules.<user>Niri` (default scaffolded profile)
+2. `homeModules.<user>Profile` (default scaffolded profile)
 
 For each scaffolded host `<host>` bound to user `<user>`:
 1. `nixosConfigurations.<host>`
 2. `nixosModules.host<Host>`
 3. host module imports `self.nixosModules.user<User>`
-4. host HM wiring imports `self.homeModules.<user>Niri`
+4. host HM wiring imports `self.homeModules.<user>Profile`
 
 `<User>` and `<Host>` follow scaffold naming (`[a-z][a-z0-9]*` input, first letter capitalized for module names).
 
@@ -96,7 +96,7 @@ Each host-declared user module must:
 
 ### 6.4 Home Manager user profile contract (`modules/homeModules/users/<user>/<profile>.nix`)
 Each HM user profile module must:
-1. export `flake.homeModules.<user><Profile>` (baseline profile export is `ojNiri`)
+1. export `flake.homeModules.<user><Profile>` (baseline profile export is `ojProfile`)
 2. import shared HM modules explicitly (current baseline:
    1. `self.homeModules.base`
    2. `self.homeModules.fish`
@@ -116,7 +116,7 @@ Each host configuration must:
 2. define `flake.nixosModules.host<Host>`
 3. import:
    1. `inputs.home-manager.nixosModules.home-manager`
-   2. `self.nixosModules.base`
+   2. required shared host feature modules (for example `self.nixosModules.system`)
    3. `self.nixosModules.user<User>`
 4. set `networking.hostName = "<host>"`
 5. set `system.stateVersion = "25.11"` either directly or via explicitly imported host-local modules in the same host stack
@@ -124,7 +124,7 @@ Each host configuration must:
    1. `home-manager.useGlobalPkgs = true`
    2. `home-manager.useUserPackages = true`
 7. pass only explicitly required HM args through `home-manager.extraSpecialArgs`; do not inject wrapper bundles by default
-8. set `home-manager.users.<user>.imports = [ self.homeModules.<user><Profile> ]` (baseline profile export is `<user>Niri`)
+8. set `home-manager.users.<user>.imports = [ self.homeModules.<user><Profile> ]` (baseline profile export is `<user>Profile`)
 9. set HM defaults:
    1. `home.username = "<user>"` (default)
    2. `home.homeDirectory = "/home/<user>"` (default)
@@ -150,10 +150,10 @@ Each host hardware module must set:
 
 ### 6.9 Reusable Home module naming
 1. Reusable HM modules must be user-agnostic in both filename and exported name.
-2. User-scoped HM profiles must be exported as flat names under `flake.homeModules` (`<user><Profile>`, for example `ojNiri`, `aliceNiri`).
+2. User-scoped HM profiles must be exported as flat names under `flake.homeModules` (`<user><Profile>`, for example `ojProfile`, `aliceProfile`).
 3. Reusable HM modules should avoid duplicate basenames to keep tree reorganization non-semantic.
 4. Reusable HM modules should live in category directories (for example `shared/`, `programs/`, `desktop/`) and export neutral names (for example `base`, `fish`, `environment`, `bat`, `eza`, `brave`, `fastfetch`, `fzf`, `ghostty`, `mangohud`, `nixMonitor`, `starship`, `tlrc`, `vscode`, `zedEditor`, `zoxide`, `dms`, `niri`).
-5. User-scoped profile modules live under `modules/homeModules/users/<user>/` (for example `niri.nix`, `kde.nix`).
+5. User-scoped profile modules live under `modules/homeModules/users/<user>/` (for example `profile.nix`, `gaming.nix`).
 
 ### 6.10 Home module file layout and mutable runtime config policy
 1. A module is either a single file (`<name>.nix`) or a folder (`<name>/<name>.nix`) with all module-local assets (templates, default configs, docs) colocated under that folder.
@@ -176,15 +176,16 @@ Each host hardware module must set:
 Scaffolding is the standard path for adding new entities:
 1. `just new-user user=<user>` creates:
    1. `modules/nixosModules/users/<user>.nix`
-   2. `modules/homeModules/users/<user>/niri.nix`
-   3. `modules/homeModules/users/<user>/` (profile folder cloned from baseline)
-   4. `configs/users/<user>/` cloned from baseline `configs/users/oj/` for runtime config parity
-   5. user scaffolding is cloned from the baseline `oj` user modules and rewritten with `<user>` placeholders
+   2. `modules/homeModules/users/<user>/profile.nix`
+   3. `modules/homeModules/users/<user>/` (profile folder rendered from static templates)
+   4. `configs/users/<user>/common/` rendered from static baseline templates for runtime config parity
+   5. user scaffolding is rendered from `scripts/templates/new-user/` with `<user>` placeholders
 2. `just new-host host=<host> user=<user>` creates:
    1. `modules/nixosModules/hosts/<host>/configuration.nix`
    2. `modules/nixosModules/hosts/<host>/hardware-configuration.nix`
-   3. `configs/users/<user>/hosts/<host>/` (copied from `configs/users/<user>/hosts/lotus/` when present, otherwise initialized empty)
-   4. host scaffolding is cloned from the baseline `lotus` host modules and rewritten with `<host>/<user>` placeholders
+   3. `configs/users/<user>/hosts/<host>/` rendered from static host runtime-config templates
+   4. host scaffolding is rendered from `scripts/templates/new-host/` with `<host>/<user>` placeholders
+   5. generated hardware config is a placeholder that must be replaced with host-specific hardware data
 3. generated HM user profile modules import:
    1. `self.homeModules.base`
    2. `self.homeModules.fish`
@@ -195,7 +196,7 @@ Scaffolding is the standard path for adding new entities:
 
 Naming rules:
 1. `<host>` and `<user>` must match `^[a-z][a-z0-9]*$`
-2. scaffolded NixOS module suffixes are first-letter capitalized (`userAlice`, `hostLaptop`), while HM profile exports use flat concatenated names (`homeModules.<user>Niri`)
+2. scaffolded NixOS module suffixes are first-letter capitalized (`userAlice`, `hostLaptop`), while HM profile exports use flat concatenated names (`homeModules.<user>Profile`)
 3. reusable HM modules must not carry a specific username in filename or export name
 
 ## 8. Command Surface

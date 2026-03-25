@@ -1,0 +1,8 @@
+{
+  flake.nixosModules.host__HOST_CAP__Hardware = {lib, ...}: {
+    # Replace this placeholder with the generated hardware config for __HOST__.
+    # Example:
+    #   nixos-generate-config --show-hardware-config > modules/nixosModules/hosts/__HOST__/hardware-configuration.nix
+    nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
+  };
+}

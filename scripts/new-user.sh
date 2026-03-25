@@ -7,20 +7,21 @@ usage: just new-user user=<user>
 EOF
 }
 
-replace_user_placeholders() {
-  local file_path="$1"
-  local user_name="$2"
-  local user_module="$3"
+render_user_template() {
+  local template_path="$1"
+  local output_path="$2"
+  local user_name="$3"
+  local user_module_name="$4"
 
-  sed -i \
-    -e "s/\\<oj\\>/${user_name}/g" \
-    -e "s/ojNiri/${user_name}Niri/g" \
-    -e "s/Oj/${user_module}/g" \
-    "${file_path}"
+  sed \
+    -e "s/__USER__/${user_name}/g" \
+    -e "s/__USER_CAP__/${user_module_name}/g" \
+    "${template_path}" > "${output_path}"
 }
 
 user="${1:-}"
 shift || true
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 if [[ -z "${user}" ]]; then
   usage
@@ -41,41 +42,41 @@ fi
 user_module_name="${user^}"
 nixos_user_file="modules/nixosModules/users/${user}.nix"
 hm_user_dir="modules/homeModules/users/${user}"
-hm_user_profile_file="${hm_user_dir}/niri.nix"
+hm_user_profile_file="${hm_user_dir}/profile.nix"
 user_configs_dir="configs/users/${user}"
-source_nixos_user_file="modules/nixosModules/users/oj.nix"
-source_hm_user_dir="modules/homeModules/users/oj"
-source_hm_user_profile_file="${source_hm_user_dir}/niri.nix"
-source_user_configs_dir="configs/users/oj"
+user_common_configs_dir="${user_configs_dir}/common"
+template_root="${script_dir}/templates/new-user"
+nixos_user_template="${template_root}/user-module.nix.template"
+hm_user_profile_template="${template_root}/profile.nix.template"
+common_configs_template_dir="${template_root}/common"
 
 if [[ -e "${nixos_user_file}" || -e "${hm_user_dir}" || -e "${user_configs_dir}" ]]; then
   echo "error: user '${user}' already exists (one or more target files already present)" >&2
   exit 1
 fi
 
-if [[ ! -f "${source_nixos_user_file}" || ! -d "${source_hm_user_dir}" || ! -f "${source_hm_user_profile_file}" || ! -d "${source_user_configs_dir}" ]]; then
-  echo "error: expected oj source modules are missing" >&2
+if [[ ! -f "${nixos_user_template}" || ! -f "${hm_user_profile_template}" || ! -d "${common_configs_template_dir}" ]]; then
+  echo "error: expected user scaffold templates are missing" >&2
   echo "required sources:" >&2
-  echo "  - ${source_nixos_user_file}" >&2
-  echo "  - ${source_hm_user_dir}/" >&2
-  echo "  - ${source_hm_user_profile_file}" >&2
-  echo "  - ${source_user_configs_dir}/" >&2
+  echo "  - ${nixos_user_template}" >&2
+  echo "  - ${hm_user_profile_template}" >&2
+  echo "  - ${common_configs_template_dir}/" >&2
   exit 1
 fi
 
-mkdir -p "$(dirname "${nixos_user_file}")" "$(dirname "${hm_user_dir}")"
+mkdir -p "$(dirname "${nixos_user_file}")" "${hm_user_dir}" "${user_common_configs_dir}"
 
-cp "${source_nixos_user_file}" "${nixos_user_file}"
-cp -R "${source_hm_user_dir}" "${hm_user_dir}"
-cp -R "${source_user_configs_dir}" "${user_configs_dir}"
+tmp_dir="$(mktemp -d)"
+trap 'rm -rf "${tmp_dir}"' EXIT
 
-replace_user_placeholders "${nixos_user_file}" "${user}" "${user_module_name}"
+render_user_template "${nixos_user_template}" "${tmp_dir}/user.nix" "${user}" "${user_module_name}"
+render_user_template "${hm_user_profile_template}" "${tmp_dir}/profile.nix" "${user}" "${user_module_name}"
 
-while IFS= read -r -d '' hm_fragment; do
-  replace_user_placeholders "${hm_fragment}" "${user}" "${user_module_name}"
-done < <(find "${hm_user_dir}" -type f -name '*.nix' -print0)
+mv "${tmp_dir}/user.nix" "${nixos_user_file}"
+mv "${tmp_dir}/profile.nix" "${hm_user_profile_file}"
+cp -R "${common_configs_template_dir}/." "${user_common_configs_dir}/"
 
 echo "created ${nixos_user_file}"
 echo "created ${hm_user_profile_file}"
 echo "created ${hm_user_dir}/"
-echo "created ${user_configs_dir}/"
+echo "created ${user_common_configs_dir}/"

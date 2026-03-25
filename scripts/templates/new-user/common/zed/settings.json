@@ -1,0 +1,57 @@
+{
+  "git_panel": {
+    "dock": "left"
+  },
+  "agent_servers": {
+    "claude": {
+      "default_config_options": {
+        "mode": "default",
+        "model": "opus"
+      },
+      "favorite_config_option_values": {
+        "model": [
+          "opus"
+        ]
+      }
+    },
+    "codex": {
+      "default_config_options": {
+        "mode": "auto"
+      }
+    }
+  },
+  "agent_ui_font_size": 18.0,
+  "auto_install_extensions": {
+    "catppuccin-blur": true,
+    "git-firefly": true,
+    "html": true,
+    "just": true,
+    "nix": true,
+    "toml": true,
+    "terraform": true,
+    "dockerfile": true
+  },
+  "base_keymap": "VSCode",
+  "buffer_font_family": "FiraCode Nerd Font",
+  "buffer_font_size": 15,
+  "icon_theme": {
+    "dark": "Zed (Default)",
+    "light": "Zed (Default)",
+    "mode": "system"
+  },
+  "languages": {
+    "JSONC": {
+      "formatter": "language_server"
+    }
+  },
+  "minimap": {
+    "show": "auto"
+  },
+  "tab_size": 2,
+  "theme": {
+    "dark": "DankShell Dark Blurred Transparent",
+    "light": "DankShell Light Blurred Transparent",
+    "mode": "system"
+  },
+  "ui_font_size": 16
+}

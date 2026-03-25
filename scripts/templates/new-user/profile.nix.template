@@ -1,0 +1,101 @@
+{self, ...}: {
+  flake.homeModules.__USER__Profile = {
+    lib,
+    pkgs,
+    config,
+    osConfig ? {},
+    ...
+  }: {
+    imports = [
+      self.homeModules.base
+      self.homeModules.environment
+      self.homeModules.fish
+      self.homeModules.aliasRegistry
+      self.homeModules.aliasesCommon
+      self.homeModules.git
+      self.homeModules.bat
+      self.homeModules.brave
+      self.homeModules.eza
+      self.homeModules.fastfetch
+      self.homeModules.fzf
+      self.homeModules.ghostty
+      self.homeModules.mangohud
+      self.homeModules.nixMonitor
+      self.homeModules.starship
+      self.homeModules.tmux
+      self.homeModules.tlrc
+      self.homeModules.vscode
+      self.homeModules.zedEditor
+      self.homeModules.zoxide
+      self.homeModules.niri
+      self.homeModules.dms
+    ];
+
+    options.my.home.flatpak.apps = lib.mkOption {
+      default = [];
+      description = "Flatpak app IDs requested by this user profile.";
+      type = lib.types.listOf lib.types.str;
+    };
+
+    config = {
+      programs.git.settings.user = {
+        name = "nekwebdev";
+        email = "nekwebdev@users.noreply.github.com";
+        signingkey = "${config.home.homeDirectory}/.ssh/nixos-${osConfig.networking.hostName}";
+      };
+
+      # HM-first: user-scoped packages from the niri profile.
+      home.packages = [
+        pkgs.discord
+        pkgs.fira-code
+        pkgs.fira-code-symbols
+        self.packages.${pkgs.stdenv.hostPlatform.system}.monsters-and-memories-launcher
+        pkgs.nautilus
+        pkgs.nerd-fonts.fira-code
+        pkgs.nodejs
+        pkgs.openvpn
+        self.packages.${pkgs.stdenv.hostPlatform.system}.orca-slicer
+        self.packages.${pkgs.stdenv.hostPlatform.system}.pinokio
+        pkgs.protonup-qt
+        pkgs.faugus-launcher
+        pkgs.claude-code
+        pkgs.codex
+        pkgs.mpv
+      ];
+
+      my.home.flatpak.apps = [
+        "com.stremio.Stremio"
+      ];
+
+      # HM-first: user-scoped session variables from the niri profile.
+      home.sessionVariables = {
+        CODEX_HOME = "${config.home.homeDirectory}/.config/codex";
+        TERMINAL = "ghostty";
+      };
+
+      gtk = {
+        enable = true;
+        theme = {
+          name = "adw-gtk3";
+          package = pkgs.adw-gtk3;
+        };
+        gtk4.extraCss = ''
+          @import url("dank-colors.css");
+        '';
+      };
+
+      home.pointerCursor = {
+        name = "Adwaita";
+        package = pkgs.adwaita-icon-theme;
+        size = 14;
+        x11 = {
+          enable = true;
+          defaultCursor = "Adwaita";
+        };
+      };
+
+      home.stateVersion = "25.11";
+      programs.home-manager.enable = true;
+    };
+  };
+}

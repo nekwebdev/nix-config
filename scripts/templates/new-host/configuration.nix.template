@@ -1,0 +1,72 @@
+{
+  inputs,
+  self,
+  ...
+}: {
+  flake.nixosConfigurations.__HOST__ = inputs.nixpkgs.lib.nixosSystem {
+    modules = [self.nixosModules.host__HOST_CAP__];
+  };
+
+  flake.nixosModules.host__HOST_CAP__ = {lib, ...}: {
+    imports = [
+      inputs.home-manager.nixosModules.home-manager
+      inputs.nix-sweep.nixosModules.default
+
+      self.nixosModules.system
+      self.nixosModules.policy
+      self.nixosModules.services
+      self.nixosModules.tailscale
+      self.nixosModules.host__HOST_CAP__Hardware
+      self.nixosModules.nvidia
+      self.nixosModules.gaming
+      self.nixosModules.portals
+      self.nixosModules.flatpak
+      self.nixosModules.udev
+      self.nixosModules.niri
+      self.nixosModules.dmsGreeter
+      self.nixosModules.docker
+      self.nixosModules.user__USER_CAP__
+    ];
+
+    networking.hostName = "__HOST__";
+    system.stateVersion = "25.11";
+
+    # HM-first exception: locale/timezone define host identity.
+    i18n.defaultLocale = "en_US.UTF-8";
+    time.timeZone = "Pacific/Tahiti";
+
+    # HM-first exception: resolver behavior is host networking plumbing.
+    services.resolved.enable = lib.mkForce false;
+
+    # HM-first exception: bootloader/EFI are host-level boot plumbing.
+    boot.loader.systemd-boot.enable = true;
+    boot.loader.efi.canTouchEfiVariables = true;
+
+    # HM-first exception: this is a root-owned maintenance service.
+    services.nix-sweep = {
+      enable = true;
+      interval = "daily";
+      gc = true;
+      gcInterval = "weekly";
+      profiles = [
+        "system"
+      ];
+      keepNewer = "7d";
+      removeOlder = "30d";
+      keepMin = 10;
+    };
+
+    home-manager.useGlobalPkgs = true;
+    home-manager.useUserPackages = true;
+    home-manager.users.__USER__ = {
+      imports = [self.homeModules.__USER__Profile];
+      home.username = lib.mkDefault "__USER__";
+      home.homeDirectory = lib.mkDefault "/home/__USER__";
+    };
+
+    # HM-first exception: greeter wiring and monitor layout are host login/session plumbing.
+    programs.dank-material-shell.greeter.configHome = "/home/__USER__";
+    environment.etc."greetd/niri_overrides.kdl".text =
+      builtins.readFile ../../../../configs/users/__USER__/hosts/__HOST__/niri/outputs.kdl;
+  };
+}
