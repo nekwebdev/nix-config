@@ -1,5 +1,8 @@
 {
   flake.nixosModules.gaming = {pkgs, ...}: {
+    # HM-first exception: ntsync is a kernel module for host-level runtime integration.
+    boot.kernelModules = ["ntsync"];
+
     # HM-first exception: Steam setup touches multiarch/runtime host integration.
     programs.steam = {
       enable = true;

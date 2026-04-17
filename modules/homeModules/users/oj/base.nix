@@ -1,5 +1,6 @@
 {self, ...}: {
   flake.homeModules.ojBase = {
+    config,
     lib,
     pkgs,
     ...
@@ -42,6 +43,7 @@
           name = "adw-gtk3";
           package = pkgs.adw-gtk3;
         };
+        gtk4.theme = config.gtk.theme;
         gtk4.extraCss = ''
           @import url("dank-colors.css");
         '';

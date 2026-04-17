@@ -3,6 +3,10 @@
     programs.git = {
       enable = true;
       package = pkgs.git;
+      ignores = [
+        ".codex/"
+        ".codex"
+      ];
       settings = {
         init.defaultBranch = "main";
         gpg.format = "ssh";

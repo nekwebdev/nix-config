@@ -1,4 +1,8 @@
-{self, ...}: {
+{
+  inputs,
+  self,
+  ...
+}: {
   flake.homeModules.ojProfile = {
     pkgs,
     lib,
@@ -32,6 +36,7 @@
 
     # HM-first: user-scoped packages from the niri profile.
     home.packages = [
+      pkgs.bubblewrap
       pkgs.discord
       pkgs.fira-code
       pkgs.fira-code-symbols
@@ -45,7 +50,7 @@
       pkgs.protonup-qt
       pkgs.faugus-launcher
       pkgs.claude-code
-      pkgs.codex
+      inputs.codex-cli-nix.packages.${pkgs.stdenv.hostPlatform.system}.default
       pkgs.mpv
     ];
 

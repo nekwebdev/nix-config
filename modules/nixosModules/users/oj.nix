@@ -15,6 +15,7 @@
         isAdmin = true;
         extraGroups =
           ["wheel"]
+          ++ lib.optional config.virtualisation.docker.enable "docker"
           ++ lib.optional config.services.greetd.enable "greeter"
           ++ lib.optional config.networking.networkmanager.enable "networkmanager"
           ++ lib.optionals config.services.printing.enable [

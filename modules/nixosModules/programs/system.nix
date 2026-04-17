@@ -1,5 +1,9 @@
 {inputs, ...}: {
-  flake.nixosModules.system = {lib, ...}: {
+  flake.nixosModules.system = {
+    lib,
+    pkgs,
+    ...
+  }: {
     options.my = {
       primaryUser = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
@@ -74,6 +78,9 @@
         "nix-command"
         "flakes"
       ];
+
+      # HM-first exception: root/sudo diagnostics need this available outside user HM PATH.
+      environment.systemPackages = [pkgs.ripgrep];
 
       # HM-first exception: package-set overlays are host-level composition plumbing.
       nixpkgs.overlays = lib.mkAfter [inputs.claude-code.overlays.default];

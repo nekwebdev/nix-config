@@ -74,7 +74,7 @@ just new-host host=<host> user=<user>
 - Keep assistant domains distinct; do not add near-duplicates of existing roles without a clear repo-specific gap.
 
 ## Reminders
-- Never run git commands that would write to the repo directly without asking.
+- Never run git commands that would write to the repo directly without asking. If a signed `git commit` is needed, ask to run it outside the sandbox.
 - Always use the fish style for bash commands.
 - Flake-evaluating Nix commands (`nix build`, `nix develop`, `nix run`, `nix check`, `nix flake show`, `nix flake check`) read from Git's index, so new or changed files must be staged first or you can get confusing "file not found" errors.
 - No commit is needed; `git add -A` (or `git add <paths>`) is enough.
