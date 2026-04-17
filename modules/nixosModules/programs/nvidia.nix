@@ -28,6 +28,11 @@
     # HM-first exception: NVIDIA container support needs system-managed CDI definitions.
     hardware.nvidia-container-toolkit.enable = true;
     virtualisation.vmVariant.hardware.nvidia-container-toolkit.enable = lib.mkForce false;
+    # Work around upstream nixpkgs typo in NVIDIA toolkit udev rule (trailing quote).
+    # Remove once nixpkgs fixes services/hardware/nvidia-container-toolkit/default.nix.
+    services.udev.extraRules = lib.mkAfter ''
+      KERNEL=="nvidia", RUN+="${lib.getExe' config.systemd.package "systemctl"} --no-block restart nvidia-container-toolkit-cdi-generator.service"
+    '';
 
     environment.variables = {
       __GL_SHADER_DISK_CACHE_SIZE = "12000000000";

@@ -76,4 +76,6 @@ just config-update
 
 - Use `just check` and `just check-vm` as the default validation path.
 - Keep `flake.lock` updates intentional.
+- Keep the temporary NVIDIA CDI udev workaround in `modules/nixosModules/programs/nvidia.nix` until upstream nixpkgs fixes the trailing quote typo in `nixos/modules/services/hardware/nvidia-container-toolkit/default.nix`.
+- On each input update (`just update` / `flake.lock` change), re-check upstream and remove the local override once the fix lands.
 - This repo does not support standalone Home Manager deployment.

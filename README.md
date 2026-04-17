@@ -38,6 +38,12 @@ just new-host host=<host> user=<user>
 just config-update
 ```
 
+## Temporary NVIDIA CDI Override
+
+- `modules/nixosModules/programs/nvidia.nix` contains a local `services.udev.extraRules` workaround for an upstream nixpkgs typo in `nvidia-container-toolkit` (`nvidia-container-toolkit-cdi-generator.service'`).
+- On every input update (`just update` / `flake.lock` changes), check whether upstream fixed `nixos/modules/services/hardware/nvidia-container-toolkit/default.nix`.
+- Remove the local override as soon as upstream is fixed.
+
 ## Development Shells
 
 `just` remains the public runner for repo tasks. Dev shells are optional, self-contained language environments.

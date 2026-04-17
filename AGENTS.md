@@ -56,6 +56,7 @@ just new-host host=<host> user=<user>
 - keep logic out of `justfile`; scripts live in `/scripts`
 - do not run `just switch` on this already-configured machine during validation; use `just check` + `just check-vm`
 - commit and review `flake.lock` input updates intentionally; do not drift input versions accidentally
+- keep the temporary NVIDIA CDI udev override in `modules/nixosModules/programs/nvidia.nix` until nixpkgs fixes the upstream trailing-quote bug in `nixos/modules/services/hardware/nvidia-container-toolkit/default.nix`; re-check on every input/`flake.lock` update and remove the override once upstream is fixed
 - when drafting commit messages, use a Conventional Commit subject; if there is a body, format it with `-` bullets
 - do not commit secrets (tokens, private keys, machine-specific credentials) to tracked files
 
