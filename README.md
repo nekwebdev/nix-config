@@ -64,6 +64,7 @@ The Rust shell is intended for Rust package or tooling work and includes:
 
 - fresh install from a live ISO: [docs/install-new-system.md](/home/oj/.config/nixos/docs/install-new-system.md)
 - changes on an existing host: [docs/deploy-existing-system.md](/home/oj/.config/nixos/docs/deploy-existing-system.md)
+- config mutability and switch behavior: [docs/config-lifecycle.md](/home/oj/.config/nixos/docs/config-lifecycle.md)
 
 `just check-vm` is the preferred final validation on a 3rd party machine because it builds `toplevel` and VM artifacts without switching the running host.
 `just config-update` updates the active layered runtime config sources in `configs/users/<user>/{common,hosts/<host>}` from the current system state.

@@ -6,6 +6,7 @@
       ignores = [
         ".codex/"
         ".codex"
+        ".claude/settings.local.json"
       ];
       settings = {
         init.defaultBranch = "main";

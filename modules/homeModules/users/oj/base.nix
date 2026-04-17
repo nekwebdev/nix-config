@@ -12,6 +12,7 @@
       self.homeModules.aliasRegistry
       self.homeModules.aliasesCommon
       self.homeModules.git
+      self.homeModules.codex
       self.homeModules.bat
       self.homeModules.brave
       self.homeModules.eza

@@ -1,8 +1,4 @@
-{
-  inputs,
-  self,
-  ...
-}: {
+{self, ...}: {
   flake.homeModules.ojProfile = {
     pkgs,
     lib,
@@ -50,7 +46,6 @@
       pkgs.protonup-qt
       pkgs.faugus-launcher
       pkgs.claude-code
-      inputs.codex-cli-nix.packages.${pkgs.stdenv.hostPlatform.system}.default
       pkgs.mpv
     ];
 
@@ -60,7 +55,6 @@
 
     # HM-first: user-scoped session variables from the niri profile.
     home.sessionVariables = {
-      CODEX_HOME = "${config.home.homeDirectory}/.config/codex";
       TERMINAL = "ghostty";
     };
   };
