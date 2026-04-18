@@ -21,6 +21,7 @@
       self.homeModules.ghostty
       self.homeModules.mangohud
       self.homeModules.nixMonitor
+      self.homeModules.obsidian
       self.homeModules.starship
       self.homeModules.tmux
       self.homeModules.tlrc
