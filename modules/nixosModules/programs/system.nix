@@ -1,4 +1,4 @@
-{inputs, ...}: {
+{...}: {
   flake.nixosModules.system = {
     lib,
     pkgs,
@@ -81,9 +81,6 @@
 
       # HM-first exception: root/sudo diagnostics need this available outside user HM PATH.
       environment.systemPackages = [pkgs.ripgrep];
-
-      # HM-first exception: package-set overlays are host-level composition plumbing.
-      nixpkgs.overlays = lib.mkAfter [inputs.claude-code.overlays.default];
 
       # HM-first exception: AppImage binfmt registration is system-level kernel/runtime plumbing.
       programs.appimage = {

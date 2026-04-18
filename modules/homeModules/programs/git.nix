@@ -3,11 +3,6 @@
     programs.git = {
       enable = true;
       package = pkgs.git;
-      ignores = [
-        ".codex/"
-        ".codex"
-        ".claude/settings.local.json"
-      ];
       settings = {
         init.defaultBranch = "main";
         gpg.format = "ssh";

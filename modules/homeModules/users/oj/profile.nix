@@ -32,7 +32,6 @@
 
     # HM-first: user-scoped packages from the niri profile.
     home.packages = [
-      pkgs.bubblewrap
       pkgs.discord
       pkgs.fira-code
       pkgs.fira-code-symbols
@@ -45,7 +44,6 @@
       self.packages.${pkgs.stdenv.hostPlatform.system}.pinokio
       pkgs.protonup-qt
       pkgs.faugus-launcher
-      pkgs.claude-code
       pkgs.mpv
     ];
 

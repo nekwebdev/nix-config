@@ -22,6 +22,7 @@
       inputs.nix-sweep.nixosModules.default
 
       self.nixosModules.system
+      self.nixosModules.assistants
       self.nixosModules.policy
       self.nixosModules.services
       self.nixosModules.tailscale
