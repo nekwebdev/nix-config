@@ -34,6 +34,7 @@
       self.nixosModules.niri
       self.nixosModules.dmsGreeter
       self.nixosModules.docker
+      self.nixosModules.virtualization
       self.nixosModules.userOj
     ];
 
