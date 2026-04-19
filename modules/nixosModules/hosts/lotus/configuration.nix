@@ -61,9 +61,6 @@
         # HM-first exception: resolver behavior is host networking plumbing.
         services.resolved.enable = lib.mkForce false;
 
-        # HM-first exception: Tailscale is a privileged networking service.
-        services.tailscale.extraSetFlags = ["--ssh"];
-
         # HM-first exception: bootloader/EFI are host-level boot plumbing.
         boot.loader.systemd-boot.enable = true;
         boot.loader.systemd-boot.configurationLimit = 20;
