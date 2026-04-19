@@ -30,7 +30,7 @@
     # Keep frequently edited personal settings here.
     programs.git.settings.user = gitIdentity;
 
-    # HM-first: user-scoped packages from the niri profile.
+    # HM-first: user-scoped packages.
     home.packages = [
       pkgs.discord
       pkgs.fira-code

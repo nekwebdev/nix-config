@@ -6,6 +6,7 @@
   }: {
     # Shared user-level must-have tools without per-program configuration.
     home.packages = [
+      pkgs.bitwarden-cli
       pkgs.curl
       pkgs.diff-so-fancy
       pkgs.direnv
