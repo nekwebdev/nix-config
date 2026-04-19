@@ -51,7 +51,7 @@
       "com.stremio.Stremio"
     ];
 
-    # HM-first: user-scoped session variables from the niri profile.
+    # HM-first: user-scoped session variables.
     home.sessionVariables = {
       TERMINAL = "ghostty";
     };

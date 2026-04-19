@@ -109,8 +109,8 @@
             shell = "/bin/cryptsetup-askpass";
             hostKeys = lib.optional config.boot.loader.supportsInitrdSecrets "/etc/secrets/initrd/ssh_host_ed25519_key";
             ignoreEmptyHostKeys = !config.boot.loader.supportsInitrdSecrets;
-            authorizedKeys = [
-              (lib.strings.trim (builtins.readFile ../../../../configs/users/${primaryUser.username}/hosts/${config.networking.hostName}/ssh/initrd.pub))
+            authorizedKeyFiles = [
+              ../../../../configs/users/${primaryUser.username}/hosts/${config.networking.hostName}/ssh/initrd_authorized_keys
             ];
           };
         };
