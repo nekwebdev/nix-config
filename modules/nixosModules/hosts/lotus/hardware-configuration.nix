@@ -12,7 +12,7 @@
     # HM-first exception: hardware boot/initrd configuration is system-level.
     boot = {
       initrd = {
-        availableKernelModules = ["nvme" "xhci_pci" "ahci" "uas" "usb_storage" "usbhid" "sd_mod"];
+        availableKernelModules = ["nvme" "xhci_pci" "ahci" "uas" "usb_storage" "usbhid" "sd_mod" "igb"];
         kernelModules = [];
         luks.devices."crypt-nix".device = "/dev/disk/by-uuid/bc131367-5e31-40ab-836d-2f4f335dfd63";
       };

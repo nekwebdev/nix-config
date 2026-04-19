@@ -10,6 +10,7 @@
   flake.nixosModules.hostLotus = {
     lib,
     config,
+    pkgs,
     ...
   }: let
     primaryUser =
@@ -87,6 +88,36 @@
       }
 
       (lib.mkIf (primaryUser != null) {
+        # HM-first exception: initrd secret material is host bootloader plumbing.
+        system.preSwitchChecks.initrdSshHostKey = ''
+          if [ "$2" = "switch" ] || [ "$2" = "boot" ]; then
+            ${pkgs.coreutils}/bin/install -d -m 0700 /etc/secrets/initrd
+
+            if [ ! -s /etc/secrets/initrd/ssh_host_ed25519_key ]; then
+              ${pkgs.openssh}/bin/ssh-keygen -t ed25519 -N "" -f /etc/secrets/initrd/ssh_host_ed25519_key >/dev/null
+            fi
+
+            ${pkgs.coreutils}/bin/chmod 0600 /etc/secrets/initrd/ssh_host_ed25519_key
+            ${pkgs.coreutils}/bin/chmod 0644 /etc/secrets/initrd/ssh_host_ed25519_key.pub
+          fi
+        '';
+
+        # HM-first exception: initrd networking/SSH unlock is host boot plumbing.
+        boot.initrd.network = {
+          enable = true;
+          udhcpc.enable = true;
+          ssh = {
+            enable = true;
+            port = 2222;
+            shell = "/bin/cryptsetup-askpass";
+            hostKeys = lib.optional config.boot.loader.supportsInitrdSecrets "/etc/secrets/initrd/ssh_host_ed25519_key";
+            ignoreEmptyHostKeys = !config.boot.loader.supportsInitrdSecrets;
+            authorizedKeys = [
+              (lib.strings.trim (builtins.readFile ../../../../configs/users/${primaryUser.username}/hosts/${config.networking.hostName}/ssh/git-signing.pub))
+            ];
+          };
+        };
+
         home-manager.users = {
           ${primaryUser.username} = {
             imports = [self.homeModules.${primaryUser.profileModule}];
