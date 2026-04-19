@@ -12,4 +12,8 @@ if [[ -z "${host}" ]]; then
   exit 1
 fi
 
-sudo nixos-rebuild switch --flake ".#${host}"
+flakeRef=".#${host}"
+
+sudo nixos-rebuild dry-activate --flake "${flakeRef}"
+sudo nixos-rebuild test --flake "${flakeRef}"
+sudo nixos-rebuild switch --flake "${flakeRef}"

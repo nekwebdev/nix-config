@@ -61,6 +61,7 @@
 
         # HM-first exception: bootloader/EFI are host-level boot plumbing.
         boot.loader.systemd-boot.enable = true;
+        boot.loader.systemd-boot.configurationLimit = 20;
         boot.loader.efi.canTouchEfiVariables = true;
 
         # HM-first exception: this is a root-owned maintenance service.

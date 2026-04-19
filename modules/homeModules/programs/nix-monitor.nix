@@ -32,7 +32,7 @@
       rebuildCommand = [
         "bash"
         "-c"
-        "sudo nixos-rebuild switch --flake ${flakeRef} 2>&1"
+        "sudo nixos-rebuild dry-activate --flake ${flakeRef} 2>&1 && sudo nixos-rebuild test --flake ${flakeRef} 2>&1 && sudo nixos-rebuild switch --flake ${flakeRef} 2>&1"
       ];
     };
   };

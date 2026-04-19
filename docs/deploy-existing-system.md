@@ -45,6 +45,8 @@ just switch host=<host>
 `just switch` runs:
 
 ```bash
+sudo nixos-rebuild dry-activate --flake .#<host>
+sudo nixos-rebuild test --flake .#<host>
 sudo nixos-rebuild switch --flake .#<host>
 ```
 
