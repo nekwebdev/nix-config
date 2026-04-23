@@ -28,9 +28,12 @@ Current files:
 - `configs/users/oj/common/dms/settings.json` -> `~/.config/DankMaterialShell/settings.json`
 - `configs/users/oj/common/dms/plugin_settings.json` -> `~/.config/DankMaterialShell/plugin_settings.json`
 - `configs/users/oj/hosts/lotus/niri/*.kdl` -> `~/.config/niri/dms/*.kdl`
+- `configs/users/oj/hosts/lotus/niri/profiles/*.kdl` -> `~/.config/niri/dms/profiles/*.kdl` (when present)
 
 Pull-back:
 - `just config-update` copies runtime changes back into layered repo files.
+- For Niri, `just config-update` also includes the currently active display profile file from `~/.config/niri/dms/profiles/*.kdl` when `outputs.kdl` points to it.
+- Runtime profile files that are not active are treated as orphaned and are not pulled back.
 - `configs/users/*/hosts/*/niri/colors.kdl` is intentionally excluded from pull-back.
 
 ### 2) Runtime enforced copy (overwrite each switch)

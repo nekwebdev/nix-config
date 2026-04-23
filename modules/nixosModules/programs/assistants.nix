@@ -11,11 +11,21 @@
       settings = {
         model = {
           provider = "openai-codex";
-          default = "gpt-5.3-codex";
+          default = "gpt-5.4-mini";
         };
-        fallback_model = {
-          provider = "anthropic";
-          model = "claude-opus-4-7";
+        fallback_providers = [
+          {
+            provider = "openai-codex";
+            model = "gpt-5.3-codex";
+          }
+          {
+            provider = "anthropic";
+            model = "claude-opus-4-7";
+          }
+        ];
+        delegation = {
+          provider = "openai-codex";
+          model = "gpt-5.3-codex";
         };
       };
     };

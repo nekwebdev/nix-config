@@ -204,6 +204,18 @@ resolve_pull_destination_file() {
   printf '%s\n' "${default_pull_root}/${source_rel}"
 }
 
+resolve_pull_destination_file_for_map() {
+  local source_rel="$1"
+
+  # Display profiles are host-specific runtime state; keep them host-scoped in repo.
+  if [[ -n "${runtime_host}" && "${source_rel}" == niri/profiles/*.kdl ]]; then
+    printf '%s\n' "${repo_root}/configs/users/${runtime_user}/hosts/${runtime_host}/${source_rel}"
+    return
+  fi
+
+  resolve_pull_destination_file "${source_rel}"
+}
+
 seed_dir_sources() {
   local source_rel="$1"
   local source_root source_dir source_file rel_path
@@ -270,6 +282,26 @@ pull_dir_rel_paths() {
   printf '%s\n' "${!rel_paths[@]}" | LC_ALL=C sort
 }
 
+active_niri_profile_rel_path() {
+  local outputs_path="${target_root}/.config/niri/dms/outputs.kdl"
+  local active_profile_path=""
+
+  if [[ ! -L "${outputs_path}" ]]; then
+    return 0
+  fi
+
+  active_profile_path="$(readlink -f "${outputs_path}" 2>/dev/null || true)"
+  if [[ -z "${active_profile_path}" || ! -f "${active_profile_path}" ]]; then
+    return 0
+  fi
+
+  case "${active_profile_path}" in
+    "${target_root}/.config/niri/dms/profiles/"*.kdl)
+      printf 'profiles/%s\n' "$(basename "${active_profile_path}")"
+      ;;
+  esac
+}
+
 seed_entry() {
   local kind="$1"
   local source_rel="$2"
@@ -302,7 +334,7 @@ pull_entry() {
   case "${kind}" in
     file)
       local destination_file
-      destination_file="$(resolve_pull_destination_file "${source_rel}")"
+      destination_file="$(resolve_pull_destination_file_for_map "${source_rel}")"
 
       if is_pull_excluded "${destination_file}"; then
         return 0
@@ -313,17 +345,32 @@ pull_entry() {
     dir)
       local target_dir="${target_root}/${target_rel}"
       local rel_path runtime_file source_file
+      declare -A rel_paths=()
+
+      while IFS= read -r rel_path; do
+        if [[ -n "${rel_path}" ]]; then
+          rel_paths["${rel_path}"]=1
+        fi
+      done < <(pull_dir_rel_paths "${source_rel}")
+
+      if [[ "${source_rel}" == "niri" && "${target_rel}" == ".config/niri/dms" ]]; then
+        while IFS= read -r rel_path; do
+          if [[ -n "${rel_path}" ]]; then
+            rel_paths["${rel_path}"]=1
+          fi
+        done < <(active_niri_profile_rel_path)
+      fi
 
       while IFS= read -r rel_path; do
         runtime_file="${target_dir}/${rel_path}"
-        source_file="$(resolve_pull_destination_file "${source_rel}/${rel_path}")"
+        source_file="$(resolve_pull_destination_file_for_map "${source_rel}/${rel_path}")"
 
         if is_pull_excluded "${source_file}"; then
           continue
         fi
 
         copy_back "${runtime_file}" "${source_file}"
-      done < <(pull_dir_rel_paths "${source_rel}")
+      done < <(printf '%s\n' "${!rel_paths[@]}" | LC_ALL=C sort)
       ;;
     *)
       echo "error: unsupported sync entry kind '${kind}'" >&2
