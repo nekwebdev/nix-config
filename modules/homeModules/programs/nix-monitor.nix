@@ -1,17 +1,38 @@
 {inputs, ...}: {
-  flake.homeModules.nixMonitor = {osConfig ? {}, ...}: let
+  flake.homeModules.nixMonitor = {
+    osConfig ? {},
+    lib,
+    ...
+  }: let
     hostName = osConfig.networking.hostName or null;
     flakeRef = "~/.config/nixos#${hostName}";
     nixSweepEnabled =
       if osConfig ? services && osConfig.services ? nix-sweep
       then osConfig.services.nix-sweep.enable
       else false;
+    nixSweepCfg = osConfig.services.nix-sweep or {};
+    nixSweepGcCommand = lib.concatStringsSep " " (
+      [
+        "${nixSweepCfg.package}/bin/nix-sweep"
+        "gc"
+        "--non-interactive"
+      ]
+      ++ lib.optionals ((nixSweepCfg.gcBigger or null) != null) [
+        "--bigger"
+        (toString nixSweepCfg.gcBigger)
+      ]
+      ++ lib.optionals ((nixSweepCfg.gcQuota or null) != null) [
+        "--quota"
+        (toString nixSweepCfg.gcQuota)
+      ]
+      ++ lib.optionals (nixSweepCfg.gcModest or false) ["--modest"]
+    );
     gcCommand =
       if nixSweepEnabled
       then [
         "bash"
         "-c"
-        "sudo systemctl start --wait nix-sweep.service 2>&1 && sudo systemctl start --wait nix-sweep-gc.service 2>&1"
+        "sudo -n ${nixSweepGcCommand} 2>&1"
       ]
       else [
         "sh"

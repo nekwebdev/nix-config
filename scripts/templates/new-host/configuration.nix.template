@@ -82,7 +82,14 @@
         home-manager.useUserPackages = true;
       }
 
-      (lib.mkIf (primaryUser != null) {
+      (lib.mkIf (primaryUser != null) (let
+        niriOutputsPath = ../../../../configs/users/${primaryUser.username}/hosts/${config.networking.hostName}/niri/outputs.kdl;
+        niriOutputsRaw = builtins.readFile niriOutputsPath;
+        stripModeLine = line:
+          if builtins.match ''^[[:space:]]*mode[[:space:]]+".*"[[:space:]]*$'' line != null
+          then ""
+          else line;
+      in {
         home-manager.users = {
           ${primaryUser.username} = {
             imports = [self.homeModules.${primaryUser.profileModule}];
@@ -93,9 +100,10 @@
 
         # HM-first exception: greeter wiring and monitor layout are host login/session plumbing.
         programs.dank-material-shell.greeter.configHome = primaryUser.homeDirectory;
-        environment.etc."greetd/niri_overrides.kdl".text =
-          builtins.readFile ../../../../configs/users/${primaryUser.username}/hosts/${config.networking.hostName}/niri/outputs.kdl;
-      })
+        environment.etc."greetd/niri_overrides.kdl".text = lib.concatStringsSep "\n" (
+          map stripModeLine (lib.splitString "\n" niriOutputsRaw)
+        );
+      }))
     ];
   };
 }

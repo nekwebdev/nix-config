@@ -62,6 +62,34 @@
     # HM-first exception: sudo policy is a privileged system concern.
     security.sudo.wheelNeedsPassword = lib.mkForce true;
 
+    # Allow nix-monitor GC action without an interactive password prompt.
+    security.sudo.extraRules = lib.mkIf (primaryUser != null && config.services.nix-sweep.enable) [
+      {
+        users = [primaryUser.username];
+        commands = [
+          {
+            command = lib.concatStringsSep " " (
+              [
+                "${config.services.nix-sweep.package}/bin/nix-sweep"
+                "gc"
+                "--non-interactive"
+              ]
+              ++ lib.optionals ((config.services.nix-sweep.gcBigger or null) != null) [
+                "--bigger"
+                (toString config.services.nix-sweep.gcBigger)
+              ]
+              ++ lib.optionals ((config.services.nix-sweep.gcQuota or null) != null) [
+                "--quota"
+                (toString config.services.nix-sweep.gcQuota)
+              ]
+              ++ lib.optionals (config.services.nix-sweep.gcModest or false) ["--modest"]
+            );
+            options = ["NOPASSWD"];
+          }
+        ];
+      }
+    ];
+
     # HM-first exception: login-shell handoff is host-wide shell policy for system bash.
     programs.bash.interactiveShellInit = ''
       if [[ $(${pkgs.procps}/bin/ps --no-header --pid=$PPID --format=comm) != "fish" && -z ''${BASH_EXECUTION_STRING} ]]; then

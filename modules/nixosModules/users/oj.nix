@@ -18,6 +18,7 @@
           ++ lib.optional config.virtualisation.docker.enable "docker"
           ++ lib.optional config.virtualisation.libvirtd.enable "libvirtd"
           ++ lib.optional config.services.greetd.enable "greeter"
+          ++ lib.optional config.services."hermes-agent".enable "hermes"
           ++ lib.optional config.networking.networkmanager.enable "networkmanager"
           ++ lib.optionals config.services.printing.enable [
             "lp"

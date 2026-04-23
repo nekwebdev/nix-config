@@ -34,7 +34,8 @@
 
     # HM-first exception: console configuration is system tty behavior.
     console.useXkbConfig = true;
-    console.font = "Lat2-Terminus16";
+    # Use an explicit font path to avoid setfont lookup-path regressions at boot.
+    console.font = "${pkgs.kbd}/share/consolefonts/Lat2-Terminus16.psfu.gz";
 
     # HM-first exception: compressed swap is host memory management.
     zramSwap.enable = true;

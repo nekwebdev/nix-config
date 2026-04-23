@@ -84,7 +84,14 @@
         home-manager.useUserPackages = true;
       }
 
-      (lib.mkIf (primaryUser != null) {
+      (lib.mkIf (primaryUser != null) (let
+        niriOutputsPath = ../../../../configs/users/${primaryUser.username}/hosts/${config.networking.hostName}/niri/outputs.kdl;
+        niriOutputsRaw = builtins.readFile niriOutputsPath;
+        stripModeLine = line:
+          if builtins.match ''^[[:space:]]*mode[[:space:]]+".*"[[:space:]]*$'' line != null
+          then ""
+          else line;
+      in {
         # HM-first exception: initrd secret material is host bootloader plumbing.
         system.preSwitchChecks.initrdSshHostKey = ''
           if [ "$2" = "switch" ] || [ "$2" = "boot" ]; then
@@ -102,11 +109,12 @@
         # HM-first exception: initrd networking/SSH unlock is host boot plumbing.
         boot.initrd.network = {
           enable = true;
-          udhcpc.enable = true;
+          udhcpc.enable = lib.mkIf (!config.boot.initrd.systemd.enable) true;
           ssh = {
             enable = true;
             port = 2222;
-            shell = "/bin/cryptsetup-askpass";
+            # systemd stage-1 no longer provides cryptsetup-askpass.
+            shell = lib.mkIf (!config.boot.initrd.systemd.enable) "/bin/cryptsetup-askpass";
             hostKeys = lib.optional config.boot.loader.supportsInitrdSecrets "/etc/secrets/initrd/ssh_host_ed25519_key";
             ignoreEmptyHostKeys = !config.boot.loader.supportsInitrdSecrets;
             authorizedKeyFiles = [
@@ -125,9 +133,10 @@
 
         # HM-first exception: greeter wiring and monitor layout are host login/session plumbing.
         programs.dank-material-shell.greeter.configHome = primaryUser.homeDirectory;
-        environment.etc."greetd/niri_overrides.kdl".text =
-          builtins.readFile ../../../../configs/users/${primaryUser.username}/hosts/${config.networking.hostName}/niri/outputs.kdl;
-      })
+        environment.etc."greetd/niri_overrides.kdl".text = lib.concatStringsSep "\n" (
+          map stripModeLine (lib.splitString "\n" niriOutputsRaw)
+        );
+      }))
     ];
   };
 }

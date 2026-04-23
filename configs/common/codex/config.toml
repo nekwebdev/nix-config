@@ -1,0 +1,9 @@
+[mcp_servers.nixos]
+command = "bash"
+args = ["-lc", "if command -v mcp-nixos >/dev/null 2>&1; then exec mcp-nixos; else exec nix run github:utensils/mcp-nixos --; fi"]
+
+[mcp_servers.nixos.tools.nix]
+approval_mode = "approve"
+
+[tui]
+status_line = ["model-with-reasoning", "current-dir", "context-usage"]
