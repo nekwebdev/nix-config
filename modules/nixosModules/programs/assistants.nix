@@ -31,6 +31,32 @@
           provider = "openai-codex";
           model = "gpt-5.3-codex";
         };
+        auxiliary = {
+          compression = {
+            provider = "openai-codex";
+            model = "gpt-5.1-codex-mini";
+          };
+          web_extract = {
+            provider = "openai-codex";
+            model = "gpt-5.1-codex-mini";
+          };
+          approval = {
+            provider = "openai-codex";
+            model = "gpt-5.1-codex-mini";
+          };
+          session_search = {
+            provider = "openai-codex";
+            model = "gpt-5.1-codex-mini";
+          };
+          skills_hub = {
+            provider = "openai-codex";
+            model = "gpt-5.1-codex-mini";
+          };
+          mcp = {
+            provider = "openai-codex";
+            model = "gpt-5.1-codex-mini";
+          };
+        };
       };
     };
 

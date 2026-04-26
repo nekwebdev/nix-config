@@ -25,6 +25,10 @@
       };
     };
 
+    home.packages = [
+      pkgs.gh
+    ];
+
     home.activation.gitAllowedSigners = lib.hm.dag.entryAfter ["writeBoundary"] ''
       if [ -n ${lib.escapeShellArg signingKeyPath} ] && [ -f ${lib.escapeShellArg "${signingKeyPath}.pub"} ]; then
         ${pkgs.coreutils}/bin/mkdir -p ${lib.escapeShellArg "${config.xdg.configHome}/git"}
