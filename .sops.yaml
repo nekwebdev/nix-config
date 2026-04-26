@@ -1,0 +1,5 @@
+keys:
+  - &nixos_sops_age age1p89cvznsfr4n8y03xsypdsha2lt52h280wxqt7drvlupejc9hymqx03j0x
+creation_rules:
+  - path_regex: .*\.sops$
+    age: *nixos_sops_age

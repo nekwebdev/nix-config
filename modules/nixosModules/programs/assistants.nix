@@ -1,13 +1,17 @@
 {inputs, ...}: {
-  flake.nixosModules.assistants = {...}: {
+  flake.nixosModules.assistants = {config, ...}: {
     imports = [
       inputs.hermes-agent.nixosModules.default
+      inputs.sops-nix.nixosModules.sops
     ];
 
     # HM-first exception: hermes-agent is a root-owned system service.
     services.hermes-agent = {
       enable = true;
       addToSystemPackages = true;
+      environmentFiles = [
+        config.sops.secrets.hermesTelegramEnv.path
+      ];
       settings = {
         model = {
           provider = "openai-codex";
@@ -27,6 +31,23 @@
           provider = "openai-codex";
           model = "gpt-5.3-codex";
         };
+      };
+    };
+
+    sops = {
+      # Age identity is provisioned manually on this machine.
+      # Backup of the private key is handled manually in Bitwarden (no bw CLI automation).
+      age.sshKeyPaths = [
+        "/home/oj/.ssh/nixos-sops"
+      ];
+
+      defaultSopsFile = ../../../secrets/hermes-telegram.env.sops;
+
+      secrets.hermesTelegramEnv = {
+        format = "dotenv";
+        owner = "hermes";
+        group = "hermes";
+        mode = "0400";
       };
     };
   };

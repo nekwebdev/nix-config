@@ -34,3 +34,11 @@ new-user user:
 new-host host user:
     @echo "==> Creating host scaffold: {{ host }} (user: {{ user }})"
     @bash ./scripts/new-host.sh "{{ host }}" "{{ user }}"
+
+sops-decrypt-env file='.env.sops':
+    @echo "==> Decrypting {{ file }} in place"
+    @bash ./scripts/sops-decrypt-in-place.sh "{{ file }}"
+
+sops-encrypt-env file='.env':
+    @echo "==> Encrypting {{ file }} in place"
+    @bash ./scripts/sops-encrypt-in-place.sh "{{ file }}"

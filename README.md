@@ -108,6 +108,17 @@ If you edit an existing `.ovpn` and want NetworkManager to use the updated versi
 - User modules use a temporary bootstrap password hash (`changeme`) for first account creation.
 - A fish reminder is shown until `passwd` succeeds once in fish.
 
+## Hermes Telegram secrets via sops-nix
+
+- Telegram runtime env for `hermes-agent` is sourced from one SOPS-encrypted dotenv file at `secrets/hermes-telegram.env.sops`.
+- The decrypted runtime file is provided to the service via `services.hermes-agent.environmentFiles`.
+- Required keys in the encrypted dotenv payload:
+  - `TELEGRAM_BOT_TOKEN`
+  - `TELEGRAM_ALLOWED_USERS`
+- Machine decrypt identity location: `/home/oj/.ssh/nixos-sops`.
+- Private key backup workflow is manual: store backup in Bitwarden yourself.
+- No Bitwarden CLI (`bw`) is used or required by this repo for Telegram secret management.
+
 ## Canon USB printer (LBP6000/LBP6018)
 
 Working setup for this host (CUPS queue + default printer):

@@ -8,6 +8,11 @@
     flake-utils.url = "github:numtide/flake-utils";
     import-tree.url = "github:vic/import-tree";
 
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     claude-code = {
       url = "github:sadjow/claude-code-nix";
       inputs.nixpkgs.follows = "nixpkgs";

@@ -18,6 +18,10 @@ Runtime config:
   just config-update
   just update
 
+Secrets (dotenv in-place helpers):
+  just sops-decrypt-env [file=.env.sops]
+  just sops-encrypt-env [file=.env]
+
 Raw recipe list:
   just --list --unsorted
 EOF
