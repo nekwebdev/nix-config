@@ -16,8 +16,6 @@
         cursor-style = "block";
         cursor-style-blink = true;
 
-        scrollback-limit = 3023;
-
         mouse-hide-while-typing = true;
         copy-on-select = true;
         confirm-close-surface = false;

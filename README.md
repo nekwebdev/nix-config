@@ -62,6 +62,31 @@ The Rust shell is intended for Rust package or tooling work and includes:
 - common native build inputs (`pkg-config`, `openssl`, `cmake`, `python3`)
 - helper commands on `PATH`: `check`, `test`, `fmt`, `lint`, `run`, `watch`, `doc`, `rust-info`
 
+## Per-project direnv + flake
+
+For a project folder that has its own `flake.nix`, the simplest setup is:
+
+1. Make sure `.direnv/` is ignored by Git.
+
+This repo already ignores `.direnv/` globally in `.gitignore`, which is the right pattern for the per-project direnv cache.
+
+2. Trust and activate the environment once:
+
+```bash
+direnv allow
+```
+
+After that, direnv automatically loads the flake environment whenever you `cd` into the folder.
+
+Why this is a good thing:
+
+- the environment is declared next to the project, so it is reproducible
+- activation is automatic, so you do not need to remember `nix develop` every time
+- `direnv allow` is an explicit trust step, so the shell only loads after you review the `.envrc`
+- the per-directory cache stays local in `.direnv/` instead of polluting the repo
+
+You may also want to check that your shell has direnv integration enabled and that the flake actually defines a dev shell for the project you are entering.
+
 ## Backlog note
 
 - Add `borgmatic` for backups.

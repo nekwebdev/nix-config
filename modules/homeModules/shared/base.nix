@@ -2,6 +2,7 @@
   flake.homeModules.base = {
     pkgs,
     lib,
+    config,
     ...
   }: {
     # Shared user-level must-have tools without per-program configuration.
@@ -24,6 +25,14 @@
       pkgs.vim
       pkgs.wget
     ];
+
+    programs.direnv = {
+      enable = true;
+      enableBashIntegration = config.programs.bash.enable;
+      enableFishIntegration = config.programs.fish.enable;
+      enableZshIntegration = config.programs.zsh.enable;
+      nix-direnv.enable = true;
+    };
 
     home.activation.bootstrapPasswordReminder = lib.hm.dag.entryAfter ["writeBoundary"] ''
       state_dir="$HOME/.local/state/nix"
