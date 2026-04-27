@@ -24,6 +24,7 @@
       pkgs.unzip
       pkgs.vim
       pkgs.wget
+      pkgs.shellcheck
     ];
 
     programs.direnv = {
