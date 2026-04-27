@@ -1,7 +1,6 @@
 # AGENTS.md
 
 ## Mandatory workflow
-- Always start with the `meet-the-agents` skill.
 - Use one or more specialist agents as needed, but **only read the agent dossier(s) you actually use**.
 - Attribute work by agent name (who did what).
 
@@ -32,20 +31,6 @@ just new-user user=<user>
 just new-host host=<host> user=<user>
 ```
 
-## Agent roster (quick routing)
-- **rosey**: coordinator/maintainer. PRD compliance, structure, safe refactors, delegating to specialists.
-- **dexter**: nix systems. flake-parts wiring, import-tree, module evaluation, recursion traps, CI/eval debugging.
-- **donatello**: implementation engine. makes concrete code plans, implements changes, incorporates review feedback.
-- **penfold**: planning/alignment. creates overviews, reviews plans for completeness and coherence, checks scope drift.
-- **casper**: technical writing. docs, READMEs, PRDs, blog-style prose (adapt to repo tone as required).
-- **velma**: reviewer/editor. clarity, correctness checks, consistency, "does this actually match the repo rules".
-- **garfield**: git workflow. PR descriptions, conventional commits, changelog-style summaries.
-- **brain**: testing. test strategy, coverage review, "what should be tested and how".
-- **gonzales**: performance. profiling mindset, hotspots, avoiding expensive evaluation, build/time concerns.
-- **pepe**: security. secrets handling, permissions, supply-chain hygiene, "don't do dumb stuff".
-- **melody**: audio/media. only relevant if repo touches audio/video tooling; otherwise rarely used.
-- **penry**: UX/wording polish. short, friendly UI text, user-facing instructions, naming consistency.
-
 ## Hard rules
 - keep `flake.nix` thin (inputs + `mkFlake` + `import-tree ./modules`)
 - keep module exports in `modules/*` (`flake.nixosModules.*`, `flake.homeModules.*`, `perSystem.packages.*`)
@@ -68,11 +53,6 @@ just new-host host=<host> user=<user>
 ## Test expectations
 - any new/changed module must keep evaluation passing under `just check`
 - host or user scaffolding changes must include `just check-vm` verification notes
-
-## Extending `.agents`
-- New assistants are supported in this repo.
-- To make a new assistant routable, add `.agents/assistants/<name>.md`, add the assistant to the roster above, and add the assistant to `.agents/skills/meet-the-agents/SKILL.md`.
-- Keep assistant domains distinct; do not add near-duplicates of existing roles without a clear repo-specific gap.
 
 ## Reminders
 - Never run git commands that would write to the repo directly without asking. If a signed `git commit` is needed, ask to run it outside the sandbox.
