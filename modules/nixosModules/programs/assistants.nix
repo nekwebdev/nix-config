@@ -1,5 +1,12 @@
 {inputs, ...}: {
-  flake.nixosModules.assistants = {config, ...}: {
+  flake.nixosModules.assistants = {
+    config,
+    lib,
+    ...
+  }: let
+    telegramSecretFile = ../../../secrets/hermes-telegram.env.sops;
+    telegramSecretExists = builtins.pathExists telegramSecretFile;
+  in {
     imports = [
       inputs.hermes-agent.nixosModules.default
       inputs.sops-nix.nixosModules.sops
@@ -9,9 +16,6 @@
     services.hermes-agent = {
       enable = true;
       addToSystemPackages = true;
-      environmentFiles = [
-        config.sops.secrets.hermesTelegramEnv.path
-      ];
       settings = {
         model = {
           provider = "openai-codex";
@@ -60,22 +64,23 @@
       };
     };
 
-    sops = {
-      # Age identity is provisioned manually on this machine.
-      # Backup of the private key is handled manually in Bitwarden (no bw CLI automation).
-      age.sshKeyPaths = [
-        "/home/oj/.ssh/nixos-sops"
-      ];
-
-      defaultSopsFile = ../../../secrets/hermes-telegram.env.sops;
-
-      secrets.hermesTelegramEnv = {
+    sops.secrets = lib.optionalAttrs telegramSecretExists {
+      hermesTelegramEnv = {
+        sopsFile = telegramSecretFile;
         format = "dotenv";
         owner = "hermes";
         group = "hermes";
         mode = "0400";
       };
     };
+
+    services.hermes-agent.environmentFiles = lib.optionals telegramSecretExists [
+      config.sops.secrets.hermesTelegramEnv.path
+    ];
+
+    warnings = lib.optionals (!telegramSecretExists) [
+      "secrets/hermes-telegram.env.sops is missing; create it with Telegram bot gateway dotenv values for hermes-agent runtime."
+    ];
   };
 
   flake.homeModules.assistants = {

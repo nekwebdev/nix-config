@@ -24,6 +24,7 @@
 
       self.nixosModules.system
       self.nixosModules.assistants
+      self.nixosModules.websearchProxy
       self.nixosModules.policy
       self.nixosModules.services
       self.nixosModules.tailscale
@@ -50,6 +51,36 @@
         ];
 
         my.primaryUser = "oj";
+
+        # Age identity is provisioned manually on this machine.
+        # Backup of private key is handled manually in Bitwarden (no bw CLI automation).
+        sops.age.sshKeyPaths = [
+          "/home/oj/.ssh/nixos-sops"
+        ];
+
+        my.assistants.webSearch.proxy = {
+          enable = true;
+          host = "127.0.0.1";
+          port = 8082;
+          baseUrl = "http://127.0.0.1:8082";
+          image = "ghcr.io/nekwebdev/websearch-proxy";
+          tag = "0.1.3";
+          searxng = {
+            image = "ghcr.io/nekwebdev/websearch-searxng";
+            tag = "2026.4.24-a7ac696b4";
+          };
+          logLevel = "INFO";
+          routeDecisionLogging = true;
+          tavily = {
+            dailySoftCapCalls = 6;
+            monthlyCapCalls = 100;
+            reservePercentCritical = 30;
+          };
+          healthcheck = {
+            enable = true;
+            interval = "2m";
+          };
+        };
 
         networking.hostName = "lotus";
         system.stateVersion = "25.11";
