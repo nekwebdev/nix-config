@@ -2,6 +2,7 @@
   flake.nixosModules.assistants = {
     config,
     lib,
+    pkgs,
     ...
   }: let
     telegramSecretFile = ../../../secrets/hermes-telegram.env.sops;
@@ -16,6 +17,18 @@
     services.hermes-agent = {
       enable = true;
       addToSystemPackages = true;
+      mcpServers = {
+        ms365 = {
+          command = "${pkgs.nodejs}/bin/npx";
+          args = [
+            "-y"
+            "@softeria/ms-365-mcp-server"
+            "--org-mode"
+            "--preset"
+            "mail"
+          ];
+        };
+      };
       settings = {
         model = {
           provider = "openai-codex";
