@@ -46,12 +46,14 @@
         ];
         delegation = {
           provider = "openai-codex";
-          model = "gpt-5.3-codex";
+          model = "gpt-5.5";
+          max_iterations = 100;
+          child_timeout_seconds = 1200;
         };
         auxiliary = {
           compression = {
             provider = "openai-codex";
-            model = "gpt-5.1-codex-mini";
+            model = "gpt-5.5";
           };
           web_extract = {
             provider = "openai-codex";
@@ -73,6 +75,9 @@
             provider = "openai-codex";
             model = "gpt-5.1-codex-mini";
           };
+        };
+        memory = {
+          provider = "holographic";
         };
       };
     };
