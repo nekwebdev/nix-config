@@ -64,7 +64,7 @@
           port = 8082;
           baseUrl = "http://127.0.0.1:8082";
           image = "ghcr.io/nekwebdev/websearch-proxy";
-          tag = "0.1.3";
+          tag = "0.1.5";
           searxng = {
             image = "ghcr.io/nekwebdev/websearch-searxng";
             tag = "2026.4.24-a7ac696b4";

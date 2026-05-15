@@ -46,6 +46,17 @@
         description = "Websearch proxy container image tag.";
       };
 
+      pull = mkOption {
+        type = types.enum [
+          "always"
+          "missing"
+          "never"
+          "newer"
+        ];
+        default = "missing";
+        description = "Image pull policy for the websearch proxy container.";
+      };
+
       networkName = mkOption {
         type = types.str;
         default = "websearch-proxy-net";
@@ -133,6 +144,7 @@
           websearch-proxy = {
             image = "${cfg.image}:${cfg.tag}";
             autoStart = true;
+            pull = cfg.pull;
             ports = [
               "${cfg.host}:${toString cfg.port}:8080"
             ];
@@ -144,9 +156,8 @@
               TAVILY_RESERVE_PERCENT_CRITICAL = toString cfg.tavily.reservePercentCritical;
               SEARXNG_BASE_URL = "http://${searxngContainerName}:8080";
             };
-            environmentFiles = lib.optionals webSearchSecretExists [
-              config.sops.secrets.hermesWebSearchEnv.path
-            ];
+            environmentFiles =
+              lib.optionals webSearchSecretExists [config.sops.secrets.hermesWebSearchEnv.path];
             extraOptions = [
               "--network=${cfg.networkName}"
               ''--health-cmd=python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/healthz', timeout=2)"''
@@ -244,18 +255,15 @@
       };
 
       services.hermes-agent = lib.mkIf hermesEnabled {
-        environmentFiles = lib.mkAfter (lib.optionals webSearchSecretExists [
-          config.sops.secrets.hermesWebSearchEnv.path
-        ]);
+        environmentFiles = lib.mkAfter (lib.optionals webSearchSecretExists [config.sops.secrets.hermesWebSearchEnv.path]);
         environment.FIRECRAWL_API_URL = cfg.baseUrl;
-        settings.web_search = {
-          enable = true;
+        settings.web = {
           backend = "firecrawl";
         };
       };
 
       warnings = lib.optionals (!webSearchSecretExists) [
-        "my.assistants.webSearch.proxy.enable is true but secrets/hermes-websearch.env.sops is missing; add TAVILY_API_KEY (and optional FIRECRAWL_API_KEY)."
+        "my.assistants.webSearch.proxy.enable is true but secrets/hermes-websearch.env.sops is missing; add TAVILY_API_KEY and FIRECRAWL_API_KEY."
       ];
     };
   };

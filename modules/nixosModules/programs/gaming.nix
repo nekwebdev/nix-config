@@ -9,6 +9,8 @@
       extraCompatPackages = [pkgs.proton-ge-bin];
     };
 
+    environment.systemPackages = [pkgs.protontricks];
+
     # HM-first exception: gamemode is a privileged system service.
     programs.gamemode.enable = true;
   };

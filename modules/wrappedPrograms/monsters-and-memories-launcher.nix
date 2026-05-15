@@ -1,10 +1,10 @@
 {inputs, ...}: {
   perSystem = {pkgs, ...}: let
     pname = "monsters-and-memories-launcher";
-    version = "0.22.14";
-    appImageFile = "MonstersAndMemories_${version}_amd64.AppImage";
+    version = "launcher-v2";
+    appImageFile = "MonstersAndMemories_amd64.AppImage";
     src = pkgs.fetchurl {
-      url = "https://pub-f06cad9ebbcd412bb0f4ff64f0f6a3d7.r2.dev/launcher_v2/${version}/${appImageFile}";
+      url = "https://pub-f06cad9ebbcd412bb0f4ff64f0f6a3d7.r2.dev/launcher_v2/installer/${appImageFile}";
       hash = "sha256-UImtt6bokj1f1TxPLpG393AOUsL3A3ONM6Ezs1GlzeM=";
     };
     umuRunFhsShim = pkgs.writeShellScriptBin "umu-run" ''

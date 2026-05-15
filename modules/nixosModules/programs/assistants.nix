@@ -7,6 +7,8 @@
   }: let
     telegramSecretFile = ../../../secrets/hermes-telegram.env.sops;
     telegramSecretExists = builtins.pathExists telegramSecretFile;
+    openAiSecretFile = ../../../secrets/hermes-openai.env.sops;
+    openAiSecretExists = builtins.pathExists openAiSecretFile;
   in {
     imports = [
       inputs.hermes-agent.nixosModules.default
@@ -52,8 +54,15 @@
         };
         auxiliary = {
           compression = {
+            # Use the direct OpenAI API for compression so we get the full
+            # context window from the OpenAI key, while leaving the main
+            # openai-codex provider on OAuth for normal model calls.
+            # provider = "main";
+            # model = "gpt-5.5";
+            # base_url = "https://api.openai.com/v1";
+            # api_key = "$" + "{OPENAI_API_KEY}";
             provider = "openai-codex";
-            model = "gpt-5.5";
+            model = "gpt-5.3-codex";
           };
           web_extract = {
             provider = "openai-codex";
@@ -82,23 +91,42 @@
       };
     };
 
-    sops.secrets = lib.optionalAttrs telegramSecretExists {
-      hermesTelegramEnv = {
-        sopsFile = telegramSecretFile;
-        format = "dotenv";
-        owner = "hermes";
-        group = "hermes";
-        mode = "0400";
-      };
-    };
+    sops.secrets = lib.optionalAttrs (telegramSecretExists || openAiSecretExists) (
+      lib.optionalAttrs telegramSecretExists {
+        hermesTelegramEnv = {
+          sopsFile = telegramSecretFile;
+          format = "dotenv";
+          owner = "hermes";
+          group = "hermes";
+          mode = "0400";
+        };
+      }
+      // lib.optionalAttrs openAiSecretExists {
+        hermesOpenAIEnv = {
+          sopsFile = openAiSecretFile;
+          format = "dotenv";
+          owner = "hermes";
+          group = "hermes";
+          mode = "0400";
+        };
+      }
+    );
 
-    services.hermes-agent.environmentFiles = lib.optionals telegramSecretExists [
-      config.sops.secrets.hermesTelegramEnv.path
-    ];
+    services.hermes-agent.environmentFiles =
+      lib.optionals telegramSecretExists [
+        config.sops.secrets.hermesTelegramEnv.path
+      ]
+      ++ lib.optionals openAiSecretExists [
+        config.sops.secrets.hermesOpenAIEnv.path
+      ];
 
-    warnings = lib.optionals (!telegramSecretExists) [
-      "secrets/hermes-telegram.env.sops is missing; create it with Telegram bot gateway dotenv values for hermes-agent runtime."
-    ];
+    warnings =
+      lib.optionals (!telegramSecretExists) [
+        "secrets/hermes-telegram.env.sops is missing; create it with Telegram bot gateway dotenv values for hermes-agent runtime."
+      ]
+      ++ lib.optionals (!openAiSecretExists) [
+        "secrets/hermes-openai.env.sops is missing; create it with OPENAI_API_KEY for direct OpenAI auxiliary tasks like compression."
+      ];
   };
 
   flake.homeModules.assistants = {

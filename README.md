@@ -144,6 +144,16 @@ If you edit an existing `.ovpn` and want NetworkManager to use the updated versi
 - Private key backup workflow is manual: store backup in Bitwarden yourself.
 - No Bitwarden CLI (`bw`) is used or required by this repo for Telegram secret management.
 
+## Hermes OpenAI secrets via sops-nix
+
+- Direct OpenAI API env for `hermes-agent` is sourced from one SOPS-encrypted dotenv file at `secrets/hermes-openai.env.sops`.
+- The decrypted runtime file is provided to the service via `services.hermes-agent.environmentFiles`.
+- Required keys in the encrypted dotenv payload:
+  - `OPENAI_API_KEY`
+- Optional keys:
+  - `OPENAI_BASE_URL` (only if you want to override the default OpenAI endpoint)
+- This OpenAI key is used for direct auxiliary tasks like compression; it does not affect `openai-codex` OAuth model calls.
+
 ## Canon USB printer (LBP6000/LBP6018)
 
 Working setup for this host (CUPS queue + default printer):
