@@ -59,6 +59,32 @@
 
           return $passwd_status
         '';
+
+        pi-agents.body = ''
+          set -l profile $argv[1]
+
+          if test -z "$profile"
+            echo "usage: pi-agents <profile> [pi args...]" >&2
+            return 2
+          end
+
+          set -e argv[1]
+
+          set -l pi_bin "$HOME/.local/bin/pi"
+          set -l env_file "$HOME/pi-agents/$profile/.env.pi"
+
+          if not test -x "$pi_bin"
+            echo "pi not found at path: $pi_bin" >&2
+            return 1
+          end
+
+          if not test -f "$env_file"
+            echo ".env.pi not found at path: $env_file" >&2
+            return 1
+          end
+
+          command bash -c 'set -a; source "$1"; set +a; shift; exec "$@"' bash "$env_file" "$pi_bin" $argv
+        '';
       };
     };
   };
