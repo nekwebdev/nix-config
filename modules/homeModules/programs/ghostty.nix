@@ -23,12 +23,14 @@
         app-notifications = "no-clipboard-copy,no-config-reload";
 
         keybind = [
+          "alt+backspace=text:\x1b\x7f"
           "ctrl+shift+n=new_window"
           "ctrl+t=new_tab"
           "ctrl+plus=increase_font_size:1"
           "ctrl+minus=decrease_font_size:1"
           "ctrl+zero=reset_font_size"
-          "shift+enter=text:\\n"
+          # Claude tmux fix
+          # "shift+enter=text:\\n"
         ];
 
         unfocused-split-opacity = 0.7;

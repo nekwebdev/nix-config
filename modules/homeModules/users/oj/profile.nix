@@ -39,6 +39,7 @@
       pkgs.nautilus
       pkgs.nerd-fonts.fira-code
       pkgs.nodejs
+      pkgs.pnpm
       pkgs.openvpn
       self.packages.${pkgs.stdenv.hostPlatform.system}.orca-slicer
       self.packages.${pkgs.stdenv.hostPlatform.system}.pinokio

@@ -15,11 +15,13 @@
       pkgs.fd
       pkgs.jq
       pkgs.just
+      pkgs.mise
       pkgs.keychain
       pkgs.ncdu
       (pkgs.python3.withPackages (ps: [
         ps.pyyaml
       ]))
+      pkgs.uv
       pkgs.ripgrep
       pkgs.unzip
       pkgs.vim

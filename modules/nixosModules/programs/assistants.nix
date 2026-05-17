@@ -9,6 +9,52 @@
     telegramSecretExists = builtins.pathExists telegramSecretFile;
     openAiSecretFile = ../../../secrets/hermes-openai.env.sops;
     openAiSecretExists = builtins.pathExists openAiSecretFile;
+    piLessYolo = {
+      user = "oj";
+      group = "oj";
+      home = "/home/oj";
+      repo = "https://github.com/cjermain/pi-less-yolo";
+      target = "/home/oj/.local/lib/pi-less-yolo";
+    };
+    piLessYoloMiseConfig = "/home/oj/.config/mise/conf.d/pi-less-yolo.toml";
+    mkHermesSecret = name: file: {
+      ${name} = {
+        sopsFile = file;
+        format = "dotenv";
+        owner = "hermes";
+        group = "hermes";
+        mode = "0400";
+      };
+    };
+    piLessYoloCloneScript = ''
+      target=${lib.escapeShellArg piLessYolo.target}
+      repo=${lib.escapeShellArg piLessYolo.repo}
+      user=${lib.escapeShellArg piLessYolo.user}
+      group=${lib.escapeShellArg piLessYolo.group}
+      mise_config=${lib.escapeShellArg piLessYoloMiseConfig}
+
+      if [ ! -d "$target/.git" ]; then
+        if [ -e "$target" ]; then
+          ${pkgs.coreutils}/bin/rm -rf "$target"
+        fi
+
+        ${pkgs.coreutils}/bin/install -d -m 0755 -o "$user" -g "$group" ${lib.escapeShellArg "${piLessYolo.home}/.local/lib"}
+        ${pkgs.util-linux}/bin/runuser -u "$user" -- ${pkgs.bash}/bin/bash -euo pipefail -c '
+          repo="$1"
+          target="$2"
+          ${pkgs.git}/bin/git clone "$repo" "$target"
+        ' _ "$repo" "$target"
+      fi
+
+      if [ ! -e "$mise_config" ]; then
+        ${pkgs.util-linux}/bin/runuser -u "$user" -- ${pkgs.bash}/bin/bash -euo pipefail -c '
+          cd "$1"
+          ${pkgs.mise}/bin/mise trust
+          ${pkgs.mise}/bin/mise run install
+          ${pkgs.mise}/bin/mise run pi:build
+        ' _ "$target"
+      fi
+    '';
   in {
     imports = [
       inputs.hermes-agent.nixosModules.default
@@ -91,26 +137,9 @@
       };
     };
 
-    sops.secrets = lib.optionalAttrs (telegramSecretExists || openAiSecretExists) (
-      lib.optionalAttrs telegramSecretExists {
-        hermesTelegramEnv = {
-          sopsFile = telegramSecretFile;
-          format = "dotenv";
-          owner = "hermes";
-          group = "hermes";
-          mode = "0400";
-        };
-      }
-      // lib.optionalAttrs openAiSecretExists {
-        hermesOpenAIEnv = {
-          sopsFile = openAiSecretFile;
-          format = "dotenv";
-          owner = "hermes";
-          group = "hermes";
-          mode = "0400";
-        };
-      }
-    );
+    sops.secrets =
+      lib.optionalAttrs telegramSecretExists (mkHermesSecret "hermesTelegramEnv" telegramSecretFile)
+      // lib.optionalAttrs openAiSecretExists (mkHermesSecret "hermesOpenAIEnv" openAiSecretFile);
 
     services.hermes-agent.environmentFiles =
       lib.optionals telegramSecretExists [
@@ -127,6 +156,15 @@
       ++ lib.optionals (!openAiSecretExists) [
         "secrets/hermes-openai.env.sops is missing; create it with OPENAI_API_KEY for direct OpenAI auxiliary tasks like compression."
       ];
+
+    # Ensure mise is available system-wide even if another module also adds it.
+    environment.systemPackages = [
+      pkgs.mise
+      pkgs.ffmpeg
+      pkgs.yt-dlp
+    ];
+
+    system.activationScripts.piLessYoloClone = piLessYoloCloneScript;
   };
 
   flake.homeModules.assistants = {
@@ -140,6 +178,9 @@
     claudeMcpTemplate = "${repoRoot}/configs/common/claude/.mcp.json";
     claudeSettingsTemplate = "${repoRoot}/configs/common/claude/settings.json";
     assistantConfigSyncScript = "${repoRoot}/scripts/assistants-config-sync.sh";
+    assistantAliases = {
+      # pi = "mise run pi";
+    };
   in {
     # Keep assistant CLIs and assistant-specific env/config in one reusable HM module.
     home.packages = [
@@ -147,6 +188,13 @@
       inputs.claude-code.packages.${pkgs.stdenv.hostPlatform.system}.default
       inputs.codex-cli-nix.packages.${pkgs.stdenv.hostPlatform.system}.default
       inputs.mcp-nixos.packages.${pkgs.stdenv.hostPlatform.system}.default
+    ];
+
+    my.home.aliases.fragments = [
+      {
+        source = "homeModules.programs.assistants";
+        aliases = assistantAliases;
+      }
     ];
 
     home.sessionVariables = {
@@ -157,6 +205,10 @@
     programs.git.ignores = [
       ".codex"
       ".claude/settings.local.json"
+      ".rpiv/"
+      "thoughts/"
+      ".pi-lens/"
+      ".pi/"
     ];
 
     # Declarative policy memory: enforced from repo on each switch.

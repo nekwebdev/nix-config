@@ -4,11 +4,20 @@
       enable = true;
       package = pkgs.tmux;
 
-      # Match the existing shell setup when opening new tmux panes/windows.
-      shell = "${pkgs.fish}/bin/fish";
+      # Keep SHELL aligned with the account login shell while panes exec fish for interaction.
+      shell = "${pkgs.bashInteractive}/bin/bash";
       terminal = "screen-256color";
       sensibleOnTop = true;
       mouse = true;
+      extraConfig = ''
+        set -g default-command "exec ${pkgs.fish}/bin/fish"
+        set -g allow-passthrough on
+        set -g extended-keys on
+        set -g extended-keys-format csi-u
+        set -ga update-environment TERM
+        set -ga update-environment TERM_PROGRAM
+        set -sg escape-time 0
+      '';
 
       plugins = with pkgs; [
         {
