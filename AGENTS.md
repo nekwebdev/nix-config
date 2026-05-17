@@ -1,10 +1,12 @@
 # AGENTS.md
 
 ## Mandatory workflow
+
 - Use one or more specialist agents as needed, but **only read the agent dossier(s) you actually use**.
 - Attribute work by agent name (who did what).
 
 ## Repo constraints (PRD)
+
 - platform: **x86_64-linux only**
 - platform enforcement: flake outputs/checks must target `x86_64-linux` only
 - composition: **flake-parts** is core to the design pattern
@@ -21,6 +23,7 @@
 - runner: **justfile** calling `/scripts/*.sh`
 
 ## Commands
+
 ```bash
 just help
 just fmt
@@ -32,6 +35,7 @@ just new-host host=<host> user=<user>
 ```
 
 ## Hard rules
+
 - keep `flake.nix` thin (inputs + `mkFlake` + `import-tree ./modules`)
 - keep module exports in `modules/*` (`flake.nixosModules.*`, `flake.homeModules.*`, `perSystem.packages.*`)
 - add new hosts/users via scaffolding scripts first, then edit generated modules
@@ -46,16 +50,18 @@ just new-host host=<host> user=<user>
 - do not commit secrets (tokens, private keys, machine-specific credentials) to tracked files
 
 ## Merge gates (required)
+
 - run `just fmt` before merge
 - run `just check` before merge
 - run `just check-vm` before merge
 
 ## Test expectations
+
 - any new/changed module must keep evaluation passing under `just check`
 - host or user scaffolding changes must include `just check-vm` verification notes
 
 ## Reminders
-- Never run git commands that would write to the repo directly without asking. If a signed `git commit` is needed, ask to run it outside the sandbox.
+
 - Always use the fish style for bash commands.
 - For validation when unstaged changes are expected, prefer path-based flake refs so checks see the working tree instead of Git index snapshots (for example `nix flake check --show-trace -L "path:$PWD"` and `nix build "path:$PWD#nixosConfigurations.<host>.config.system.build.vm"`).
 - No commit is needed; `git add -A` (or `git add <paths>`) is enough.
