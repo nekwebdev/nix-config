@@ -24,6 +24,7 @@
         owner = "hermes";
         group = "hermes";
         mode = "0400";
+        restartUnits = ["hermes-agent.service"];
       };
     };
     piLessYoloCloneScript = ''

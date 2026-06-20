@@ -251,6 +251,10 @@
           owner = "hermes";
           group = "hermes";
           mode = "0400";
+          restartUnits = [
+            "docker-websearch-proxy.service"
+            "hermes-agent.service"
+          ];
         };
       };
 
