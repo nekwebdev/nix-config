@@ -14,9 +14,16 @@
         set -g allow-passthrough on
         set -g extended-keys on
         set -g extended-keys-format csi-u
-        set -ga update-environment TERM
-        set -ga update-environment TERM_PROGRAM
+
+        # Do not let SSH-attached clients poison local panes with SSH_* from the attach env.
+        set -g update-environment "DISPLAY WAYLAND_DISPLAY XAUTHORITY TERM TERM_PROGRAM"
+        set-environment -gu SSH_CONNECTION
+        set-environment -gu SSH_CLIENT
+        set-environment -gu SSH_TTY
+        set-environment -gF SSH_AUTH_SOCK "#{E:XDG_RUNTIME_DIR}/gcr/ssh"
+
         set -sg escape-time 0
+        source-file -q "$HOME/.config/tmux/tmux.local.conf"
       '';
 
       plugins = with pkgs; [

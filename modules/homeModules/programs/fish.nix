@@ -60,6 +60,24 @@
           return $passwd_status
         '';
 
+        pi.body = ''
+          set -l pi_bin "$HOME/.local/bin/pi"
+          set -l pi_lens_dir "$HOME/.pi/pi-lens"
+
+          if not test -x "$pi_bin"
+            echo "pi not found at path: $pi_bin" >&2
+            return 1
+          end
+
+          if not test -d "$pi_lens_dir"
+            command mkdir -p "$pi_lens_dir"
+          end
+
+          set -lx PILENS_DATA_DIR "$pi_lens_dir"
+
+          command "$pi_bin" $argv
+        '';
+
         pi-agents.body = ''
           set -l profile $argv[1]
 

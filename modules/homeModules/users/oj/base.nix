@@ -19,14 +19,17 @@
       self.homeModules.fastfetch
       self.homeModules.fzf
       self.homeModules.ghostty
+      self.homeModules.herdr
       self.homeModules.mangohud
       self.homeModules.nixMonitor
+      self.homeModules.nixvim
       self.homeModules.obsidian
       self.homeModules.starship
       self.homeModules.tmux
       self.homeModules.tlrc
       self.homeModules.vscode
       self.homeModules.zedEditor
+      self.homeModules.zenBrowser
       self.homeModules.zoxide
       self.homeModules.niri
       self.homeModules.dms

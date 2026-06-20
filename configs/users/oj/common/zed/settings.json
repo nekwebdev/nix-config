@@ -1,4 +1,8 @@
 {
+  "file_scan_inclusions": [".venv", ".git"],
+  "project_panel": {
+    "hide_hidden": false
+  },
   "git_panel": {
     "dock": "left"
   },
@@ -9,9 +13,7 @@
         "model": "opus"
       },
       "favorite_config_option_values": {
-        "model": [
-          "opus"
-        ]
+        "model": ["opus"]
       }
     },
     "codex": {

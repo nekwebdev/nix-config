@@ -32,6 +32,7 @@
 
     # HM-first: user-scoped packages.
     home.packages = [
+      pkgs.bun
       pkgs.discord
       pkgs.fira-code
       pkgs.fira-code-symbols

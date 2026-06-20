@@ -24,7 +24,6 @@
       pkgs.uv
       pkgs.ripgrep
       pkgs.unzip
-      pkgs.vim
       pkgs.wget
       pkgs.shellcheck
     ];
