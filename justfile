@@ -15,9 +15,9 @@ check-vm:
     @echo "==> Running VM checks"
     @bash ./scripts/check-vm.sh
 
-update:
-    @echo "==> Updating flake inputs"
-    @bash ./scripts/update.sh
+update host='':
+    @echo "==> Updating flake inputs and setting next boot configuration"
+    @bash ./scripts/update.sh "{{ host }}"
 
 switch host='':
     @echo "==> Switching configuration"

@@ -16,7 +16,7 @@ Scaffolding:
 
 Runtime config:
   just config-update
-  just update
+  just update host=<host>
 
 Secrets (dotenv in-place helpers):
   just sops-decrypt-env [file=.env.sops]
