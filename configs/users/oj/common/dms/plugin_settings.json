@@ -1,5 +1,5 @@
 {
   "nixMonitor": {
-    "enabled": true
+    "enabled": false
   }
 }

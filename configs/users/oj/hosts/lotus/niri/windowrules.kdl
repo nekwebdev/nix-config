@@ -12,3 +12,21 @@ window-rule {
     match app-id="^steam$" title="^Steam Settings$"
     open-floating true
 }
+
+// @id=wr_1781772224246341127 @name=Razor Outlands Edition
+window-rule {
+    match app-id="^steam_app_0$" title=".*Razor Outlands Edition.*"
+    open-floating true
+}
+
+// @id=wr_1781774834339336770 @name=steam_app_0
+window-rule {
+    match app-id="^steam_app_0$" title="^UO - .* - [0-9.]+$"
+    open-floating true
+    default-column-width { fixed 2893; }
+    default-window-height { fixed 1378; }
+    min-width 2893
+    max-width 2893
+    min-height 1384
+    max-height 1384
+}
