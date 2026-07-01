@@ -25,6 +25,7 @@
       self.nixosModules.system
       self.nixosModules.assistants
       self.nixosModules.websearchProxy
+      self.nixosModules.unify
       self.nixosModules.policy
       self.nixosModules.services
       self.nixosModules.tailscale
@@ -82,7 +83,21 @@
           };
         };
 
+        my.unifi.controller = {
+          enable = true;
+          autoStart = false;
+          host = "0.0.0.0";
+          systemIp = "10.88.88.10";
+        };
+
         networking.hostName = "lotus";
+
+        # HM-first exception: Wake-on-LAN is host NIC power policy.
+        networking.interfaces.enp6s0.wakeOnLan = {
+          enable = true;
+          policy = ["magic"];
+        };
+
         system.stateVersion = "25.11";
 
         # HM-first exception: locale/timezone define host identity.
@@ -151,6 +166,19 @@
             authorizedKeyFiles = [
               ../../../../configs/users/${primaryUser.username}/hosts/${config.networking.hostName}/ssh/initrd_authorized_keys
             ];
+          };
+        };
+
+        boot.initrd.systemd.network = lib.mkIf config.boot.initrd.systemd.enable {
+          enable = true;
+          networks."10-lan-dhcp" = {
+            matchConfig.Name = "en* eth*";
+            networkConfig = {
+              DHCP = "ipv4";
+              IPv6AcceptRA = false;
+            };
+            dhcpV4Config.ClientIdentifier = "mac";
+            linkConfig.RequiredForOnline = "routable";
           };
         };
 
