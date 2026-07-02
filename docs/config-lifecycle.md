@@ -102,7 +102,7 @@ Aura uses `preservation` to make selected mutable state survive a tmpfs root:
 
 - persistent root: `/persistent`
 - volatile root: tmpfs `/`
-- temporary storage: `/tmp` is disk-backed under preservation and cleared on boot
+- temporary storage: `/tmp` is disk-backed under preservation and cleared on boot; `/var/tmp` is disk-backed and survives reboot
 - swap: 32 GiB at `/persistent/swapfile`
 - preserved system state includes machine-id, SSH host keys, random seed, backlight/rfkill state, NetworkManager, Bluetooth, Flatpak, fwupd, printing, Tailscale, logs, and related service state
 - preserved `oj` state includes `.ssh`, Codex, browser/editor app data, Niri/DMS runtime config, VPN profiles, shell/tool state, Steam, keyrings, and standard user directories

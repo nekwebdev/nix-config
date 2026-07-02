@@ -130,6 +130,7 @@ Aura is intentionally different from the generic scaffold:
 - The runtime root filesystem is tmpfs.
 - Persistent system/user state is declared under `/persistent` with `preservation`.
 - `/tmp` is disk-backed under preservation and cleared on boot.
+- `/var/tmp` is disk-backed under preservation and survives reboot.
 - A 32 GiB swapfile is created at `/persistent/swapfile`.
 - Aura expects the installed `oj` password hash at `/persistent/passwd`; pass it during install with `disko-install --extra-files`.
 - `~/.ssh` is preserved for `oj`, so install-time SSH, Git signing, and SOPS keys survive reboots.

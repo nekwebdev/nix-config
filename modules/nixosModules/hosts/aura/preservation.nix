@@ -14,6 +14,10 @@
             directory = "/tmp";
             mode = "1777";
           }
+          {
+            directory = "/var/tmp";
+            mode = "1777";
+          }
           "/etc/cups"
           "/etc/NetworkManager/system-connections"
           "/var/lib/AccountsService"

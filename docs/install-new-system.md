@@ -87,6 +87,7 @@ Warning: this destroys the target disk. The Aura Disko module defines a full-dis
 - `/nix` and `/persistent` Btrfs subvolumes
 - tmpfs root `/`
 - disk-backed `/tmp` under preservation, cleared on boot
+- disk-backed `/var/tmp` under preservation, kept across boot
 - 32 GiB swapfile at `/persistent/swapfile`, created by NixOS on first boot/switch
 
 Create the installed `oj` password hash in the live ISO:
@@ -185,6 +186,7 @@ Preserved state includes:
 - `/etc/machine-id`
 - SSH host keys
 - `/tmp`, backed by `/persistent/tmp` and cleared on boot
+- `/var/tmp`, backed by `/persistent/var/tmp` and kept across boot
 - 32 GiB swapfile at `/persistent/swapfile`
 - NetworkManager, Bluetooth, Flatpak, fwupd, printing, Tailscale, logs, random seed, backlight/rfkill, and related system state
 - `oj` user state such as `.ssh`, `.config/codex`, browser/editor data, Niri/DMS runtime config, VPN profiles, shell/tool state, Steam, keyrings, and standard user directories
