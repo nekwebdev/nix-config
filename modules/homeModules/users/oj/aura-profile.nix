@@ -3,6 +3,7 @@
     config,
     lib,
     osConfig ? {},
+    pkgs,
     ...
   }: let
     userContract = lib.attrByPath ["my" "users" config.home.username] null osConfig;
@@ -28,6 +29,11 @@
 
     # Keep frequently edited personal settings here.
     programs.git.settings.user = gitIdentity;
+
+    # HM-first: user-scoped packages.
+    home.packages = [
+      pkgs.openvpn
+    ];
 
     # HM-first: user-scoped session variables.
     home.sessionVariables = {

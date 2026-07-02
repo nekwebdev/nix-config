@@ -90,7 +90,7 @@ Aura:
 - uses `ojAuraProfile`
 - imports Codex only among assistant modules
 - uses Disko and preservation for a full impermanence setup
-- does not use SOPS, Hermes, Claude, or Pi
+- does not currently consume SOPS secrets at activation, and does not enable Hermes, Claude, or Pi
 - do not run Disko against an existing Aura install during normal deployment; Disko is install-time/destructive unless you are deliberately reinstalling
 
 ## Notes

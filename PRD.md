@@ -165,7 +165,7 @@ Aura-specific hardware/storage contract:
 1. `hostAuraHardware` tracks generated hardware facts without filesystem declarations.
 2. `hostAuraDisko` owns filesystem layout for full-disk install.
 3. `hostAuraPreservation` owns persisted mutable state.
-4. Aura uses tmpfs `/`, Btrfs `/nix`, and Btrfs `/persistent` under LUKS.
+4. Aura uses tmpfs `/`, Btrfs `/nix`, Btrfs `/persistent` under LUKS, disk-backed `/tmp` cleaned on boot, and a 32 GiB swapfile at `/persistent/swapfile`.
 5. Disko for Aura is destructive and must not be run without explicit install/reinstall intent.
 
 ### 6.7 Wrapped programs policy (`modules/wrappedPrograms/`)

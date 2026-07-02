@@ -86,6 +86,15 @@ Warning: this destroys the target disk. The Aura Disko module defines a full-dis
 - Btrfs filesystem labeled `AURA`
 - `/nix` and `/persistent` Btrfs subvolumes
 - tmpfs root `/`
+- disk-backed `/tmp` under preservation, cleared on boot
+- 32 GiB swapfile at `/persistent/swapfile`, created by NixOS on first boot/switch
+
+Create the installed `oj` password hash in the live ISO:
+
+```bash
+mkpasswd -m yescrypt > /tmp/aura-passwd
+chmod 600 /tmp/aura-passwd
+```
 
 The Disko module is:
 
@@ -99,7 +108,8 @@ Use `disko-install` so partitioning, formatting, mounting, and `nixos-install` r
 sudo nix --extra-experimental-features 'nix-command flakes' \
   run 'github:nix-community/disko/latest#disko-install' -- \
   --flake "path:$PWD#aura" \
-  --disk main /dev/nvme0n1
+  --disk main /dev/nvme0n1 \
+  --extra-files /tmp/aura-passwd /persistent/passwd
 ```
 
 If you intentionally need a different disk, change only the final device path. `--disk main ...` overrides `disko.devices.disk.main.device` for the install.
@@ -128,7 +138,7 @@ Do not reuse `lotus` or `aura` hardware settings blindly. Every host needs revie
 
 After Aura boots into the installed system:
 
-1. Log in as `oj` with the bootstrap password, then run `passwd`.
+1. Log in as `oj` with the password used for `/tmp/aura-passwd`.
 2. Clone the repo to:
 
 ```text
@@ -148,7 +158,16 @@ chmod 644 ~/.ssh/nixos-aura.pub
 
 The `ojAuraProfile` Git signing key path is `/home/oj/.ssh/nixos-aura`. Aura preservation keeps `~/.ssh`, so this survives reboot once placed on the installed system.
 
-4. Validate and switch from the installed checkout:
+4. Restore the SOPS age SSH identity if you want Aura ready to edit/decrypt repo secrets later:
+
+```bash
+cp /path/to/nixos-sops ~/.ssh/nixos-sops
+chmod 600 ~/.ssh/nixos-sops
+```
+
+The SOPS public key is not needed on the machine for decryption. Aura preserves this key in `~/.ssh`, but the current Aura system does not consume SOPS secrets during activation.
+
+5. Validate and switch from the installed checkout:
 
 ```bash
 cd ~/.config/nixos
@@ -165,8 +184,10 @@ Preserved state includes:
 
 - `/etc/machine-id`
 - SSH host keys
-- NetworkManager, Bluetooth, Flatpak, fwupd, Tailscale, logs, and related system state
-- `oj` user state such as `.ssh`, `.config/codex`, browser data, Niri/DMS runtime config, Steam, keyrings, and standard user directories
+- `/tmp`, backed by `/persistent/tmp` and cleared on boot
+- 32 GiB swapfile at `/persistent/swapfile`
+- NetworkManager, Bluetooth, Flatpak, fwupd, printing, Tailscale, logs, random seed, backlight/rfkill, and related system state
+- `oj` user state such as `.ssh`, `.config/codex`, browser/editor data, Niri/DMS runtime config, VPN profiles, shell/tool state, Steam, keyrings, and standard user directories
 
 Aura intentionally does not preserve `.config/claude` because Aura does not import the Claude module.
 

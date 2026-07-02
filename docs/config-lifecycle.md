@@ -102,7 +102,9 @@ Aura uses `preservation` to make selected mutable state survive a tmpfs root:
 
 - persistent root: `/persistent`
 - volatile root: tmpfs `/`
-- preserved system state includes NetworkManager, Bluetooth, Flatpak, Tailscale, logs, machine-id, and SSH host keys
-- preserved `oj` state includes `.ssh`, Codex, browser/app data, Niri/DMS runtime config, Steam, keyrings, and standard user directories
+- temporary storage: `/tmp` is disk-backed under preservation and cleared on boot
+- swap: 32 GiB at `/persistent/swapfile`
+- preserved system state includes machine-id, SSH host keys, random seed, backlight/rfkill state, NetworkManager, Bluetooth, Flatpak, fwupd, printing, Tailscale, logs, and related service state
+- preserved `oj` state includes `.ssh`, Codex, browser/editor app data, Niri/DMS runtime config, VPN profiles, shell/tool state, Steam, keyrings, and standard user directories
 
 Do not add assistant state to Aura preservation unless the corresponding assistant module is imported by Aura. In particular, Aura currently preserves `.config/codex` but not `.config/claude`.

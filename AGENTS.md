@@ -19,7 +19,7 @@
 - users policy: host-declared users are normal users and must include `wheel`
 - VPN convention: put user-supplied `.ovpn` files in `~/.config/ovpn/`; `policy.nix` imports them at runtime via `vpn-profile-import`
 - Aura storage: `aura` uses Disko plus `preservation`; its Disko config is destructive and targets the `main` disk, defaulting to `/dev/nvme0n1`
-- Aura impermanence: root is tmpfs, `/nix` and `/persistent` are Btrfs subvolumes inside LUKS, and persisted state is declared in `modules/nixosModules/hosts/aura/preservation.nix`
+- Aura impermanence: root is tmpfs, `/nix` and `/persistent` are Btrfs subvolumes inside LUKS, `/tmp` is disk-backed under preservation and cleaned on boot, `/persistent/swapfile` is a 32 GiB swapfile, and persisted state is declared in `modules/nixosModules/hosts/aura/preservation.nix`
 - Aura assistants: Aura imports only the Codex HM module; do not add Claude/Hermes/Pi to Aura unless explicitly requested
 - Lotus assistants: Lotus imports Codex, Claude, Pi, Hermes, and websearch proxy support
 - wrapped programs: use **wrappers** only (do not use `wrapper-modules`)
@@ -48,6 +48,7 @@ just new-host host=<host> user=<user>
 - add new hosts/users via scaffolding scripts first, then edit generated modules
 - for Aura, do not run Disko or `disko-install` unless the user has explicitly confirmed full-disk wipe of the target disk
 - for Aura, keep `.config/claude` out of preservation unless Claude is intentionally added to Aura
+- for Aura installs, provide `/persistent/passwd` with `disko-install --extra-files`; Aura disables the global bootstrap password
 - do not reintroduce toggle-file/module-ID/unique-group policy frameworks unless PRD is explicitly updated
 - do not reintroduce standalone HM outputs unless PRD is explicitly updated
 - do not use `wrapper-modules` in this repo unless PRD is explicitly updated

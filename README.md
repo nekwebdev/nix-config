@@ -129,8 +129,12 @@ Aura is intentionally different from the generic scaffold:
 - Disko wipes and recreates the full disk selected as `disk.main`.
 - The runtime root filesystem is tmpfs.
 - Persistent system/user state is declared under `/persistent` with `preservation`.
-- `~/.ssh` is preserved for `oj`, so place the installed machine's signing key at `/home/oj/.ssh/nixos-aura` after first boot.
-- Aura does not use SOPS, Hermes, Claude, or Pi unless those modules are added later.
+- `/tmp` is disk-backed under preservation and cleared on boot.
+- A 32 GiB swapfile is created at `/persistent/swapfile`.
+- Aura expects the installed `oj` password hash at `/persistent/passwd`; pass it during install with `disko-install --extra-files`.
+- `~/.ssh` is preserved for `oj`, so install-time SSH, Git signing, and SOPS keys survive reboots.
+- User persistence is targeted: browser/editor state, VPN profiles, shell/tool state, Steam/Flatpak app data, keyrings, and standard user directories are preserved without preserving all of `$HOME`.
+- Aura does not currently consume SOPS secrets at activation, and it does not enable Hermes, Claude, or Pi unless those modules are added later.
 
 ## VPN OVPN workflow
 
