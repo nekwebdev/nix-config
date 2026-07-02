@@ -132,7 +132,7 @@ Aura is intentionally different from the generic scaffold:
 - `/tmp` is disk-backed under preservation and cleared on boot.
 - `/var/tmp` is disk-backed under preservation and survives reboot.
 - A 32 GiB swapfile is created at `/persistent/swapfile`.
-- Aura expects the installed `oj` password hash at `/persistent/passwd`; pass it during install with `disko-install --extra-files`.
+- Aura expects the installed `oj` password hash at `/persistent/passwd`; copy it into `/mnt/persistent/passwd` during the split Disko + `nixos-install` flow.
 - `~/.ssh` is preserved for `oj`, so install-time SSH, Git signing, and SOPS keys survive reboots.
 - User persistence is targeted: browser/editor state, VPN profiles, shell/tool state, Steam/Flatpak app data, keyrings, and standard user directories are preserved without preserving all of `$HOME`.
 - Aura does not currently consume SOPS secrets at activation, and it does not enable Hermes, Claude, or Pi unless those modules are added later.

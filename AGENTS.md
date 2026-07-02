@@ -48,7 +48,7 @@ just new-host host=<host> user=<user>
 - add new hosts/users via scaffolding scripts first, then edit generated modules
 - for Aura, do not run Disko or `disko-install` unless the user has explicitly confirmed full-disk wipe of the target disk
 - for Aura, keep `.config/claude` out of preservation unless Claude is intentionally added to Aura
-- for Aura installs, provide `/persistent/passwd` with `disko-install --extra-files`; Aura disables the global bootstrap password
+- for Aura installs from a NixOS live ISO, prefer the split flow: run Disko `destroy,format,mount`, copy `/tmp/aura-passwd` to `/mnt/persistent/passwd`, then run `nixos-install --root /mnt`; one-shot `disko-install` can exhaust the live ISO RAM store before using the target SSD
 - do not reintroduce toggle-file/module-ID/unique-group policy frameworks unless PRD is explicitly updated
 - do not reintroduce standalone HM outputs unless PRD is explicitly updated
 - do not use `wrapper-modules` in this repo unless PRD is explicitly updated

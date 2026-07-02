@@ -103,17 +103,70 @@ The Disko module is:
 modules/nixosModules/hosts/aura/disko.nix
 ```
 
-Use `disko-install` so partitioning, formatting, mounting, and `nixos-install` run from the flake:
+On the NixOS live ISO, use the split Disko + `nixos-install` flow. This mounts the target SSD before the full NixOS build, so the build uses `/mnt/nix/store` instead of exhausting the live ISO's RAM-backed `/nix/.rw-store`.
+
+First wipe, format, and mount the target disk:
 
 ```bash
 sudo nix --extra-experimental-features 'nix-command flakes' \
-  run 'github:nix-community/disko/latest#disko-install' -- \
+  run 'github:nix-community/disko/latest#disko' -- \
+  --mode destroy,format,mount \
   --flake "path:$PWD#aura" \
-  --disk main /dev/nvme0n1 \
-  --extra-files /tmp/aura-passwd /persistent/passwd
+  --root-mountpoint /mnt \
+  --yes-wipe-all-disks
 ```
 
-If you intentionally need a different disk, change only the final device path. `--disk main ...` overrides `disko.devices.disk.main.device` for the install.
+Then confirm the target is mounted:
+
+```bash
+lsblk -o NAME,SIZE,FSTYPE,LABEL,MOUNTPOINTS
+findmnt -R /mnt
+df -h /mnt/nix /mnt/persistent
+```
+
+Copy install-time persistent files:
+
+```bash
+sudo install -D -m 600 /tmp/aura-passwd /mnt/persistent/passwd
+
+sudo install -d -m 700 /mnt/persistent/home/oj/.ssh
+sudo install -m 600 ~/.ssh/aura /mnt/persistent/home/oj/.ssh/nixos-aura
+sudo install -m 644 ~/.ssh/aura.pub /mnt/persistent/home/oj/.ssh/nixos-aura.pub
+sudo install -m 600 ~/.ssh/nixos-sops /mnt/persistent/home/oj/.ssh/nixos-sops
+
+sudo install -d -m 755 /mnt/persistent/home/oj/.config
+sudo cp -a ~/.config/nixos /mnt/persistent/home/oj/.config/
+```
+
+Install NixOS into the mounted target:
+
+```bash
+sudo nixos-install \
+  --root /mnt \
+  --flake "path:$PWD#aura" \
+  --no-root-passwd \
+  --no-channel-copy \
+  --max-jobs 1 \
+  --cores 2 \
+  --show-trace \
+  --option eval-cache false \
+  2>&1 | tee /tmp/aura-nixos-install.log
+```
+
+Fix ownership on the copied persistent user files:
+
+```bash
+sudo nixos-enter --root /mnt -c '
+chown -R oj:oj /persistent/home/oj/.ssh /persistent/home/oj/.config/nixos
+chmod 700 /persistent/home/oj/.ssh
+chmod 600 /persistent/home/oj/.ssh/nixos-aura /persistent/home/oj/.ssh/nixos-sops
+chmod 644 /persistent/home/oj/.ssh/nixos-aura.pub
+'
+```
+
+If `nixos-install` fails after Disko has mounted the target, rerun the `nixos-install` step. Do not rerun Disko unless you intentionally want to wipe and recreate the target filesystems again.
+
+If you intentionally need a disk other than `/dev/nvme0n1`, update the Aura Disko device first and revalidate before running the destructive Disko command.
 
 ## 5. Generic Non-Aura Install
 
@@ -140,29 +193,26 @@ Do not reuse `lotus` or `aura` hardware settings blindly. Every host needs revie
 After Aura boots into the installed system:
 
 1. Log in as `oj` with the password used for `/tmp/aura-passwd`.
-2. Clone the repo to:
+2. The split install flow copies the repo to:
 
 ```text
 /home/oj/.config/nixos
 ```
 
-3. Restore the Aura Git signing SSH key:
+If it is missing, clone it there manually.
+
+3. Confirm the Aura Git signing SSH key exists:
 
 ```bash
-mkdir -p ~/.ssh
-chmod 700 ~/.ssh
-cp /path/to/private/key ~/.ssh/nixos-aura
-cp /path/to/public/key ~/.ssh/nixos-aura.pub
 chmod 600 ~/.ssh/nixos-aura
 chmod 644 ~/.ssh/nixos-aura.pub
 ```
 
 The `ojAuraProfile` Git signing key path is `/home/oj/.ssh/nixos-aura`. Aura preservation keeps `~/.ssh`, so this survives reboot once placed on the installed system.
 
-4. Restore the SOPS age SSH identity if you want Aura ready to edit/decrypt repo secrets later:
+4. Confirm the SOPS age SSH identity exists if you want Aura ready to edit/decrypt repo secrets later:
 
 ```bash
-cp /path/to/nixos-sops ~/.ssh/nixos-sops
 chmod 600 ~/.ssh/nixos-sops
 ```
 
