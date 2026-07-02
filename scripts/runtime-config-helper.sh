@@ -9,12 +9,13 @@ usage() {
   cat >&2 <<'USAGE'
 usage:
   runtime-config-helper.sh maps
-  runtime-config-helper.sh <seed|pull> <map_name>
+  runtime-config-helper.sh <seed|pull|pull-diff> <map_name>
 
 operations:
   maps  Print available sync map names.
   seed  Copy config files from configs to HOME if target does not already exist.
   pull  Copy runtime config files from HOME back into configs.
+  pull-diff  Print git-style diffs for files that pull would update.
 
 environment overrides:
   RUNTIME_CONFIG_USER  Override the user segment used under configs/users/<user>/...
@@ -154,6 +155,37 @@ copy_back() {
   echo "updated ${dst}"
 }
 
+diff_back() {
+  local src="$1"
+  local dst="$2"
+  local dst_rel="${dst#${repo_root}/}"
+
+  if [[ ! -e "${src}" && ! -L "${src}" ]]; then
+    return 0
+  fi
+
+  if [[ -L "${src}" && ! -e "${src}" ]]; then
+    return 0
+  fi
+
+  if [[ -e "${src}" && -e "${dst}" && "${src}" -ef "${dst}" ]]; then
+    return 0
+  fi
+
+  if [[ -e "${dst}" ]] && cmp -s "${src}" "${dst}"; then
+    return 0
+  fi
+
+  printf 'diff --git a/%s b/%s\n' "${dst_rel}" "${dst_rel}"
+  if [[ ! -e "${dst}" && ! -L "${dst}" ]]; then
+    printf 'new file mode 100644\n'
+    diff -u --label /dev/null --label "b/${dst_rel}" /dev/null "${src}" || true
+    return 0
+  fi
+
+  diff -u --label "a/${dst_rel}" --label "b/${dst_rel}" "${dst}" "${src}" || true
+}
+
 is_pull_excluded() {
   local destination_path="$1"
   local destination_rel="${destination_path#${repo_root}/}"
@@ -161,7 +193,9 @@ is_pull_excluded() {
 
   for pattern in "${pull_exclude_repo_rel_paths[@]}"; do
     if [[ "${destination_rel}" == ${pattern} ]]; then
-      echo "skip: pull excluded ${destination_rel}"
+      if [[ "${operation:-}" != "pull-diff" ]]; then
+        echo "skip: pull excluded ${destination_rel}"
+      fi
       return 0
     fi
   done
@@ -330,6 +364,11 @@ pull_entry() {
   local kind="$1"
   local source_rel="$2"
   local target_rel="$3"
+  local sync_action="copy_back"
+
+  if [[ "${operation}" == "pull-diff" ]]; then
+    sync_action="diff_back"
+  fi
 
   case "${kind}" in
     file)
@@ -340,7 +379,7 @@ pull_entry() {
         return 0
       fi
 
-      copy_back "${target_root}/${target_rel}" "${destination_file}"
+      "${sync_action}" "${target_root}/${target_rel}" "${destination_file}"
       ;;
     dir)
       local target_dir="${target_root}/${target_rel}"
@@ -369,7 +408,7 @@ pull_entry() {
           continue
         fi
 
-        copy_back "${runtime_file}" "${source_file}"
+        "${sync_action}" "${runtime_file}" "${source_file}"
       done < <(printf '%s\n' "${!rel_paths[@]}" | LC_ALL=C sort)
       ;;
     *)
@@ -398,7 +437,7 @@ if [[ $# -ne 2 ]]; then
   exit 1
 fi
 
-if [[ "${operation}" != "seed" && "${operation}" != "pull" ]]; then
+if [[ "${operation}" != "seed" && "${operation}" != "pull" && "${operation}" != "pull-diff" ]]; then
   usage
   exit 1
 fi

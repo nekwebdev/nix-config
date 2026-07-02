@@ -5,7 +5,7 @@
     ...
   }: let
     repoRoot = ../../../.;
-    settingsPath = "${repoRoot}/configs/users/${config.home.username}/common/zed/settings.json";
+    settingsPath = repoRoot + "/configs/users/${config.home.username}/common/zed/settings.json";
     repoSettings =
       if builtins.pathExists settingsPath
       then builtins.fromJSON (builtins.readFile settingsPath)

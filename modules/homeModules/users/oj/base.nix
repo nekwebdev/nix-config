@@ -12,7 +12,6 @@
       self.homeModules.aliasRegistry
       self.homeModules.aliasesCommon
       self.homeModules.git
-      self.homeModules.assistants
       self.homeModules.bat
       self.homeModules.brave
       self.homeModules.eza
@@ -63,6 +62,25 @@
           defaultCursor = "Adwaita";
         };
       };
+
+      # HM-first: user-scoped packages shared by oj profiles.
+      home.packages = [
+        pkgs.bun
+        pkgs.discord
+        pkgs.fira-code
+        pkgs.fira-code-symbols
+        pkgs.nautilus
+        pkgs.nerd-fonts.fira-code
+        pkgs.nodejs
+        pkgs.pnpm
+        pkgs.protonup-qt
+        pkgs.faugus-launcher
+        pkgs.mpv
+      ];
+
+      my.home.flatpak.apps = [
+        "com.stremio.Stremio"
+      ];
 
       home.stateVersion = "25.11";
       programs.home-manager.enable = true;

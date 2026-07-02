@@ -11,9 +11,9 @@ check:
     @echo "==> Running checks"
     @bash ./scripts/check.sh
 
-check-vm:
+check-vm host='':
     @echo "==> Running VM checks"
-    @bash ./scripts/check-vm.sh
+    @bash ./scripts/check-vm.sh "{{ host }}"
 
 update host='':
     @echo "==> Updating flake inputs and setting next boot configuration"
@@ -23,9 +23,9 @@ switch host='':
     @echo "==> Switching configuration"
     @bash ./scripts/switch.sh "{{ host }}"
 
-config-update:
+config-update dry='':
     @echo "==> Syncing runtime desktop config back to repo"
-    @bash ./scripts/config-update.sh
+    @if [ -n "{{ dry }}" ]; then bash ./scripts/config-update.sh "{{ dry }}"; else bash ./scripts/config-update.sh; fi
 
 new-user user:
     @echo "==> Creating user scaffold: {{ user }}"

@@ -1,32 +1,73 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [ "$#" -ne 6 ]; then
-  echo "usage: assistants-config-sync.sh <codex-template> <codex-config> <claude-mcp-template> <claude-mcp-json> <claude-settings-template> <claude-settings-json>" >&2
-  exit 2
+usage() {
+  cat >&2 <<'USAGE'
+usage:
+  assistants-config-sync.sh codex <codex-template> <codex-config>
+  assistants-config-sync.sh claude <claude-mcp-template> <claude-mcp-json> <claude-settings-template> <claude-settings-json>
+  assistants-config-sync.sh all <codex-template> <codex-config> <claude-mcp-template> <claude-mcp-json> <claude-settings-template> <claude-settings-json>
+  assistants-config-sync.sh <codex-template> <codex-config> <claude-mcp-template> <claude-mcp-json> <claude-settings-template> <claude-settings-json>
+USAGE
+}
+
+require_file() {
+  local label="$1"
+  local file="$2"
+
+  if [ ! -f "$file" ]; then
+    echo "error: $label not found: $file" >&2
+    exit 1
+  fi
+}
+
+mode="all"
+if [ "${1:-}" = "codex" ] || [ "${1:-}" = "claude" ] || [ "${1:-}" = "all" ]; then
+  mode="$1"
+  shift
 fi
 
-codex_template="$1"
-codex_config="$2"
-claude_mcp_template="$3"
-claude_mcp_config="$4"
-claude_settings_template="$5"
-claude_settings="$6"
+codex_template=""
+codex_config=""
+claude_mcp_template=""
+claude_mcp_config=""
+claude_settings_template=""
+claude_settings=""
+
+case "$mode:$#" in
+  codex:2)
+    codex_template="$1"
+    codex_config="$2"
+    ;;
+  claude:4)
+    claude_mcp_template="$1"
+    claude_mcp_config="$2"
+    claude_settings_template="$3"
+    claude_settings="$4"
+    ;;
+  all:6)
+    codex_template="$1"
+    codex_config="$2"
+    claude_mcp_template="$3"
+    claude_mcp_config="$4"
+    claude_settings_template="$5"
+    claude_settings="$6"
+    ;;
+  *)
+    usage
+    exit 2
+    ;;
+esac
+
 dry_run="${DRY_RUN:-}"
 
-if [ ! -f "$codex_template" ]; then
-  echo "error: codex template not found: $codex_template" >&2
-  exit 1
+if [ "$mode" = "codex" ] || [ "$mode" = "all" ]; then
+  require_file "codex template" "$codex_template"
 fi
 
-if [ ! -f "$claude_mcp_template" ]; then
-  echo "error: claude mcp template not found: $claude_mcp_template" >&2
-  exit 1
-fi
-
-if [ ! -f "$claude_settings_template" ]; then
-  echo "error: claude settings template not found: $claude_settings_template" >&2
-  exit 1
+if [ "$mode" = "claude" ] || [ "$mode" = "all" ]; then
+  require_file "claude mcp template" "$claude_mcp_template"
+  require_file "claude settings template" "$claude_settings_template"
 fi
 
 section_block() {
@@ -259,5 +300,15 @@ apply_jq_patch() {
   fi
 }
 
-sync_codex_config
-sync_claude_json
+case "$mode" in
+  codex)
+    sync_codex_config
+    ;;
+  claude)
+    sync_claude_json
+    ;;
+  all)
+    sync_codex_config
+    sync_claude_json
+    ;;
+esac

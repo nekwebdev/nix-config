@@ -29,9 +29,11 @@ Current files:
 - `configs/users/oj/common/dms/plugin_settings.json` -> `~/.config/DankMaterialShell/plugin_settings.json`
 - `configs/users/oj/hosts/lotus/niri/*.kdl` -> `~/.config/niri/dms/*.kdl`
 - `configs/users/oj/hosts/lotus/niri/profiles/*.kdl` -> `~/.config/niri/dms/profiles/*.kdl` (when present)
+- `configs/users/oj/hosts/aura/niri/*.kdl` -> `~/.config/niri/dms/*.kdl`
 
 Pull-back:
 - `just config-update` copies runtime changes back into layered repo files.
+- `just config-update dry=--dry-run` prints git-style diffs for repo files that would be updated.
 - For Niri, `just config-update` also includes the currently active display profile file from `~/.config/niri/dms/profiles/*.kdl` when `outputs.kdl` points to it.
 - Runtime profile files that are not active are treated as orphaned and are not pulled back.
 - `configs/users/*/hosts/*/niri/colors.kdl` is intentionally excluded from pull-back.
@@ -62,6 +64,7 @@ How it works:
 
 Pull-back:
 - `just config-update` includes `zed` map and copies `~/.config/zed/settings.json` back to `configs/users/<user>/common/zed/settings.json`.
+- `just config-update dry=--dry-run` shows the same pending copy as a git-style diff without writing.
 
 ## Nix-Managed Files Outside `configs/`
 
@@ -92,3 +95,14 @@ Separate from runtime activation:
 - `just new-host` bootstraps `configs/users/<user>/hosts/<host>/niri/*` once from `scripts/templates/new-host/niri/*`.
 
 Those scaffolding steps create repo files once. Switch behavior after that follows class rules above.
+
+## Aura Impermanence
+
+Aura uses `preservation` to make selected mutable state survive a tmpfs root:
+
+- persistent root: `/persistent`
+- volatile root: tmpfs `/`
+- preserved system state includes NetworkManager, Bluetooth, Flatpak, Tailscale, logs, machine-id, and SSH host keys
+- preserved `oj` state includes `.ssh`, Codex, browser/app data, Niri/DMS runtime config, Steam, keyrings, and standard user directories
+
+Do not add assistant state to Aura preservation unless the corresponding assistant module is imported by Aura. In particular, Aura currently preserves `.config/codex` but not `.config/claude`.

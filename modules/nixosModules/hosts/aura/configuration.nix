@@ -3,11 +3,11 @@
   self,
   ...
 }: {
-  flake.nixosConfigurations.__HOST__ = inputs.nixpkgs.lib.nixosSystem {
-    modules = [self.nixosModules.host__HOST_CAP__];
+  flake.nixosConfigurations.aura = inputs.nixpkgs.lib.nixosSystem {
+    modules = [self.nixosModules.hostAura];
   };
 
-  flake.nixosModules.host__HOST_CAP__ = {
+  flake.nixosModules.hostAura = {
     lib,
     config,
     ...
@@ -20,21 +20,23 @@
     imports = [
       inputs.home-manager.nixosModules.home-manager
       inputs.nix-sweep.nixosModules.default
+      inputs.disko.nixosModules.disko
+      inputs.preservation.nixosModules.preservation
 
       self.nixosModules.system
       self.nixosModules.policy
       self.nixosModules.services
       self.nixosModules.tailscale
-      self.nixosModules.host__HOST_CAP__Hardware
-      self.nixosModules.nvidia
+      self.nixosModules.hostAuraDisko
+      self.nixosModules.hostAuraHardware
+      self.nixosModules.hostAuraPreservation
       self.nixosModules.gaming
       self.nixosModules.portals
       self.nixosModules.flatpak
       self.nixosModules.udev
       self.nixosModules.niri
       self.nixosModules.dmsGreeter
-      self.nixosModules.docker
-      self.nixosModules.user__USER_CAP__
+      self.nixosModules.userOj
     ];
 
     config = lib.mkMerge [
@@ -42,13 +44,17 @@
         assertions = [
           {
             assertion = primaryUser != null;
-            message = "host__HOST_CAP__ requires my.primaryUser to reference a declared my.users entry.";
+            message = "hostAura requires my.primaryUser to reference a declared my.users entry.";
           }
         ];
 
-        my.primaryUser = "__USER__";
+        my.primaryUser = "oj";
+        my.users.oj.profileModule = "ojAuraProfile";
 
-        networking.hostName = "__HOST__";
+        # HM-first exception: Steam, Discord, and browser packages require unfree package policy.
+        nixpkgs.config.allowUnfree = true;
+
+        networking.hostName = "aura";
         system.stateVersion = "25.11";
 
         # HM-first exception: locale/timezone define host identity.
@@ -57,6 +63,10 @@
 
         # HM-first exception: resolver behavior is host networking plumbing.
         services.resolved.enable = lib.mkForce false;
+
+        # HM-first exception: laptop firmware updates and Intel thermal policy are host hardware services.
+        services.fwupd.enable = true;
+        services.thermald.enable = true;
 
         # HM-first exception: bootloader/EFI are host-level boot plumbing.
         boot.loader.systemd-boot.enable = true;
@@ -91,7 +101,10 @@
       in {
         home-manager.users = {
           ${primaryUser.username} = {
-            imports = [self.homeModules.${primaryUser.profileModule}];
+            imports = [
+              self.homeModules.${primaryUser.profileModule}
+              self.homeModules.codex
+            ];
             home.username = lib.mkDefault primaryUser.username;
             home.homeDirectory = lib.mkDefault primaryUser.homeDirectory;
           };

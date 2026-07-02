@@ -1,8 +1,7 @@
 {self, ...}: {
-  flake.homeModules.ojProfile = {
-    pkgs,
-    lib,
+  flake.homeModules.ojAuraProfile = {
     config,
+    lib,
     osConfig ? {},
     ...
   }: let
@@ -29,29 +28,6 @@
 
     # Keep frequently edited personal settings here.
     programs.git.settings.user = gitIdentity;
-
-    # HM-first: user-scoped packages.
-    home.packages = [
-      pkgs.bun
-      pkgs.discord
-      pkgs.fira-code
-      pkgs.fira-code-symbols
-      self.packages.${pkgs.stdenv.hostPlatform.system}.monsters-and-memories-launcher
-      pkgs.nautilus
-      pkgs.nerd-fonts.fira-code
-      pkgs.nodejs
-      pkgs.pnpm
-      pkgs.openvpn
-      self.packages.${pkgs.stdenv.hostPlatform.system}.orca-slicer
-      self.packages.${pkgs.stdenv.hostPlatform.system}.pinokio
-      pkgs.protonup-qt
-      pkgs.faugus-launcher
-      pkgs.mpv
-    ];
-
-    my.home.flatpak.apps = [
-      "com.stremio.Stremio"
-    ];
 
     # HM-first: user-scoped session variables.
     home.sessionVariables = {

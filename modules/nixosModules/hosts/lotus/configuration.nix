@@ -23,7 +23,8 @@
       inputs.nix-sweep.nixosModules.default
 
       self.nixosModules.system
-      self.nixosModules.assistants
+      self.nixosModules.hermes
+      self.nixosModules.pi
       self.nixosModules.websearchProxy
       self.nixosModules.unify
       self.nixosModules.policy
@@ -52,6 +53,7 @@
         ];
 
         my.primaryUser = "oj";
+        my.users.oj.profileModule = "ojLotusProfile";
 
         # Age identity is provisioned manually on this machine.
         # Backup of private key is handled manually in Bitwarden (no bw CLI automation).
@@ -184,7 +186,12 @@
 
         home-manager.users = {
           ${primaryUser.username} = {
-            imports = [self.homeModules.${primaryUser.profileModule}];
+            imports = [
+              self.homeModules.${primaryUser.profileModule}
+              self.homeModules.codex
+              self.homeModules.claude
+              self.homeModules.pi
+            ];
             home.username = lib.mkDefault primaryUser.username;
             home.homeDirectory = lib.mkDefault primaryUser.homeDirectory;
           };

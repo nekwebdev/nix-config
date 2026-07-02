@@ -10,15 +10,25 @@ Minimal dendritic NixOS + Home Manager setup:
 - user identity lives in the matching NixOS user module and is passed into HM through `osConfig`.
 - wrapped programs use `wrappers` only.
 
+## Hosts
+
+| Host | Role | Storage | User profile | Assistant modules |
+| --- | --- | --- | --- | --- |
+| `lotus` | desktop baseline | existing host layout | `ojLotusProfile` | Codex, Claude, Pi, Hermes, websearch proxy |
+| `aura` | Lenovo ThinkPad X9-15 Aura | Disko full-disk LUKS+Btrfs with tmpfs root and `preservation` | `ojAuraProfile` | Codex only |
+
+Aura uses `modules/nixosModules/hosts/aura/disko.nix` for the destructive install-time disk layout and `modules/nixosModules/hosts/aura/preservation.nix` for persisted state. Its default Disko target is `/dev/nvme0n1`.
+
 ## Layout
 
 - `modules/flake-parts.nix`: shared flake-parts settings (`systems`, treefmt).
 - `modules/dev/*.nix`: optional flake dev shells per language or environment.
 - `modules/nixosModules/*`: exported NixOS modules and hosts.
 - `modules/nixosModules/users/<user>.nix`: typed user contract plus system user declaration.
-- `modules/homeModules/*`: exported Home Manager user profiles.
+- `modules/homeModules/programs/*`: reusable Home Manager feature modules.
+- `modules/homeModules/users/<user>/*`: user base and profile modules.
 - `modules/homeModules/users/<user>/base.nix`: shared per-user HM baseline.
-- `modules/homeModules/users/<user>/profile.nix`: editable user-specific HM packages and session config.
+- `modules/homeModules/users/<user>/profile.nix` or `*-profile.nix`: editable user-specific HM packages and session config.
 - `configs/common/*`: global fallback runtime config defaults.
 - `configs/users/<user>/common/*`: per-user runtime config defaults.
 - `configs/users/<user>/hosts/<host>/*`: per-user host-specific runtime config overrides.
@@ -30,7 +40,7 @@ Minimal dendritic NixOS + Home Manager setup:
 just help
 just fmt
 just check
-just check-vm
+just check-vm host=<host>
 just switch host=<host>
 just update
 just new-user user=<user>
@@ -93,12 +103,34 @@ You may also want to check that your shell has direnv integration enabled and th
 
 ## Deployment Guides
 
-- fresh install from a live ISO: [docs/install-new-system.md](/home/oj/.config/nixos/docs/install-new-system.md)
-- changes on an existing host: [docs/deploy-existing-system.md](/home/oj/.config/nixos/docs/deploy-existing-system.md)
-- config mutability and switch behavior: [docs/config-lifecycle.md](/home/oj/.config/nixos/docs/config-lifecycle.md)
+- fresh install from a live ISO: [docs/install-new-system.md](docs/install-new-system.md)
+- changes on an existing host: [docs/deploy-existing-system.md](docs/deploy-existing-system.md)
+- config mutability and switch behavior: [docs/config-lifecycle.md](docs/config-lifecycle.md)
 
-`just check-vm` is the preferred final validation on a 3rd party machine because it builds `toplevel` and VM artifacts without switching the running host.
+`just check-vm host=<host>` is the preferred final validation on a 3rd party machine because it builds `toplevel` and VM artifacts without switching the running host.
 `just config-update` updates the active layered runtime config sources in `configs/users/<user>/{common,hosts/<host>}` from the current system state.
+
+## Assistant Modules
+
+Assistant tooling is split by module:
+
+- `homeModules.codex`: Codex CLI, Codex config sync, `mcp-nixos`, and Codex managed memory/rules.
+- `homeModules.claude`: Claude Code and Claude MCP/settings sync.
+- `homeModules.pi`: Pi-related user ignores/aliases.
+- `nixosModules.hermes`: root-owned Hermes service and SOPS-backed Hermes env files.
+- `nixosModules.pi`: system Pi bootstrap plus `mise`, `ffmpeg`, and `yt-dlp`.
+
+Hosts opt into these explicitly. Aura imports only `homeModules.codex`; Lotus imports the full stack.
+
+## Aura Install Notes
+
+Aura is intentionally different from the generic scaffold:
+
+- Disko wipes and recreates the full disk selected as `disk.main`.
+- The runtime root filesystem is tmpfs.
+- Persistent system/user state is declared under `/persistent` with `preservation`.
+- `~/.ssh` is preserved for `oj`, so place the installed machine's signing key at `/home/oj/.ssh/nixos-aura` after first boot.
+- Aura does not use SOPS, Hermes, Claude, or Pi unless those modules are added later.
 
 ## VPN OVPN workflow
 
@@ -198,6 +230,7 @@ Use this when app configs are UI-mutated and should be copy-synced instead of im
 
 ```bash
 just config-update
+just config-update dry=--dry-run
 ```
 
 - Pull-back exclusions (for intentionally volatile files) are defined in:
@@ -210,7 +243,7 @@ just config-update
 After `just new-user user=<user>`:
 
 - edit `modules/nixosModules/users/<user>.nix` for `githubUsername`, email, admin state, and any derived groups
-- edit `modules/homeModules/users/<user>/profile.nix` for packages, flatpaks, and session variables
+- edit `modules/homeModules/users/<user>/profile.nix` or `*-profile.nix` for packages, flatpaks, and session variables
 
 ### 3) Wrapped programs and wrappers
-WIP (to be documented during onboarding pass).
+Current wrapped package outputs are `monsters-and-memories-launcher` and `orca-slicer`. Pinokio was removed.

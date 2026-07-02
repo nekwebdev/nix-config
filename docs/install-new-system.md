@@ -2,192 +2,176 @@
 
 Use this flow from a NixOS live ISO to the first boot of a machine managed by this repo.
 
-This guide is for a fresh machine install. For changes on an already-running host, use [deploy-existing-system.md](/home/oj/.config/nixos/docs/deploy-existing-system.md).
+For changes on an already-running host, use [deploy-existing-system.md](deploy-existing-system.md).
 
 ## Scope
 
-Manual bootstrap covers:
+There are two install paths:
 
-- partitioning
-- encryption
-- filesystems
-- mounts
-- network access in the live environment
+- `aura`: use the repo's Disko + preservation configuration.
+- generic scaffolded hosts: partition manually or add a host-specific Disko module first.
 
-This repo takes over after the target root is mounted at `/mnt`.
+Aura is the only host in this repo currently designed for declarative full-disk install.
 
 ## Prereqs
 
 - boot a NixOS installer ISO
 - connect networking
 - have `git` available in the live environment
-- optionally have `bw` available if you want to bootstrap age and SSH keys from Vaultwarden
+- have the repo accessible over SSH or HTTPS
+- know the target disk name from `lsblk`
 
-## 1. Prepare the Disk
+For Aura, the intended disk is the internal NVMe drive, currently modeled as `/dev/nvme0n1`.
 
-List disks:
+## 1. Clone the Repo
 
-```bash
-lsblk -o NAME,SIZE,TYPE,LABEL
-```
+The clone location in the live ISO does not matter. This repo normally lives at `/home/oj/.config/nixos` after install, but during install it can live anywhere writable.
 
-Choose the target disk. The examples below use `/dev/nvme1n1`.
-
-Create a GPT partition table:
+Example:
 
 ```bash
-parted /dev/nvme1n1 -- mklabel gpt
+mkdir -p ~/.config
+git clone <repo-url> ~/.config/nixos
+cd ~/.config/nixos
 ```
 
-Create a 1 GiB EFI partition:
+## 2. Verify Target Hardware
+
+List disks and confirm the target:
 
 ```bash
-parted /dev/nvme1n1 -- mkpart ESP fat32 1MiB 1025MiB
-parted /dev/nvme1n1 -- set 1 esp on
-mkfs.fat -F 32 -n EFI /dev/nvme1n1p1
+lsblk -o NAME,SIZE,TYPE,FSTYPE,LABEL,MOUNTPOINTS
 ```
 
-Create an encrypted root partition using the rest of the disk:
+For Aura, confirm `/dev/nvme0n1` is the disk you intend to wipe.
+
+Also compare generated hardware facts:
 
 ```bash
-parted /dev/nvme1n1 -- mkpart primary 1025MiB 100%
-cryptsetup luksFormat /dev/nvme1n1p2
-cryptsetup open /dev/nvme1n1p2 crypt-nix
-mkfs.btrfs -L NIXROOT /dev/mapper/crypt-nix
+nixos-generate-config --no-filesystems --flake --dir /tmp/aura-generated-hw
 ```
 
-Create Btrfs subvolumes:
-
-```bash
-mount /dev/mapper/crypt-nix /mnt
-
-btrfs subvolume create /mnt/@root
-btrfs subvolume create /mnt/@home
-btrfs subvolume create /mnt/@nix
-btrfs subvolume create /mnt/@log
-btrfs subvolume create /mnt/@cache
-
-btrfs subvolume list /mnt
-umount /mnt
-```
-
-Mount the target layout:
-
-```bash
-mount -o subvol=@root,compress=zstd,noatime /dev/mapper/crypt-nix /mnt
-mkdir -p /mnt/{home,nix,var/log,var/cache,boot}
-
-mount -o subvol=@home,compress=zstd,noatime /dev/mapper/crypt-nix /mnt/home
-mount -o subvol=@nix,compress=zstd,noatime /dev/mapper/crypt-nix /mnt/nix
-mount -o subvol=@log,compress=zstd,noatime /dev/mapper/crypt-nix /mnt/var/log
-mount -o subvol=@cache,compress=zstd,noatime /dev/mapper/crypt-nix /mnt/var/cache
-mount /dev/nvme1n1p1 /mnt/boot
-```
-
-Verify mounts:
-
-```bash
-mount | grep /mnt
-```
-
-The repo workflow starts here.
-
-## 2. Generate Hardware Facts
-
-Generate hardware config for the mounted target root:
-
-```bash
-nixos-generate-config --root /mnt
-```
-
-This writes a hardware file at:
+Compare `/tmp/aura-generated-hw/hardware-configuration.nix` with:
 
 ```text
-/mnt/etc/nixos/hardware-configuration.nix
+modules/nixosModules/hosts/aura/hardware-configuration.nix
 ```
 
-Do not reuse `lotus` hardware settings blindly. Every new host needs its own `hardware-configuration.nix`.
+For Aura, filesystem declarations intentionally come from Disko and preservation, not from generated filesystem entries.
 
-## 3. Clone the Repo for Install-Time Use
+## 3. Validate Before Disk Changes
 
-Clone the repo into a temporary working directory inside the target root:
+From the repo root:
 
 ```bash
-git clone <repo-url> /mnt/root/nixos-config
-cd /mnt/root/nixos-config
+nix --extra-experimental-features 'nix-command flakes' \
+  --option eval-cache false \
+  flake check --impure --no-build --show-trace -L "path:$PWD"
 ```
 
-This install-time checkout is temporary. After first boot, keep the persistent working checkout at:
+For a narrower Aura check:
+
+```bash
+nix --extra-experimental-features 'nix-command flakes' \
+  eval --raw --impure \
+  "path:$PWD#nixosConfigurations.aura.config.system.build.toplevel.drvPath"
+```
+
+## 4. Aura Disko Install
+
+Warning: this destroys the target disk. The Aura Disko module defines a full-disk GPT layout with:
+
+- 1 GiB EFI system partition mounted at `/boot`
+- LUKS container named `crypt-aura`
+- Btrfs filesystem labeled `AURA`
+- `/nix` and `/persistent` Btrfs subvolumes
+- tmpfs root `/`
+
+The Disko module is:
 
 ```text
-/home/<user>/.config/nixos
+modules/nixosModules/hosts/aura/disko.nix
 ```
 
-## 4. Ensure the Host and User Exist in the Repo
+Use `disko-install` so partitioning, formatting, mounting, and `nixos-install` run from the flake:
 
-If the host and user are already defined in the repo, skip this step.
+```bash
+sudo nix --extra-experimental-features 'nix-command flakes' \
+  run 'github:nix-community/disko/latest#disko-install' -- \
+  --flake "path:$PWD#aura" \
+  --disk main /dev/nvme0n1
+```
 
-If this is a new user:
+If you intentionally need a different disk, change only the final device path. `--disk main ...` overrides `disko.devices.disk.main.device` for the install.
+
+## 5. Generic Non-Aura Install
+
+For a new non-Aura host, scaffold first:
 
 ```bash
 just new-user user=<user>
-```
-
-If this is a new host:
-
-```bash
 just new-host host=<host> user=<user>
 ```
 
-Scaffolding copies the baseline `oj` and `lotus` structure. It does not detect the new machine's hardware automatically.
+Then either:
 
-After scaffolding a user, edit `modules/nixosModules/users/<user>.nix` for identity/admin settings and `modules/homeModules/users/<user>/profile.nix` for user packages and session config.
-
-## 5. Replace the Scaffolded Hardware File
-
-Copy the generated hardware config into the repo host path:
+- add a host-specific Disko module and install with `disko-install`, or
+- manually partition/mount the target at `/mnt`, run `nixos-generate-config --root /mnt`, copy the generated hardware file into `modules/nixosModules/hosts/<host>/hardware-configuration.nix`, and install with:
 
 ```bash
-cp /mnt/etc/nixos/hardware-configuration.nix \
-  ./modules/nixosModules/hosts/<host>/hardware-configuration.nix
+sudo nixos-install --flake "path:$PWD#<host>"
 ```
 
-Then review it and make sure it matches your intended layout:
+Do not reuse `lotus` or `aura` hardware settings blindly. Every host needs reviewed hardware facts.
 
-- LUKS device name: `crypt-nix`
-- Btrfs subvolumes: `@root`, `@home`, `@nix`, `@log`, `@cache`
-- mount points: `/`, `/home`, `/nix`, `/var/log`, `/var/cache`, `/boot`
-- desired mount options such as `compress=zstd` and `noatime`
+## 6. First Boot Follow-Up
 
-If the generated file misses your preferred Btrfs mount options, add them before install.
+After Aura boots into the installed system:
 
-## 6. Install the System
+1. Log in as `oj` with the bootstrap password, then run `passwd`.
+2. Clone the repo to:
 
-Run the install from the repo root.
+```text
+/home/oj/.config/nixos
+```
+
+3. Restore the Aura Git signing SSH key:
 
 ```bash
-nixos-install --flake .#<host>
+mkdir -p ~/.ssh
+chmod 700 ~/.ssh
+cp /path/to/private/key ~/.ssh/nixos-aura
+cp /path/to/public/key ~/.ssh/nixos-aura.pub
+chmod 600 ~/.ssh/nixos-aura
+chmod 644 ~/.ssh/nixos-aura.pub
 ```
 
-## 7. First Boot Follow-Up
+The `ojAuraProfile` Git signing key path is `/home/oj/.ssh/nixos-aura`. Aura preservation keeps `~/.ssh`, so this survives reboot once placed on the installed system.
 
-After the machine boots into the installed system:
-
-1. Clone the repo to `/home/<user>/.config/nixos`.
-2. Run `just check`.
-3. Run `just check-vm`.
-4. Apply further changes with `just switch host=<host>`.
-
-If you are working on Rust tooling or a Rust-based package in this repo later, enter the self-contained Rust shell with:
+4. Validate and switch from the installed checkout:
 
 ```bash
-nix develop
-# or
-nix develop .#rust
+cd ~/.config/nixos
+just check
+just check-vm host=aura
+just switch host=aura
 ```
+
+## Aura Preservation Notes
+
+Aura uses `preservation` with `/persistent` as the persistence root. The installed root filesystem is intentionally volatile.
+
+Preserved state includes:
+
+- `/etc/machine-id`
+- SSH host keys
+- NetworkManager, Bluetooth, Flatpak, fwupd, Tailscale, logs, and related system state
+- `oj` user state such as `.ssh`, `.config/codex`, browser data, Niri/DMS runtime config, Steam, keyrings, and standard user directories
+
+Aura intentionally does not preserve `.config/claude` because Aura does not import the Claude module.
 
 ## Notes
 
 - This repo is `x86_64-linux` only.
 - Home Manager is integrated through NixOS only.
-- Do not validate a change on this machine with `just switch` during routine review. Use `just check` and `just check-vm`.
+- Do not validate a change on this machine with `just switch` during routine review. Use `just check` and `just check-vm host=<host>`.

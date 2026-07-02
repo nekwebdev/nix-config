@@ -10,12 +10,15 @@
     runtimeConfigHelper = "${repoRoot}/scripts/runtime-config-helper.sh";
     runtimeUser = config.home.username or "";
     runtimeHost = osConfig.networking.hostName or "";
+    commonNiriDir = repoRoot + "/configs/common/niri";
+    userNiriDir = repoRoot + "/configs/users/${runtimeUser}/common/niri";
+    hostNiriDir = repoRoot + "/configs/users/${runtimeUser}/hosts/${runtimeHost}/niri";
     niriIncludeSources =
       [
-        "${repoRoot}/configs/common/niri"
-        "${repoRoot}/configs/users/${runtimeUser}/common/niri"
+        commonNiriDir
+        userNiriDir
       ]
-      ++ lib.optionals (runtimeHost != "") ["${repoRoot}/configs/users/${runtimeUser}/hosts/${runtimeHost}/niri"];
+      ++ lib.optionals (runtimeHost != "") [hostNiriDir];
     niriIncludeDirs = lib.filter builtins.pathExists niriIncludeSources;
     niriIncludeNames = lib.sort builtins.lessThan (
       lib.unique (

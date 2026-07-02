@@ -4,12 +4,12 @@ Status: Active specification
 
 ## 1. Product Definition
 This repository defines a minimal but extensible NixOS configuration pattern:
-1. ship a working baseline host `lotus`
+1. ship working managed hosts `lotus` and `aura`
 2. ship a working baseline user `oj`
 3. support additional hosts/users through boilerplate scaffolding commands
 4. keep host and user composition explicit and reviewable
 
-The baseline (`lotus` + `oj`) is the reference implementation. New hosts/users must follow the same design contracts.
+The baseline (`lotus` + `oj`) remains the desktop reference implementation. Aura is the laptop/impermanence reference implementation. New hosts/users must follow the same design contracts.
 
 ## 2. Platform and Scope
 1. Platform is `x86_64-linux` only.
@@ -23,9 +23,13 @@ The flake must define these inputs:
 2. `flake-parts`
 3. `import-tree`
 4. `home-manager` (follows `nixpkgs`)
-5. `wrappers` (optional; follows `nixpkgs`; reserved for future wrapped binaries)
-6. `treefmt-nix` (follows `nixpkgs`)
-7. `nix-monitor` (follows `nixpkgs`)
+5. `sops-nix` for hosts that use encrypted secrets
+6. `disko` for declarative disk layout on hosts such as Aura
+7. `preservation` for impermanence/persistence on hosts such as Aura
+8. `wrappers` for exceptional wrapped binaries
+9. `treefmt-nix` for formatting checks
+10. assistant/tool inputs such as `codex-cli-nix`, `claude-code`, `mcp-nixos`, and `hermes-agent`
+11. desktop/program inputs such as `niri`, `dms`, `nixvim`, `zen-browser`, `nix-monitor`, `herdr`, and `nix-sweep`
 
 ## 4. Flake Entrypoint
 `flake.nix` remains thin and only:
@@ -38,16 +42,17 @@ No host/user composition logic lives directly in `flake.nix`.
 ## 5. Output Model
 ### 5.1 Baseline outputs (required)
 1. `nixosConfigurations.lotus`
-2. `nixosModules.system`
-3. `nixosModules.userOj`
-4. `nixosModules.hostLotus`
-5. `homeModules.ojProfile`
-6. `homeModules.base`
-7. `homeModules.fish`
-8. `homeModules.aliasRegistry`
-9. `homeModules.aliasesCommon`
-10. `homeModules.environment`
-11. `homeModules.git`
+2. `nixosConfigurations.aura`
+3. `nixosModules.system`
+4. `nixosModules.userOj`
+5. `nixosModules.hostLotus`
+6. `nixosModules.hostAura`
+7. `nixosModules.hostAuraDisko`
+8. `nixosModules.hostAuraHardware`
+9. `nixosModules.hostAuraPreservation`
+10. `homeModules.ojLotusProfile`
+11. `homeModules.ojAuraProfile`
+12. reusable HM modules such as `homeModules.base`, `homeModules.fish`, `homeModules.git`, `homeModules.codex`, `homeModules.claude`, and `homeModules.pi`
 
 ### 5.2 Extensible pattern outputs
 For each scaffolded user `<user>`:
@@ -63,14 +68,24 @@ For each scaffolded host `<host>` bound to user `<user>`:
 `<User>` and `<Host>` follow scaffold naming (`[a-z][a-z0-9]*` input, first letter capitalized for module names).
 
 ### 5.3 Wrapped package scaffolding (reserved)
-1. `modules/wrappedPrograms/` is reserved for future wrapper modules.
-2. Current baseline does not require wrapper package outputs under `perSystem.packages.x86_64-linux`.
+1. `modules/wrappedPrograms/` is reserved for exceptional package wrappers.
+2. Current wrapped package outputs are `monsters-and-memories-launcher` and `orca-slicer`.
 3. Default behavior should be expressed through explicit Home Manager modules.
 
 ### 5.4 Optional development shells
 1. Optional language or environment shells may be exported under `devShells.<name>`.
 2. Dev shells live in `modules/dev/*.nix`.
 3. Dev shells are contributor environments, not replacements for `just` as the public runner.
+
+### 5.5 Host assistant composition
+1. Assistant modules are split by responsibility.
+2. `homeModules.codex` provides Codex CLI/config state and `mcp-nixos`.
+3. `homeModules.claude` provides Claude Code/config state.
+4. `homeModules.pi` provides Pi user-level ignores/aliases.
+5. `nixosModules.hermes` provides the Hermes system service and SOPS-backed environment files.
+6. `nixosModules.pi` provides Pi system bootstrap tooling.
+7. Aura imports only `homeModules.codex`.
+8. Lotus imports Codex, Claude, Pi, Hermes, and websearch proxy support.
 
 ## 6. Composition Contracts
 ### 6.1 flake-parts module (`modules/flake-parts.nix`)
@@ -79,7 +94,7 @@ For each scaffolded host `<host>` bound to user `<user>`:
 3. formatter set to `config.treefmt.build.wrapper`
 4. Nix formatter `alejandra` enabled
 
-### 6.2 NixOS core module (`modules/nixosModules/core/base.nix`)
+### 6.2 NixOS system module (`modules/nixosModules/programs/system.nix`)
 System-level baseline may include HM-first exceptions only:
 1. boot/kernel/hardware
 2. filesystems
@@ -89,7 +104,10 @@ System-level baseline may include HM-first exceptions only:
 6. root-owned services
 
 Current baseline includes:
-1. `security.sudo.enable = true`
+1. typed `my.primaryUser` and `my.users` contracts used by hosts and Home Manager wiring
+2. Nix daemon flakes support
+3. root/sudo diagnostic tools such as `ripgrep` and `sshfs`
+4. AppImage binfmt support
 
 ### 6.3 NixOS user module contract (`modules/nixosModules/users/<user>.nix`)
 Each host-declared user module must:
@@ -108,14 +126,8 @@ Each host-declared user module must:
 
 ### 6.4 Home Manager user profile contract (`modules/homeModules/users/<user>/<profile>.nix`)
 Each HM user profile module must:
-1. export `flake.homeModules.<user><Profile>` (baseline profile export is `ojProfile`)
-2. import shared HM modules explicitly (current baseline:
-   1. `self.homeModules.base`
-   2. `self.homeModules.fish`
-   3. `self.homeModules.aliasRegistry`
-   4. `self.homeModules.aliasesCommon`
-   5. `self.homeModules.environment`
-   6. `self.homeModules.git`)
+1. export `flake.homeModules.<user><Profile>` (baseline host-specific profile exports include `ojLotusProfile` and `ojAuraProfile`)
+2. import shared HM modules explicitly, either directly or through a user base module such as `self.homeModules.ojBase`
 3. set `home.stateVersion = "25.11"`
 4. set `programs.home-manager.enable = true`
 5. keep program-level behavior in focused reusable HM modules (for example `self.homeModules.bat`, `self.homeModules.eza`) and import them explicitly
@@ -139,7 +151,7 @@ Each host configuration must:
 7. pass only explicitly required HM args through `home-manager.extraSpecialArgs`; do not inject wrapper bundles by default
 8. set `my.primaryUser = "<user>"`
 9. derive HM wiring from `config.my.users.<user>`
-10. set `home-manager.users.<user>.imports = [ self.homeModules.<user><Profile> ]` (baseline profile export is `<user>Profile`)
+10. set `home-manager.users.<user>.imports = [ self.homeModules.<user><Profile> ]`, plus any host-selected reusable HM feature modules such as `codex`, `claude`, or `pi`
 11. set HM defaults:
    1. `home.username = "<user>"` (default)
    2. `home.homeDirectory = "/home/<user>"` (default)
@@ -148,6 +160,13 @@ Each host configuration must:
 ### 6.6 Host hardware contract (`modules/nixosModules/hosts/<host>/hardware-configuration.nix`)
 Each host hardware module must set:
 1. `nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux"`
+
+Aura-specific hardware/storage contract:
+1. `hostAuraHardware` tracks generated hardware facts without filesystem declarations.
+2. `hostAuraDisko` owns filesystem layout for full-disk install.
+3. `hostAuraPreservation` owns persisted mutable state.
+4. Aura uses tmpfs `/`, Btrfs `/nix`, and Btrfs `/persistent` under LUKS.
+5. Disko for Aura is destructive and must not be run without explicit install/reinstall intent.
 
 ### 6.7 Wrapped programs policy (`modules/wrappedPrograms/`)
 1. Wrapped programs are optional and are not part of baseline feature parity.
@@ -165,10 +184,10 @@ Each host hardware module must set:
 
 ### 6.9 Reusable Home module naming
 1. Reusable HM modules must be user-agnostic in both filename and exported name.
-2. User-scoped HM profiles must be exported as flat names under `flake.homeModules` (`<user><Profile>`, for example `ojProfile`, `aliceProfile`).
+2. User-scoped HM profiles must be exported as flat names under `flake.homeModules` (`<user><Profile>`, for example `ojLotusProfile`, `ojAuraProfile`, `aliceProfile`).
 3. Reusable HM modules should avoid duplicate basenames to keep tree reorganization non-semantic.
 4. Reusable HM modules should live in category directories (for example `shared/`, `programs/`, `desktop/`) and export neutral names (for example `base`, `fish`, `environment`, `bat`, `eza`, `brave`, `fastfetch`, `fzf`, `ghostty`, `mangohud`, `nixMonitor`, `starship`, `tlrc`, `vscode`, `zedEditor`, `zoxide`, `dms`, `niri`).
-5. User-scoped profile modules live under `modules/homeModules/users/<user>/` (for example `profile.nix`, `gaming.nix`).
+5. User-scoped profile modules live under `modules/homeModules/users/<user>/` (for example `profile.nix`, `lotus-profile.nix`, `aura-profile.nix`, `gaming.nix`).
 
 ### 6.10 Home module file layout and mutable runtime config policy
 1. A module is either a single file (`<name>.nix`) or a folder (`<name>/<name>.nix`) with all module-local assets (templates, default configs, docs) colocated under that folder.
@@ -208,27 +227,21 @@ Scaffolding is the standard path for adding new entities:
    3. `configs/users/<user>/hosts/<host>/` rendered from static host runtime-config templates
    4. host scaffolding is rendered from `scripts/templates/new-host/` with `<host>/<user>` placeholders
    5. generated hardware config is a placeholder that must be replaced with host-specific hardware data
-3. generated HM user profile modules import:
-   1. `self.homeModules.base`
-   2. `self.homeModules.fish`
-   3. `self.homeModules.aliasRegistry`
-   4. `self.homeModules.aliasesCommon`
-   5. `self.homeModules.environment`
-   6. `self.homeModules.git`
+3. generated HM user profile modules import the current shared baseline modules from `scripts/templates/new-user/`; existing users may split this into a shared `<user>Base` plus host-specific profiles such as `ojLotusProfile` and `ojAuraProfile`
 4. after scaffolding:
    1. edit `modules/nixosModules/users/<user>.nix` for identity and admin settings
-   2. edit `modules/homeModules/users/<user>/profile.nix` for packages, flatpaks, and session variables
+   2. edit `modules/homeModules/users/<user>/profile.nix` or `*-profile.nix` for packages, flatpaks, and session variables
 
 Naming rules:
 1. `<host>` and `<user>` must match `^[a-z][a-z0-9]*$`
-2. scaffolded NixOS module suffixes are first-letter capitalized (`userAlice`, `hostLaptop`), while HM profile exports use flat concatenated names (`homeModules.<user>Profile`)
+2. scaffolded NixOS module suffixes are first-letter capitalized (`userAlice`, `hostLaptop`), while HM profile exports use flat concatenated names (`homeModules.<user>Profile` or host-specific variants such as `homeModules.<user><Host>Profile`)
 3. reusable HM modules must not carry a specific username in filename or export name
 
 ## 8. Command Surface
 The supported interface is:
 1. `just fmt`
 2. `just check`
-3. `just check-vm`
+3. `just check-vm host=<host>`
 4. `just switch [host=<host>]`
 5. `just new-user user=<user>`
 6. `just new-host host=<host> user=<user>`
@@ -246,11 +259,13 @@ Do not use `just switch` for routine validation on this already configured machi
 Required validation flow before merge:
 1. `just fmt`
 2. `just check`
-3. `just check-vm`
+3. `just check-vm host=<host>` for changed hosts
 
-`just check-vm` must build:
-1. `.#nixosConfigurations.lotus.config.system.build.toplevel`
-2. `.#nixosConfigurations.lotus.config.system.build.vm`
+`just check-vm host=<host>` must build:
+1. `.#nixosConfigurations.<host>.config.system.build.toplevel`
+2. `.#nixosConfigurations.<host>.config.system.build.vm`
+
+When validating a dirty working tree with direct Nix commands, prefer path flake refs and use `--option eval-cache false` if Nix reports invalid dirty-source store paths.
 
 ## 10. Non-goals
 1. No standalone `homeConfigurations` output.
@@ -267,6 +282,6 @@ Required validation flow before merge:
 5. Program and tool behavior is modeled through explicit Home Manager modules (module-first), with wrappers reserved for exceptional future cases.
 6. Scaffolding commands generate PRD-compliant module boilerplate without manual flake wiring.
 7. `just check` passes.
-8. `just check-vm` passes without switching the live system.
+8. `just check-vm host=<host>` passes without switching the live system for changed hosts when practical.
 9. Mutable UI-driven runtime configs follow the layered copy-sync helper flow (`runtime-config-helper` + `just config-update`) instead of immutable HM store links.
-10. First-install key bootstrap command stages age + host SSH keys into target user home for install-time and post-install usage.
+10. Aura installs through reviewed Disko/preservation configuration and preserves only state declared in `hostAuraPreservation`.

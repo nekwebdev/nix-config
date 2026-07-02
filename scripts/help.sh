@@ -16,6 +16,7 @@ Scaffolding:
 
 Runtime config:
   just config-update
+  just config-update dry=--dry-run
   just update host=<host>
 
 Secrets (dotenv in-place helpers):

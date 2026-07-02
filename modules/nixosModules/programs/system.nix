@@ -79,8 +79,11 @@
         "flakes"
       ];
 
-      # HM-first exception: root/sudo diagnostics need this available outside user HM PATH.
-      environment.systemPackages = [pkgs.ripgrep];
+      # HM-first exception: root/sudo diagnostics and system mounts need these outside user HM PATH.
+      environment.systemPackages = [
+        pkgs.ripgrep
+        pkgs.sshfs
+      ];
 
       # HM-first exception: AppImage binfmt registration is system-level kernel/runtime plumbing.
       programs.appimage = {

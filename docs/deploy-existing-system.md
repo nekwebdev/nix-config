@@ -2,7 +2,7 @@
 
 Use this flow for changes on a machine that is already installed and already managed by this repo.
 
-For first install from a live ISO, use [install-new-system.md](/home/oj/.config/nixos/docs/install-new-system.md).
+For first install from a live ISO, use [install-new-system.md](install-new-system.md).
 
 ## Working Location
 
@@ -33,7 +33,7 @@ Update the repo contents, then validate before switching:
 ```bash
 just fmt
 just check
-just check-vm
+just check-vm host=<host>
 ```
 
 Apply the configuration to the current machine:
@@ -62,7 +62,7 @@ just new-host host=<host> user=<user>
 Then edit the generated modules and configs:
 
 - `modules/nixosModules/users/<user>.nix` for identity and admin settings
-- `modules/homeModules/users/<user>/profile.nix` for packages, flatpaks, and session variables
+- `modules/homeModules/users/<user>/profile.nix` or `*-profile.nix` for packages, flatpaks, and session variables
 
 For a new host, replace the scaffolded hardware file with hardware data generated on the real machine before install or switch.
 
@@ -72,11 +72,30 @@ If you changed a UI-managed app config on the live system and want to pull it ba
 
 ```bash
 just config-update
+just config-update dry=--dry-run
 ```
+
+The dry-run form prints git-style diffs for repo files that would be updated.
+
+## Host-Specific Notes
+
+Lotus:
+
+- uses `ojLotusProfile`
+- imports Codex, Claude, Pi, Hermes, websearch proxy, Docker, virtualization, NVIDIA, and UniFi support
+- uses SOPS for Hermes/websearch secrets
+
+Aura:
+
+- uses `ojAuraProfile`
+- imports Codex only among assistant modules
+- uses Disko and preservation for a full impermanence setup
+- does not use SOPS, Hermes, Claude, or Pi
+- do not run Disko against an existing Aura install during normal deployment; Disko is install-time/destructive unless you are deliberately reinstalling
 
 ## Notes
 
-- Use `just check` and `just check-vm` as the default validation path.
+- Use `just check` and `just check-vm host=<host>` as the default validation path.
 - Keep `flake.lock` updates intentional.
 - Keep the temporary NVIDIA CDI udev workaround in `modules/nixosModules/programs/nvidia.nix` until upstream nixpkgs fixes the trailing quote typo in `nixos/modules/services/hardware/nvidia-container-toolkit/default.nix`.
 - On each input update (`just update` / `flake.lock` change), re-check upstream and remove the local override once the fix lands.
