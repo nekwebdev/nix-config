@@ -44,6 +44,7 @@
     zramSwap.enable = true;
 
     # HM-first exception: these are privileged system services.
+    services.upower.enable = true;
     services.power-profiles-daemon.enable = true;
     services.accounts-daemon.enable = true;
     services.gvfs.enable = true;

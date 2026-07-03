@@ -63,6 +63,10 @@
 
         # HM-first exception: resolver behavior is host networking plumbing.
         services.resolved.enable = lib.mkForce false;
+        networking.networkmanager.insertNameservers = [
+          "1.1.1.1"
+          "9.9.9.9"
+        ];
 
         # HM-first exception: laptop firmware updates and Intel thermal policy are host hardware services.
         services.fwupd.enable = true;

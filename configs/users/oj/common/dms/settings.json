@@ -625,8 +625,8 @@
           "id": "notificationButton"
         },
         {
-          "enabled": true,
-          "id": "battery"
+          "id": "battery",
+          "enabled": true
         },
         {
           "enabled": true,

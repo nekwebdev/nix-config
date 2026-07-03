@@ -23,6 +23,10 @@ user="${1:-}"
 shift || true
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+if [[ "${user}" == user=* ]]; then
+  user="${user#user=}"
+fi
+
 if [[ -z "${user}" ]]; then
   usage
   exit 1

@@ -18,7 +18,6 @@
             directory = "/var/tmp";
             mode = "1777";
           }
-          "/etc/cups"
           "/etc/NetworkManager/system-connections"
           "/var/lib/AccountsService"
           "/var/lib/cups"
@@ -86,7 +85,11 @@
                 directory = ".ssh";
                 mode = "0700";
               }
+              ".cache/fontconfig"
+              ".cache/gtk-4.0"
+              ".cache/mesa_shader_cache"
               ".cache/nix"
+              ".cache/thumbnails"
               ".bun"
               ".config/BraveSoftware"
               ".config/DankMaterialShell"
@@ -94,6 +97,7 @@
               ".config/VSCodium"
               ".config/codex"
               ".config/dconf"
+              ".config/faugus-launcher"
               ".config/fish"
               ".config/gh"
               ".config/gtk-3.0"
@@ -104,6 +108,8 @@
               ".config/nixos"
               ".config/obsidian"
               ".config/ovpn"
+              ".config/pi-agents"
+              ".config/systemd/user"
               ".config/xfce4"
               ".config/zed"
               ".gnupg"
@@ -118,9 +124,12 @@
               ".local/share/keyrings"
               ".local/share/mime"
               ".local/share/mise"
+              ".local/share/nautilus"
               ".local/share/nvim"
               ".local/share/pnpm"
+              ".local/share/umu"
               ".local/share/uv"
+              ".local/share/warden"
               ".local/share/zed"
               ".local/share/zoxide"
               ".local/state/DankMaterialShell"
@@ -139,8 +148,10 @@
               "Desktop"
               "Documents"
               "Downloads"
+              "Faugus"
               "Games"
               "Music"
+              "Mounts"
               "Pictures"
               "Projects"
               "Videos"

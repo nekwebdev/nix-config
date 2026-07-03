@@ -70,6 +70,7 @@ pull_exclude_repo_rel_paths=(
 list_maps() {
   cat <<'MAPS'
 dms
+matugen-generated
 niri
 zed
 MAPS
@@ -86,6 +87,16 @@ list_sync_entries() {
 # Target paths are relative to HOME.
 
 dir|dms|.config/DankMaterialShell
+ENTRIES
+      ;;
+    matugen-generated)
+      cat <<'ENTRIES'
+# kind|source_rel|target_rel
+# Source paths are relative to layered config roots.
+# Target paths are relative to HOME.
+
+dir|matugen-generated/config|.config
+dir|matugen-generated/local/share|.local/share
 ENTRIES
       ;;
     niri)

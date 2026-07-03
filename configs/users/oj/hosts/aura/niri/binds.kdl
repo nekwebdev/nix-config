@@ -115,6 +115,7 @@ binds {
     Mod+Alt+P { power-off-monitors; }
     Mod+Ctrl+P { screenshot-screen; }
     Mod+Shift+P { screenshot; }
+    XF86SelectiveScreenshot { screenshot; }
     Ctrl+Alt+Delete { quit; }
     Mod+Shift+E { quit; }
     Mod+D hotkey-overlay-title="Run an Application: fuzzel" { spawn "fuzzel"; }

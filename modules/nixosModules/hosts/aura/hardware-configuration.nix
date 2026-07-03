@@ -38,6 +38,13 @@
       };
     };
 
+    # HM-first exception: host camera diagnostics need direct access to hardware tooling.
+    environment.systemPackages = with pkgs; [
+      libcamera
+      libcamera-qcam
+      v4l-utils
+    ];
+
     swapDevices = [];
 
     nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";

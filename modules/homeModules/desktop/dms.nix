@@ -31,6 +31,15 @@
           ${pkgs.bash}/bin/bash ${runtimeConfigHelper} seed dms
       '';
 
+      # Seed matugen-generated outputs as plain files so apps have theme files
+      # before DMS runs its first live generation pass.
+      home.activation.dmsGeneratedThemeConfigs = lib.hm.dag.entryBetween ["onFilesChange"] ["linkGeneration"] ''
+        $DRY_RUN_CMD ${pkgs.coreutils}/bin/env \
+          RUNTIME_CONFIG_USER=${lib.escapeShellArg runtimeUser} \
+          RUNTIME_CONFIG_HOST=${lib.escapeShellArg runtimeHost} \
+          ${pkgs.bash}/bin/bash ${runtimeConfigHelper} seed matugen-generated
+      '';
+
       programs.dank-material-shell = {
         enable = true;
         systemd.enable = true;

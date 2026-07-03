@@ -23,17 +23,34 @@ render_host_template() {
     "${template_path}" > "${output_path}"
 }
 
-host="${1:-}"
-user="${2:-}"
+host=""
+user=""
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-if [[ -z "${host}" || -z "${user}" ]]; then
-  usage
-  exit 1
-fi
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    host=*)
+      host="${1#host=}"
+      ;;
+    user=*)
+      user="${1#user=}"
+      ;;
+    *)
+      if [[ -z "${host}" ]]; then
+        host="$1"
+      elif [[ -z "${user}" ]]; then
+        user="$1"
+      else
+        echo "error: too many arguments" >&2
+        usage
+        exit 1
+      fi
+      ;;
+  esac
+  shift
+done
 
-if [[ $# -gt 2 ]]; then
-  echo "error: too many arguments" >&2
+if [[ -z "${host}" || -z "${user}" ]]; then
   usage
   exit 1
 fi

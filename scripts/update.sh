@@ -3,6 +3,10 @@ set -euo pipefail
 
 host="${1:-}"
 
+if [[ "${host}" == host=* ]]; then
+	host="${host#host=}"
+fi
+
 if [[ -z "${host}" ]]; then
 	host="${HOSTNAME:-$(hostname --short 2>/dev/null || hostname 2>/dev/null || true)}"
 fi
