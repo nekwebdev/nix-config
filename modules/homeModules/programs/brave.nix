@@ -10,9 +10,5 @@
         "nngceckbapebfimnlniiiahkandclblb" # Bitwarden
       ];
     };
-
-    home.sessionVariables = {
-      BROWSER = "brave";
-    };
   };
 }

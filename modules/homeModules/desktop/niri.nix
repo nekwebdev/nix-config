@@ -99,6 +99,8 @@
             repeat-rate = 35;
           };
 
+          touchpad.tap = false;
+
           focus-follows-mouse.enable = true;
           focus-follows-mouse.max-scroll-amount = "0%";
         };

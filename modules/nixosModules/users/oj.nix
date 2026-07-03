@@ -21,6 +21,7 @@
           ++ lib.optional config.services.greetd.enable "greeter"
           ++ lib.optional hermesAgentEnabled "hermes"
           ++ lib.optional config.networking.networkmanager.enable "networkmanager"
+          ++ lib.optional config.hardware.sane.enable "scanner"
           ++ lib.optionals config.services.printing.enable [
             "lp"
             "lpadmin"

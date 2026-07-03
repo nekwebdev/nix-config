@@ -74,6 +74,7 @@
         pkgs.nodejs
         pkgs.pnpm
         pkgs.protonup-qt
+        pkgs.simple-scan
         pkgs.faugus-launcher
         pkgs.mpv
       ];

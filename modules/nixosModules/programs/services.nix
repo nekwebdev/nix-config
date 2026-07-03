@@ -48,6 +48,8 @@
     services.power-profiles-daemon.enable = true;
     services.accounts-daemon.enable = true;
     services.gvfs.enable = true;
+    services.gnome.localsearch.enable = true;
+    services.gnome.tinysparql.enable = true;
     services.tumbler.enable = true;
     services.udisks2.enable = true;
 
@@ -79,6 +81,12 @@
       drivers = with pkgs; [
         canon-capt
       ];
+    };
+
+    # HM-first exception: scanner backend registration and USB device access are host hardware policy.
+    hardware.sane = {
+      enable = true;
+      dsseries.enable = true;
     };
   };
 }

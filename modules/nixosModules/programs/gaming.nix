@@ -21,6 +21,8 @@
 
     environment.systemPackages = [pkgs.protontricks];
 
+    programs.gamescope.enable = true;
+
     # HM-first exception: gamemode is a privileged system service.
     programs.gamemode.enable = true;
   };

@@ -12,5 +12,19 @@
         };
       };
     };
+
+    xdg.mimeApps = let
+      zenDesktop = "zen-beta.desktop";
+    in {
+      enable = true;
+      defaultApplications = {
+        "application/vnd.mozilla.xul+xml" = zenDesktop;
+        "application/xhtml+xml" = zenDesktop;
+        "text/html" = zenDesktop;
+        "text/xml" = zenDesktop;
+        "x-scheme-handler/http" = zenDesktop;
+        "x-scheme-handler/https" = zenDesktop;
+      };
+    };
   };
 }

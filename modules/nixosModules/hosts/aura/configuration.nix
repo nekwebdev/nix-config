@@ -27,6 +27,7 @@
       self.nixosModules.policy
       self.nixosModules.services
       self.nixosModules.tailscale
+      self.nixosModules.lotusHomeSshfs
       self.nixosModules.hostAuraDisko
       self.nixosModules.hostAuraHardware
       self.nixosModules.hostAuraPreservation
@@ -71,6 +72,14 @@
         # HM-first exception: laptop firmware updates and Intel thermal policy are host hardware services.
         services.fwupd.enable = true;
         services.thermald.enable = true;
+
+        # HM-first exception: lid handling is systemd-logind host power policy.
+        services.logind.settings.Login = {
+          HandleLidSwitch = "suspend";
+          HandleLidSwitchExternalPower = "suspend";
+          HandleLidSwitchDocked = "suspend";
+          LidSwitchIgnoreInhibited = "no";
+        };
 
         # HM-first exception: bootloader/EFI are host-level boot plumbing.
         boot.loader.systemd-boot.enable = true;

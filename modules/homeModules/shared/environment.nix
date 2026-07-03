@@ -9,6 +9,7 @@
     home.sessionVariables = {
       XDG_BIN_HOME = "${config.home.homeDirectory}/.local/bin";
       NPM_CONFIG_PREFIX = "${config.home.homeDirectory}/.local";
+      BROWSER = "zen-beta";
       EDITOR = "nvim";
       VISUAL = "nvim";
     };
