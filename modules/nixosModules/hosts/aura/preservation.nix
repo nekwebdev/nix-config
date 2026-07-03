@@ -27,6 +27,12 @@
           "/var/lib/flatpak"
           "/var/lib/fprint"
           "/var/lib/fwupd"
+          {
+            directory = "/var/lib/dms-greeter";
+            user = "greeter";
+            group = "greeter";
+            mode = "0750";
+          }
           "/var/lib/power-profiles-daemon"
           "/var/lib/systemd/backlight"
           "/var/lib/systemd/coredump"
@@ -88,6 +94,7 @@
               ".config/VSCodium"
               ".config/codex"
               ".config/dconf"
+              ".config/fish"
               ".config/gh"
               ".config/gtk-3.0"
               ".config/gtk-4.0"
@@ -116,6 +123,7 @@
               ".local/share/uv"
               ".local/share/zed"
               ".local/share/zoxide"
+              ".local/state/DankMaterialShell"
               ".local/state/home-manager"
               ".local/state/mise"
               ".local/state/nvim"
