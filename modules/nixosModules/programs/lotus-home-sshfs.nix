@@ -5,6 +5,7 @@
     ...
   }: let
     mountPoint = "/home/oj/Mounts/lotus-home";
+    mountUnit = "home-oj-Mounts-lotus\\x2dhome.mount";
     mountOptions = [
       "allow_other"
       "default_permissions"
@@ -35,14 +36,18 @@
         "d ${mountPoint} 0755 oj oj -"
       ];
 
-      systemd.automounts = [
-        {
-          description = "Automount Lotus home over SSHFS";
-          where = mountPoint;
-          wantedBy = ["multi-user.target"];
-          automountConfig.TimeoutIdleSec = "5min";
-        }
-      ];
+      # SSHFS/FUSE does not support systemd's remount/reload path. When
+      # switch-to-configuration queues this mount for reload, stop it first so
+      # activation can start it cleanly instead of failing the switch.
+      system.activationScripts.lotusHomeSshfsAvoidFuseRemount = ''
+        reloadList=/run/nixos/reload-list
+
+        if [ -e "$reloadList" ] && ${pkgs.gnugrep}/bin/grep -qx '${mountUnit}' "$reloadList"; then
+          ${pkgs.util-linux}/bin/umount -l '${mountPoint}' 2>/dev/null || true
+          ${pkgs.coreutils}/bin/timeout 5s ${pkgs.systemd}/bin/systemctl stop '${mountUnit}' 2>/dev/null || true
+          ${pkgs.systemd}/bin/systemctl reset-failed '${mountUnit}' 2>/dev/null || true
+        fi
+      '';
 
       systemd.mounts = [
         {
@@ -62,6 +67,19 @@
           mountConfig.TimeoutSec = "30s";
         }
       ];
+
+      systemd.services.lotus-home = {
+        description = "Manual Lotus home SSHFS mount";
+        requires = [mountUnit];
+        after = [mountUnit];
+
+        serviceConfig = {
+          Type = "oneshot";
+          RemainAfterExit = true;
+          ExecStart = "${pkgs.coreutils}/bin/true";
+          ExecStop = "${pkgs.util-linux}/bin/umount -l ${mountPoint}";
+        };
+      };
     };
   };
 }

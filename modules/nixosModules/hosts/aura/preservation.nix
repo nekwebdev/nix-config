@@ -96,6 +96,7 @@
               ".cache/fastfetch"
               ".cache/fontconfig"
               ".cache/fish"
+              ".cache/gnome-desktop-thumbnailer"
               ".cache/gtk-4.0"
               ".cache/mesa_shader_cache"
               ".cache/nix"

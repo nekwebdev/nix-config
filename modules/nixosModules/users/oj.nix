@@ -31,6 +31,7 @@
       # HM-first exception: users/groups are system-level declarations.
       users.users.${user.username} = {
         isNormalUser = true;
+        uid = 1000;
         group = user.primaryGroup;
         home = lib.mkDefault user.homeDirectory;
         extraGroups = user.extraGroups;
@@ -38,7 +39,9 @@
         initialHashedPassword = bootstrapPasswordHash;
       };
 
-      users.groups.${user.primaryGroup} = {};
+      users.groups.${user.primaryGroup} = {
+        gid = 993;
+      };
 
       # HM-first exception: trusted users are a global daemon policy concern.
       nix.settings.trusted-users = lib.optionals user.isAdmin [user.username];
