@@ -42,7 +42,7 @@
       system.activationScripts.lotusHomeSshfsAvoidFuseRemount = ''
         reloadList=/run/nixos/reload-list
 
-        if [ -e "$reloadList" ] && ${pkgs.gnugrep}/bin/grep -qx '${mountUnit}' "$reloadList"; then
+        if [ -e "$reloadList" ] && ${pkgs.gnugrep}/bin/grep -Fqx '${mountUnit}' "$reloadList"; then
           ${pkgs.util-linux}/bin/umount -l '${mountPoint}' 2>/dev/null || true
           ${pkgs.coreutils}/bin/timeout 5s ${pkgs.systemd}/bin/systemctl stop '${mountUnit}' 2>/dev/null || true
           ${pkgs.systemd}/bin/systemctl reset-failed '${mountUnit}' 2>/dev/null || true
