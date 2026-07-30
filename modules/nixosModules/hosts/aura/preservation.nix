@@ -191,6 +191,7 @@
             ];
             files = [
               ".bash_history"
+              ".local/share/recently-used.xbel"
             ];
           };
 
