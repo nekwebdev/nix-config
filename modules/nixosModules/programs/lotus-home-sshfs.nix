@@ -21,10 +21,68 @@
       "UserKnownHostsFile=/home/oj/.ssh/known_hosts"
       "idmap=user"
     ];
+    lotusHomeStart = pkgs.writeShellScript "lotus-home-start" ''
+      set -euo pipefail
+
+      if ${pkgs.util-linux}/bin/mountpoint -q '${mountPoint}'; then
+        echo "lotus-home: already mounted at ${mountPoint}"
+        exit 0
+      fi
+
+      echo "lotus-home: checking Tailscale SSH auth for oj@lotus"
+      echo "lotus-home: if a Tailscale auth URL appears, open it and approve; this start waits up to 5 minutes"
+      ${pkgs.util-linux}/bin/runuser -u oj -- ${pkgs.coreutils}/bin/env \
+        HOME=/home/oj \
+        USER=oj \
+        LOGNAME=oj \
+        XDG_CONFIG_HOME=/home/oj/.config \
+        PATH="${lib.makeBinPath [pkgs.openssh pkgs.tailscale]}" \
+        ${pkgs.tailscale}/bin/tailscale ssh oj@lotus true
+
+      echo "lotus-home: Tailscale SSH auth OK; starting ${mountUnit}"
+      ${pkgs.systemd}/bin/systemctl start '${mountUnit}'
+      ${pkgs.util-linux}/bin/mountpoint -q '${mountPoint}'
+      echo "lotus-home: mounted ${mountPoint}"
+    '';
+    lotusHomeStop = pkgs.writeShellScript "lotus-home-stop" ''
+      set -euo pipefail
+
+      ${pkgs.systemd}/bin/systemctl stop '${mountUnit}' 2>/dev/null || true
+      ${pkgs.util-linux}/bin/umount -l '${mountPoint}' 2>/dev/null || true
+    '';
+    lotusHomeMount = pkgs.writeShellScriptBin "lotus-home-mount" ''
+      set -euo pipefail
+
+      unit=lotus-home.service
+      mount_unit='${mountUnit}'
+      tail_pid=""
+
+      cleanup() {
+        if [ -n "$tail_pid" ]; then
+          kill "$tail_pid" 2>/dev/null || true
+          wait "$tail_pid" 2>/dev/null || true
+        fi
+      }
+
+      /run/wrappers/bin/sudo -v
+
+      echo "lotus-home: starting $unit; streaming logs until start finishes"
+      /run/wrappers/bin/sudo ${pkgs.systemd}/bin/journalctl --no-pager -n 0 -f -u "$unit" -u "$mount_unit" &
+      tail_pid=$!
+      trap cleanup EXIT INT TERM
+      ${pkgs.coreutils}/bin/sleep 0.2
+
+      /run/wrappers/bin/sudo ${pkgs.systemd}/bin/systemctl start "$unit"
+      ${pkgs.coreutils}/bin/sleep 0.2
+      echo "lotus-home: start finished"
+    '';
   in {
     config = {
       # HM-first exception: this is a root-owned system mount, triggered by systemd.
-      environment.systemPackages = [pkgs.sshfs];
+      environment.systemPackages = [
+        pkgs.sshfs
+        lotusHomeMount
+      ];
 
       programs.fuse = {
         enable = true;
@@ -52,6 +110,8 @@
       systemd.mounts = [
         {
           description = "Mount Lotus home over SSHFS";
+          # Manual-only: started by lotus-home.service/lotus-home-mount, not boot.
+          wantedBy = [];
           what = "oj@100.112.114.97:/home/oj";
           where = mountPoint;
           type = "fuse.sshfs";
@@ -70,14 +130,27 @@
 
       systemd.services.lotus-home = {
         description = "Manual Lotus home SSHFS mount";
-        requires = [mountUnit];
-        after = [mountUnit];
+        # Manual-only: do not start at boot, and do not restart during nixos-rebuild switch.
+        wantedBy = [];
+        restartIfChanged = false;
+        stopIfChanged = false;
+        wants = [
+          "network-online.target"
+          "tailscaled.service"
+        ];
+        after = [
+          "network-online.target"
+          "tailscaled.service"
+        ];
 
         serviceConfig = {
           Type = "oneshot";
           RemainAfterExit = true;
-          ExecStart = "${pkgs.coreutils}/bin/true";
-          ExecStop = "${pkgs.util-linux}/bin/umount -l ${mountPoint}";
+          TimeoutStartSec = "5min";
+          StandardOutput = "journal+console";
+          StandardError = "journal+console";
+          ExecStart = "${lotusHomeStart}";
+          ExecStop = "${lotusHomeStop}";
         };
       };
     };
