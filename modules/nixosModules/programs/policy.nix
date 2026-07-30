@@ -102,9 +102,14 @@
     programs.nix-ld = {
       enable = true;
       libraries = with pkgs; [
+        fontconfig
+        icu
         libcap
-        xz
+        libice
+        libsm
+        libx11
         openssl
+        xz
         zlib
       ];
     };
