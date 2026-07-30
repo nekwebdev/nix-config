@@ -86,7 +86,7 @@
     # HM-first exception: scanner backend registration and USB device access are host hardware policy.
     hardware.sane = {
       enable = true;
-      dsseries.enable = true;
+      brscan5.enable = true;
     };
   };
 }
